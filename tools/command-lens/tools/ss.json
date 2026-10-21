@@ -1,0 +1,41 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "ss",
+  "name": "ss",
+  "aliases": ["netstat", "sockets", "connections"],
+  "kind": "native",
+  "shells": [{ "id": "bash" }, { "id": "zsh" }],
+  "category": "network",
+  "summary": "Lists sockets (iproute2); the modern replacement for netstat.",
+  "action": "lists network sockets",
+  "description": "Options pick socket types and output; the trailing filter expression narrows by address, port and state. The filter is passed as one quoted argument, so its parentheses never reach the shell.",
+  "source": "https://man7.org/linux/man-pages/man8/ss.8.html",
+  "requires": { "elevation": "recommended", "note": "-p shows other users' processes only as root" },
+  "io": { "stdin": "none", "stdout": "text" },
+  "template": "{binary} {flags} {filter}",
+  "composites": [
+    { "id": "filter", "slot": "filter", "join": " and ", "quote": "shell", "explain": "filter" }
+  ],
+  "params": [
+    { "id": "tcp", "label": "TCP", "type": "bool", "flag": "-t", "common": true, "explain": "TCP sockets" },
+    { "id": "udp", "label": "UDP", "type": "bool", "flag": "-u", "common": true, "explain": "UDP sockets" },
+    { "id": "listening", "label": "Listening only", "type": "bool", "flag": "-l", "common": true, "conflicts": ["allStates"], "explain": "listening sockets only" },
+    { "id": "allStates", "label": "All states", "type": "bool", "flag": "-a", "conflicts": ["listening"], "explain": "listening and connected" },
+    { "id": "numeric", "label": "Numeric", "type": "bool", "flag": "-n", "common": true, "explain": "numeric addresses and ports (no DNS)" },
+    { "id": "processes", "label": "Show process", "type": "bool", "flag": "-p", "common": true, "explain": "with the owning process and PID" },
+    { "id": "extended", "label": "Extended", "type": "bool", "flag": "-e", "explain": "with UID and inode" },
+    { "id": "state", "label": "State", "type": "enum", "composite": "filter", "fragment": "state {v}",
+      "enum": ["established", "listening", "syn-sent", "syn-recv", "time-wait", "close-wait", "connected"], "explain": "in state {value}" },
+    { "id": "dst", "label": "Remote address", "type": "string", "composite": "filter", "fragment": "dst {v}", "repeatable": true, "repeatJoin": " or ", "ioc": ["ipv4", "ipv6"],
+      "validate": "^[0-9A-Fa-f:.\\[\\]/]+(:\\d+)?$", "validateMsg": "an IP, CIDR or IP:port",
+      "bulk": { "multi": {} }, "placeholder": "198.51.100.23", "explain": "to {value}" },
+    { "id": "dport", "label": "Remote port", "type": "int", "composite": "filter", "fragment": "dport = :{v}", "repeatable": true, "repeatJoin": " or ", "explain": "remote port {value}" },
+    { "id": "sport", "label": "Local port", "type": "int", "composite": "filter", "fragment": "sport = :{v}", "repeatable": true, "repeatJoin": " or ", "explain": "local port {value}" }
+  ],
+  "presets": [
+    { "id": "listeners", "name": "Listening TCP/UDP with process", "values": { "tcp": true, "udp": true, "listening": true, "numeric": true, "processes": true }, "ttps": ["T1049", "T1571"] },
+    { "id": "established", "name": "Established TCP with process", "values": { "tcp": true, "numeric": true, "processes": true, "state": "established" }, "ttps": ["T1049", "T1071"] },
+    { "id": "to-ioc", "name": "Connections to an IOC address", "values": { "tcp": true, "allStates": true, "numeric": true, "processes": true, "dst": "198.51.100.23" }, "ttps": ["T1071", "T1095"] }
+  ],
+  "ttps": ["T1049"]
+}

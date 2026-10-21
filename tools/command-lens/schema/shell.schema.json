@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pearmanref.github.io/command-lens/schema/shell.schema.json",
+  "title": "Command Lens shell definition",
+  "type": "object",
+  "required": ["id", "name"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+    "extends": { "type": "string", "description": "Inherit everything from this shell; only overrides go here." },
+    "name": { "type": "string" },
+    "order": { "type": "number", "description": "Position in the shell switcher." },
+    "os": { "enum": ["linux", "windows", "macos", "any"] },
+    "versions": { "type": "array", "items": { "type": "string" }, "description": "Selectable versions, oldest first. Drives the version toggle." },
+    "prompt": { "type": "string" },
+    "highlight": { "type": "string" },
+    "context": { "enum": ["interactive", "batch"] },
+    "quoting": {
+      "type": "object", "required": ["strategy"], "additionalProperties": false,
+      "properties": { "strategy": { "enum": ["posix", "powershell", "cmd"] }, "zsh": { "type": "boolean" } }
+    },
+    "comment": {
+      "type": "object", "additionalProperties": false,
+      "properties": { "token": { "type": "string" }, "interactive": { "type": "boolean" }, "note": { "type": "string" } }
+    },
+    "continuation": { "type": "string" },
+    "nullDevice": { "type": "string" },
+    "maxLineLength": { "type": "number" },
+    "operators": { "type": "array", "items": { "$ref": "#/$defs/operator" } },
+    "redirections": { "type": "array", "items": { "$ref": "#/$defs/redirection" } },
+    "loop": {
+      "type": "object", "required": ["template", "ref"], "additionalProperties": false,
+      "properties": { "template": { "type": "string" }, "ref": { "type": "string" }, "refInString": { "type": "string" }, "refExpr": { "type": "string" }, "note": { "type": "string" } }
+    },
+    "groups": { "type": "object", "additionalProperties": { "type": "array", "items": { "type": "string" } } },
+    "aliasShadows": { "type": "object" }
+  },
+  "$defs": {
+    "operator": {
+      "type": "object", "required": ["id", "symbol", "kind", "desc"], "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" }, "symbol": { "type": "string" },
+        "kind": { "enum": ["pipe", "pipe-all", "and", "or", "seq"] },
+        "desc": { "type": "string" },
+        "minVersion": { "type": "string" }, "maxVersion": { "type": "string" },
+        "fallback": { "type": "string", "description": "Template with {left} and {right}, used below minVersion." }
+      }
+    },
+    "redirection": {
+      "type": "object", "required": ["id", "symbol", "desc"], "additionalProperties": false,
+      "properties": { "id": { "type": "string" }, "symbol": { "type": "string" }, "target": { "enum": ["path", null] }, "desc": { "type": "string" } }
+    }
+  }
+}

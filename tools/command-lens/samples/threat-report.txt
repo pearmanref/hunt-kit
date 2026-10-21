@@ -1,0 +1,23 @@
+FICTIONAL SAMPLE — for testing Command Lens IOC extraction. Every indicator below is made up:
+IPs are RFC 5737 documentation ranges, domains use .example / .test, hashes are invented.
+
+Incident IR-2026-0314: "Loader drops svch0st.exe via fake updater"
+
+Summary
+On 14 March 2026 at 21:15 UTC a workstation beaconed to 198.51.100[.]23 over TCP 443 and to
+203.0.113[.]77:8080. A second stage was fetched from hxxp://cdn.badcorp[.]test/stage2/loader.ps1
+and saved as C:\Users\Public\Libraries\svch0st.exe. DNS lookups for update-check[.]example[.]net
+preceded each beacon. A Linux build server (192.0.2.146) showed a dropped ELF at /tmp/.x/kworkerd.
+
+Persistence
+- Run key: HKCU\Software\Microsoft\Windows\CurrentVersion\Run\WinUpdate -> "C:\Users\Public\Libraries\svch0st.exe -k netsvcs"
+- Scheduled task \UpdaterCheck running updater.exe as CORP\svc-backup (SID S-1-5-21-1004336348-1177238915-682003330-1105)
+
+Hashes
+- svch0st.exe  SHA256 9f2c4e6a8b0d1f3e5c7a9b2d4f6e8a0c1b3d5f7e9a2c4e6b8d0f1a3c5e7b9d2f
+- loader.ps1   SHA256 0a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f9
+- kworkerd     MD5    5d41402abc4b2a76b9719d911017c592
+
+Other
+Phishing e-mail came from billing[@]badcorp[.]test with attachment invoice_0314.docm.
+The IPv6 C2 fallback was 2001:db8::dead:beef. Analyst notes in report.pdf. Times: 21:15:02, 21:22:09.

@@ -1,0 +1,361 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FTK Runbook</title><link rel="stylesheet" href="../assets/site.css"></head><body data-base="../" class="doc">
+<header class="top"><a class="brand" href="../index.html">Hunt Kit</a><span class="crumb">FTK Runbook</span>
+<div class="search"><input id="q" type="search" placeholder="Search everything  ( / )" autocomplete="off"><div id="results" class="results" hidden></div></div>
+<a class="btn" href="../tools/hunt-notes.html" target="_blank">Hunt Notes</a><a class="btn" href="../pdf/ftk-runbook.pdf" title="Printable PDF">PDF</a>
+<button class="btn" id="tocBtn" title="Contents">☰</button><button class="btn" id="railBtn" title="Questions pane">Q</button><button class="btn" id="themeBtn" title="Theme">◐</button></header>
+<div class="layout"><nav id="toc" class="toc"><div class="toch">Contents</div><a class="l2" href="#step-0-pre-flight-5-min">Step 0 — Pre-flight (5 min)</a><a class="l2" href="#step-1-acquire-ftk-imager-10-20-min">Step 1 — Acquire (FTK
+Imager) (10–20 min)</a><a class="l2" href="#step-2-verify-2-min">Step 2 — Verify (2 min)</a><a class="l2" href="#step-3-create-the-case-and-process-10-min-setup-processing-r">Step
+3 — Create the case and process (10 min setup, processing runs in
+background)</a><a class="l2" href="#step-4-fast-triage-filters-overview-tab-10-min">Step 4 — Fast
+triage filters (Overview tab) (10 min)</a><a class="l2" href="#step-5-q1-what-is-running-that-should-not-be-prove-it-on-dis">Step
+5 — Q1: What is running that should not be? Prove it on disk (15
+min)</a><a class="l2" href="#step-6-index-search-your-lead-list-10-min-once-indexing-is-d">Step
+6 — Index Search your lead list (10 min, once indexing is done)</a><a class="l2" href="#step-7-q3-how-does-it-survive-a-reboot-15-min">Step 7 — Q3: How
+does it survive a reboot? (15 min)</a><a class="l2" href="#step-8-q4-and-q5-who-how-in-and-when-it-started-20-min">Step 8
+— Q4 and Q5: Who, how in, and when it started (20 min)</a><a class="l2" href="#step-9-optional-depth-only-if-time-remains">Step 9 — Optional
+depth (only if time remains)</a><a class="l2" href="#step-10-bookmark-and-report-10-min">Step 10 — Bookmark and
+report (10 min)</a><a class="l2" href="#pitfalls">Pitfalls</a></nav>
+<main class="content"><h1>FTK Investigation Runbook</h1>
+<p><em>Linear disk investigation in FTK Imager + FTK, aligned to the
+five questions</em></p>
+<p>Run top to bottom. Each step says what to do, what to look for, and
+what to record. Tool menus shift between FTK 7 and 8; the order holds.
+Commands and path tables live in the Execution Reference (§3, §7).
+Record everything in Hunt Notes with the source <code>FTK</code> or
+<code>FTK Imager</code>.</p>
+<p><strong>Where FTK fits.</strong> Memory first (Volatility), live
+triage second, disk third. Disk work in FTK <strong>proves and
+dates</strong> what memory and live triage found (Q1–Q3) and answers
+Q4–Q5. You arrive at step 1 with a lead list: names, paths, IPs, hashes,
+accounts. FTK searches for them; it does not replace them.</p>
+<hr/>
+<h2 id="step-0-pre-flight-5-min">Step 0 — Pre-flight (5 min)</h2>
+<ul class="task-list">
+<li><label><input type="checkbox"/>FTK database service running; you
+can log in (FTK won't open a case without it). Credentials come from
+whoever built the box. Ask, don't guess.</label></li>
+<li><label><input type="checkbox"/>Version: <code>Help → About</code>.
+Note it.</label></li>
+<li><label><input type="checkbox"/>Target host's <strong>system time
+zone</strong> known (from live triage, §1.1 / §2.1). You need it in step
+3.</label></li>
+<li><label><input type="checkbox"/>Output drive/path chosen. Nothing
+gets written to evidence media.</label></li>
+<li><label><input type="checkbox"/>Lead list open in Hunt Notes (IOC
+tab). These are your search terms in step 6.</label></li>
+</ul>
+<h2 id="step-1-acquire-ftk-imager-10-20-min">Step 1 — Acquire (FTK
+Imager) (10–20 min)</h2>
+<p>Skip if an image is provided. Go to step 2.</p>
+<ol type="1">
+<li><strong>Memory first if the box is live and not yet
+captured:</strong> <code>File → Capture Memory</code> → output path →
+<code>HOST_mem.mem</code> → Include pagefile (optional) → Capture. Hash
+it.</li>
+<li><strong>Locked hives fast</strong> (if you need the registry before
+a full image): <code>File → Obtain Protected Files</code> → <em>Password
+recovery and all registry files</em>.</li>
+<li><strong>Disk:</strong> <code>File → Create Disk Image</code> →
+Physical Drive (whole disk) or Logical Drive (one volume) → destination
+type <strong>E01</strong> → evidence info → check <strong>Verify images
+after they are created</strong> → Start.</li>
+<li>Keep the generated <code>.txt</code> log (MD5/SHA-1).</li>
+</ol>
+<p><strong>Record:</strong> image name, hashes, acquisition time (UTC).
+This is the integrity reference for every finding.</p>
+<h2 id="step-2-verify-2-min">Step 2 — Verify (2 min)</h2>
+<ul>
+<li>Provided image: FTK Imager →
+<code>File → Add Evidence Item → Image File</code> → right-click →
+<strong>Verify Drive/Image</strong>. Hash must match the provided value
+or the acquisition log.</li>
+<li><strong>Record:</strong> "image verified, MD5/SHA-1 match" with the
+time. If it doesn't match, stop and report. Analysis of an unverified
+image is not defensible.</li>
+</ul>
+<h2 id="step-3-create-the-case-and-process-10-min-setup-processing-r">Step
+3 — Create the case and process (10 min setup, processing runs in
+background)</h2>
+<ol type="1">
+<li><code>File → New Case</code> → name <code>CASE_&lt;host&gt;</code> →
+case folder on the output drive.</li>
+<li>Processing profile <strong>Forensics</strong> (not Field Mode, which
+skips indexing). <strong>Customize:</strong></li>
+</ol>
+<table>
+<thead>
+<tr class="header">
+<th>Turn on</th>
+<th>Leave off (time sinks)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>MD5 + SHA-1</td>
+<td>OCR</td>
+</tr>
+<tr class="even">
+<td>Flag Bad Extensions (file signature analysis)</td>
+<td>Explicit Image Detection</td>
+</tr>
+<tr class="odd">
+<td>Expand Compound Files</td>
+<td>Data Carving (add later in step 9 if needed)</td>
+</tr>
+<tr class="even">
+<td>dtSearch Text Index</td>
+<td>Video thumbnails</td>
+</tr>
+<tr class="odd">
+<td>KFF, if a library is configured</td>
+<td>Cerberus, unless time allows</td>
+</tr>
+<tr class="even">
+<td>Registry Reports</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<ol start="3" type="1">
+<li>Add evidence: <strong>Acquired Image of Drive</strong> → the
+E01/raw.</li>
+<li><strong>Time zone = the target's system time zone.</strong> Wrong
+zone shifts every timestamp you report.</li>
+<li>OK → processing starts. <strong>Browse while it runs</strong>: steps
+4–5 work on partial results. Index Search (step 6) is incomplete until
+indexing finishes.</li>
+</ol>
+<p><strong>Record:</strong> case created, profile, zone set, processing
+start time.</p>
+<h2 id="step-4-fast-triage-filters-overview-tab-10-min">Step 4 — Fast
+triage filters (Overview tab) (10 min)</h2>
+<p>Shrinks the disk to the files that matter. Work in this order:</p>
+<table>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Click</th>
+<th>Look for</th>
+<th>Feeds</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>a</td>
+<td>Overview → <strong>KFF Alert</strong></td>
+<td>Known-bad hash hits. Fastest win if a library is loaded</td>
+<td>Q1</td>
+</tr>
+<tr class="even">
+<td>b</td>
+<td>Overview → <strong>Bad Extension</strong></td>
+<td>Renamed executables (<code>.jpg</code> that is a PE)</td>
+<td>Q1</td>
+</tr>
+<tr class="odd">
+<td>c</td>
+<td>Overview → File Category → <strong>Executable</strong></td>
+<td>Sort Created/Modified desc. Anything in <code>Users\</code>,
+<code>Temp</code>, <code>ProgramData</code>, <code>Public</code>,
+<code>/tmp</code>, <code>/var/www</code></td>
+<td>Q1, Q5</td>
+</tr>
+<tr class="even">
+<td>d</td>
+<td>Overview → <strong>Deleted</strong></td>
+<td>Tools removed after use</td>
+<td>Q1, Q5</td>
+</tr>
+<tr class="odd">
+<td>e</td>
+<td>Overview → <strong>Encrypted</strong> / high entropy</td>
+<td>Packed payloads, staged archives</td>
+<td>Q1</td>
+</tr>
+</tbody>
+</table>
+<p>Turn on the <strong>KFF Ignorable</strong> filter to hide known-good
+OS files. Add columns (right-click header): Created, Modified, Accessed,
+Path, MD5, Bad Extension.</p>
+<p><strong>Record:</strong> each hit as an entry (time = the file's
+Created or Modified time in the zone you set, Q1). Bookmark it (step 10
+method).</p>
+<h2 id="step-5-q1-what-is-running-that-should-not-be-prove-it-on-dis">Step
+5 — Q1: What is running that should not be? Prove it on disk (15
+min)</h2>
+<p>For each process lead from memory/live triage:</p>
+<ol type="1">
+<li><strong>Explore</strong> tab → navigate to its path. Does the file
+exist? Size, MD5, Created/Modified.</li>
+<li>Bottom viewer → <strong>Hex</strong>: <code>MZ</code> = PE,
+<code>7F 45 4C 46</code> = ELF. Header vs extension.</li>
+<li>Right-click → <strong>Export</strong> → hash it SHA-256 on the
+analysis box (<code>Get-FileHash</code> / <code>sha256sum</code>).</li>
+<li>Hash-match: filter on that MD5 to find copies elsewhere on the image
+(staging dirs, other profiles).</li>
+</ol>
+<p><strong>Gate G1:</strong> unsigned, writable path, or bad parent +
+file present on disk = acquire and hash. <strong>Record:</strong> file
+path, hashes, times. Memory process + disk file = <strong>two
+sources</strong>, Confirmed for Q1.</p>
+<h2 id="step-6-index-search-your-lead-list-10-min-once-indexing-is-d">Step
+6 — Index Search your lead list (10 min, once indexing is done)</h2>
+<p><strong>Index Search</strong> tab → one term per line from Hunt Notes
+IOCs: IPs, domains, filenames, service/task names, account names,
+webshell strings (<code>eval(</code>, <code>base64_decode</code>). Use
+<strong>Live Search</strong> for regex or hex signatures (slower, no
+index needed).</p>
+<p>On each hit: open the containing file, note path + timestamps,
+bookmark. <strong>Record:</strong> hit location, Q matching what it
+shows.</p>
+<h2 id="step-7-q3-how-does-it-survive-a-reboot-15-min">Step 7 — Q3: How
+does it survive a reboot? (15 min)</h2>
+<p><strong>Explore</strong> to the persistence locations (Execution
+Reference §7B path tables):</p>
+<table>
+<thead>
+<tr class="header">
+<th>Windows</th>
+<th>Linux</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>Windows\System32\config\SOFTWARE</code>, <code>SYSTEM</code> →
+right-click → <strong>View in Registry Viewer</strong> → Run/RunOnce,
+Services (ImagePath, ServiceDll), Winlogon</td>
+<td><code>/etc/cron*</code>, <code>/var/spool/cron/crontabs/</code></td>
+</tr>
+<tr class="even">
+<td><code>Users\&lt;u&gt;\NTUSER.DAT</code> → Run, RunOnce</td>
+<td><code>/etc/systemd/system/</code>, <code>/lib/systemd/system/</code>
+(enabled = symlink in <code>*.wants/</code>)</td>
+</tr>
+<tr class="odd">
+<td><code>Windows\System32\Tasks\</code> (task XML:
+<code>&lt;Exec&gt;&lt;Command&gt;</code>)</td>
+<td><code>/root/</code> and <code>/home/*/.bashrc</code>,
+<code>.profile</code>, <code>.ssh/authorized_keys</code></td>
+</tr>
+<tr class="even">
+<td><code>ProgramData\...\StartUp\</code>,
+<code>Users\&lt;u&gt;\AppData\Roaming\...\Startup\</code></td>
+<td><code>/etc/ld.so.preload</code>, <code>/etc/rc.local</code></td>
+</tr>
+<tr class="odd">
+<td><code>Windows\System32\wbem\Repository\</code> (WMI, needs
+parser)</td>
+<td><code>/var/www/</code> (webshell is persistence too)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Gate G3:</strong> a persistence entry that points at the Q1
+file = <strong>foothold confirmed</strong>. <strong>Record:</strong>
+entry, its target, the key/file last-write time (Q3).</p>
+<h2 id="step-8-q4-and-q5-who-how-in-and-when-it-started-20-min">Step 8
+— Q4 and Q5: Who, how in, and when it started (20 min)</h2>
+<p><strong>Q4 (who / how):</strong> export the logs and read them with
+the Execution Reference queries.</p>
+<ul>
+<li>Windows: <code>Windows\System32\winevt\Logs\</code> → export
+<code>Security.evtx</code>, <code>System.evtx</code>,
+<code>Microsoft-Windows-PowerShell%4Operational.evtx</code>, Sysmon. On
+the analysis box:
+<code>Get-WinEvent -Path .\Security.evtx -FilterXPath '*[System[(EventID=4624 or EventID=4648 or EventID=4672)]]'</code>.</li>
+<li><code>Users\</code> → which profile owns the Q1 file?
+<code>SAM</code> in Registry Viewer → accounts, last logon.</li>
+<li>Linux: <code>/var/log/auth.log*</code>,
+<code>/var/log/apache2/access.log*</code>, <code>/etc/passwd</code> (UID
+0), <code>/home/*/.bash_history</code>.</li>
+</ul>
+<p><strong>Q5 (when):</strong> start-time anchors, in priority
+order:</p>
+<ol type="1">
+<li><code>Windows\Prefetch\&lt;NAME&gt;-&lt;HASH&gt;.pf</code>: created
+≈ first run. Export; times show in File List.</li>
+<li><code>Windows\appcompat\Programs\Amcache.hve</code> → Registry
+Viewer → <code>Root\InventoryApplicationFile</code>: entry for the file,
+SHA-1, key last-write.</li>
+<li><code>NTUSER.DAT</code> →
+<code>...\Explorer\UserAssist\{GUID}\Count</code> (names are ROT13);
+<code>SYSTEM</code> →
+<code>...\Services\bam\State\UserSettings\&lt;SID&gt;</code>.</li>
+<li>The file's own <code>$MFT</code> times last. They are the first
+thing altered. Check timestomping in Autopsy (File Metadata tab shows
+<code>$SI</code> vs <code>$FN</code>) or export <code>$MFT</code>.</li>
+</ol>
+<p><strong>Gate G4:</strong> account + auth method found = scope extends
+to other hosts. <strong>Gate G5:</strong> first-seen earlier than the
+alert = intrusion start. <strong>Record:</strong> Q4 and Q5 entries,
+each citing the artifact.</p>
+<h2 id="step-9-optional-depth-only-if-time-remains">Step 9 — Optional
+depth (only if time remains)</h2>
+<ul>
+<li><code>Evidence → Additional Analysis</code> → <strong>Data
+Carving</strong> (executables, archives, scripts only). Carved files
+have <strong>no path and no reliable timestamps</strong>; corroborate
+before using.</li>
+<li>Alternate Data Streams appear in the file list; check them on
+suspicious files.</li>
+<li><code>$Recycle.Bin\&lt;SID&gt;\</code> → <code>$I</code> (original
+path + delete time) / <code>$R</code> (content).</li>
+</ul>
+<h2 id="step-10-bookmark-and-report-10-min">Step 10 — Bookmark and
+report (10 min)</h2>
+<p>On every hit as you go: right-click → <strong>Create
+Bookmark</strong> → name it after the finding
+(<code>T-04 x.exe in Public</code>) → comment = why it matters + Q.</p>
+<p>Report: <code>File → Report</code> → <strong>Bookmarks only</strong>,
+include hashes and paths → HTML or PDF. Write each finding with the
+report-out format (Execution Reference §9): finding, host, first/last
+seen UTC, evidence, <strong>second independent source</strong>,
+ATT&amp;CK, mitigation.</p>
+<hr/>
+<h2 id="pitfalls">Pitfalls</h2>
+<ul>
+<li>Analyzing before verifying the image hash.</li>
+<li>Wrong time zone on the evidence item. Every reported time is then
+off by the offset.</li>
+<li>Waiting for processing to finish before looking at anything. Browse
+Overview while it runs.</li>
+<li>Trusting carved-file timestamps or paths (there are none).</li>
+<li>Expecting FTK to decode Prefetch/Amcache/Shimcache into a timeline.
+It locates and exports; Registry Viewer, Volatility, or Autopsy
+interpret.</li>
+<li>Doing memory analysis in FTK. Capture here, analyze in Volatility,
+add dumped files back as <strong>Individual File</strong> evidence.</li>
+</ul>
+</main>
+<aside id="rail" class="rail">
+  <h2>Five questions</h2>
+  <div class="q"><b>Q1 · What is running that should not be?</b><span>pslist vs psscan · pstree parentage · cmdline · malfind · unsigned or user-writable path</span></div>
+  <div class="q"><b>Q2 · What is talking that should not be?</b><span>netscan / sockstat · session vs the process's job · fixed-interval beacons · same IP on both hosts · DNS cache, hosts file</span></div>
+  <div class="q"><b>Q3 · How does it survive a reboot?</b><span>services, tasks, Run keys, WMI · cron, <i>enabled</i> systemd, rc, ld.so.preload, authorized_keys · target = the Q1 file</span></div>
+  <div class="q"><b>Q4 · Who did it, and how did they get in?</b><span>4624 type 3/10, 4648, 4672 · auth.log, last/lastb, UID 0 · a web request with no matching auth <i>is</i> the answer</span></div>
+  <div class="q"><b>Q5 · When did it start?</b><span>Prefetch, Amcache, UserAssist, BAM before file times · $SI vs $FN · fls + mactime vs access/auth logs</span></div>
+  <h2>Decision gates</h2>
+  <ol>
+    <li><b>G1</b> Unsigned / writable path / bad parent → acquire + hash the file</li>
+    <li><b>G2</b> External session, no business reason → bind to a process and a log</li>
+    <li><b>G3</b> Persistence targets that file → foothold confirmed</li>
+    <li><b>G4</b> Account + auth method found → extend scope to other hosts</li>
+    <li><b>G5</b> First-seen before the alert → intrusion start</li>
+  </ol>
+  <h2>Rules</h2>
+  <ul>
+    <li><b>Acquire before alter.</b> Memory first, hashed.</li>
+    <li><b>Two independent sources</b> or it is a lead, not a finding.</li>
+    <li><b>State the reasoning:</b> expected result before, what changed after.</li>
+    <li><b>Breadth first:</b> Q1–Q5 shallow on both hosts before depth.</li>
+  </ul>
+  <h2>Confidence</h2>
+  <ul>
+    <li><b>Possible</b>: one source, a lead</li>
+    <li><b>Probable</b>: consistent, partly corroborated</li>
+    <li><b>Confirmed</b>: two independent sources agree</li>
+  </ul>
+  <h2>Time</h2>
+  <ul><li>Record UTC. Volatility = UTC. PowerShell, Event Viewer, <code>ls</code>, syslog = host local. Apache carries its own offset.</li></ul>
+</aside></div>
+<script src="../assets/search-index.js"></script><script src="../assets/site.js"></script></body></html>

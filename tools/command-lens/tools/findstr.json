@@ -1,0 +1,43 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "findstr",
+  "name": "findstr",
+  "aliases": ["grep", "search text"],
+  "kind": "native",
+  "shells": [{ "id": "cmd" }],
+  "category": "search",
+  "summary": "Finds strings in files or piped text (cmd's grep).",
+  "action": "keeps lines that match",
+  "description": "Each /c: string is searched as written (spaces included); several /c: strings are alternatives. findstr reads \\ as an escape character even in literal strings, so the tool writes \\ as \\\\. Its regex dialect has no | + ? or grouping. Long-standing bug: several case-sensitive literal strings of different lengths can miss matches; the tool adds /i in that case.",
+  "source": "https://learn.microsoft.com/windows-server/administration/windows-commands/findstr",
+  "requires": { "elevation": "none" },
+  "io": { "stdin": "text", "stdout": "text" },
+  "template": "{binary} {flags} {words} {files}",
+  "params": [
+    { "id": "search", "label": "Search string", "type": "regex", "regexDialect": "findstr", "flag": "/c:", "flagStyle": "colon", "encode": "findstr-lit", "encodeIf": { "regex": "findstr-rx" }, "repeatable": true, "repeat": { "mode": "flag", "flag": "/c:" }, "required": true, "common": true, "conflicts": ["words"], "ioc": "*",
+      "bulk": { "multi": { "set": { "literal": true, "regex": false } }, "loop": { "set": { "literal": true } }, "lines": { "set": { "literal": true } } },
+      "explain": "matching {value}" },
+    { "id": "words", "label": "Any of these words", "type": "string", "slot": "words", "conflicts": ["search"], "placeholder": "error fail denied", "desc": "Space-separated words; a line matches if it has any of them.", "explain": "containing any word of {value}" },
+    { "id": "literal", "label": "Literal", "type": "bool", "flag": "/l", "common": true, "conflicts": ["regex"], "explain": "literal text" },
+    { "id": "regex", "label": "Regex", "type": "bool", "flag": "/r", "conflicts": ["literal"], "explain": "findstr regex" },
+    { "id": "ignoreCase", "label": "Ignore case", "type": "bool", "flag": "/i", "common": true, "explain": "ignoring case" },
+    { "id": "invert", "label": "Invert", "type": "bool", "flag": "/v", "common": true, "explain": "keeping lines that do NOT match" },
+    { "id": "lineNumber", "label": "Line numbers", "type": "bool", "flag": "/n", "explain": "with line numbers" },
+    { "id": "recurse", "label": "Subfolders", "type": "bool", "flag": "/s", "explain": "in subfolders too" },
+    { "id": "filesOnly", "label": "File names only", "type": "bool", "flag": "/m", "explain": "printing only file names" },
+    { "id": "begin", "label": "At line start", "type": "bool", "flag": "/b", "explain": "at the start of a line" },
+    { "id": "end", "label": "At line end", "type": "bool", "flag": "/e", "explain": "at the end of a line" },
+    { "id": "exact", "label": "Whole line", "type": "bool", "flag": "/x", "explain": "whole lines only" },
+    { "id": "skipBinary", "label": "Skip binary files", "type": "bool", "flag": "/p", "explain": "skipping files with non-printable characters" },
+    { "id": "files", "label": "Files", "type": "path", "os": "windows", "slot": "files", "repeatable": true, "repeat": { "mode": "positional" }, "expand": true, "common": true, "placeholder": "C:\\Windows\\System32\\LogFiles\\Firewall\\*.log", "explain": "in {value}" }
+  ],
+  "presets": [
+    { "id": "ioc", "name": "IOC in piped output", "values": { "search": "198.51.100.23", "literal": true, "ignoreCase": true }, "ttps": [] },
+    { "id": "fw-log", "name": "IOC in the Windows Firewall log", "values": { "search": "198.51.100.23", "literal": true, "files": "%SystemRoot%\\System32\\LogFiles\\Firewall\\pfirewall.log" }, "ttps": ["T1071"] }
+  ],
+  "quirks": [
+    { "id": "multi-literal", "when": { "countGt": { "search": 1 }, "unset": ["ignoreCase", "regex"] }, "apply": { "ignoreCase": true }, "level": "warn",
+      "reason": "findstr can miss matches with several case-sensitive literal strings of different lengths, so /i was added. Matching is now case-insensitive." }
+  ],
+  "ttps": []
+}

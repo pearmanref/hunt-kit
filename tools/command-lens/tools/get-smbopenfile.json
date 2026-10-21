@@ -1,0 +1,25 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "get-smbopenfile",
+  "name": "Get-SmbOpenFile",
+  "aliases": ["smb open files", "open shares"],
+  "kind": "cmdlet",
+  "shells": [{ "id": "powershell" }],
+  "category": "network",
+  "summary": "Lists files remote SMB clients have open on this host.",
+  "action": "lists files open over SMB",
+  "description": "SmbShare module, elevated. Shows the path and the remote user/computer holding it: useful when a host is collecting data from others.",
+  "source": "https://learn.microsoft.com/powershell/module/smbshare/get-smbopenfile",
+  "requires": { "elevation": "admin", "module": "SmbShare" },
+  "io": { "stdin": "none", "stdout": "objects" },
+  "template": "{binary} {flags}",
+  "params": [
+    { "id": "clientUser", "label": "Client user", "type": "string", "flag": "-ClientUserName", "common": true, "ioc": ["user"], "explain": "for user {value}" },
+    { "id": "clientComputer", "label": "Client computer", "type": "string", "flag": "-ClientComputerName", "common": true, "ioc": ["ipv4", "ipv6", "domain"], "explain": "from {value}" }
+  ],
+  "presets": [
+    { "id": "all", "name": "Every file open over SMB", "values": {}, "ttps": ["T1074.002", "T1039"] }
+  ],
+  "properties": { "Path": {}, "ShareRelativePath": {}, "ClientComputerName": {}, "ClientUserName": {}, "Permissions": {} },
+  "ttps": ["T1074.002"]
+}

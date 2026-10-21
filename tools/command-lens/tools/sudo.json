@@ -1,0 +1,80 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "sudo",
+  "name": "sudo",
+  "aliases": [
+    "as root",
+    "elevate",
+    "run as"
+  ],
+  "kind": "native",
+  "shells": [
+    {
+      "id": "bash"
+    },
+    {
+      "id": "zsh"
+    }
+  ],
+  "category": "process",
+  "summary": "Runs a single command as another user, usually root.",
+  "action": "runs a command as another user",
+  "description": "Prefixes a read-only command so it can read files your account cannot. -u picks the user. This never changes sudo configuration; it only wraps a command.",
+  "source": "https://www.sudo.ws/docs/man/sudo.man/",
+  "requires": {
+    "elevation": "none",
+    "note": "you must already be allowed to sudo"
+  },
+  "io": {
+    "stdin": "none",
+    "stdout": "text"
+  },
+  "template": "{binary} {flags} {cmd}",
+  "params": [
+    {
+      "id": "user",
+      "label": "As user",
+      "type": "string",
+      "flag": "-u",
+      "common": true,
+      "ioc": [
+        "user"
+      ],
+      "placeholder": "root",
+      "explain": "as {value}"
+    },
+    {
+      "id": "login",
+      "label": "Login shell env",
+      "type": "bool",
+      "flag": "-i",
+      "conflicts": [
+        "user"
+      ],
+      "explain": "with the target user's login environment"
+    },
+    {
+      "id": "preserveEnv",
+      "label": "Keep my environment",
+      "type": "bool",
+      "flag": "-E",
+      "explain": "keeping the current environment"
+    },
+    {
+      "id": "cmd",
+      "label": "Command",
+      "type": "command",
+      "slot": "cmd",
+      "required": true,
+      "common": true,
+      "nest": {
+        "kind": "prefix",
+        "toolFilter": "read-only"
+      },
+      "desc": "The read-only command to run elevated.",
+      "explain": "running {value}"
+    }
+  ],
+  "presets": [],
+  "ttps": []
+}

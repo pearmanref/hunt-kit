@@ -1,0 +1,172 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "get-itemproperty",
+  "name": "Get-ItemProperty",
+  "aliases": [
+    "registry",
+    "reg values",
+    "run keys"
+  ],
+  "kind": "cmdlet",
+  "shells": [
+    {
+      "id": "powershell"
+    }
+  ],
+  "category": "persistence",
+  "summary": "Reads registry values (or file properties) as objects.",
+  "action": "reads registry values",
+  "description": "Registry paths use the provider form HKLM:\\…; a key typed as HKLM\\… is converted. Wildcards in a key name (Services\\*) read every subkey.",
+  "source": "https://learn.microsoft.com/powershell/module/microsoft.powershell.management/get-itemproperty",
+  "requires": {
+    "elevation": "recommended"
+  },
+  "io": {
+    "stdin": "none",
+    "stdout": "objects"
+  },
+  "template": "{binary} {flags}",
+  "params": [
+    {
+      "id": "path",
+      "label": "Key",
+      "type": "path",
+      "pathKind": "registry",
+      "os": "windows",
+      "flag": "-Path",
+      "literalFlag": "-LiteralPath",
+      "required": true,
+      "common": true,
+      "repeatable": true,
+      "repeat": {
+        "mode": "join",
+        "sep": ","
+      },
+      "ioc": [
+        "regkey"
+      ],
+      "placeholder": "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
+      "explain": "from {value}"
+    },
+    {
+      "id": "name",
+      "label": "Value name",
+      "type": "string",
+      "flag": "-Name",
+      "common": true,
+      "repeatable": true,
+      "repeat": {
+        "mode": "join",
+        "sep": ","
+      },
+      "placeholder": "ImagePath",
+      "explain": "value {value}"
+    },
+    {
+      "id": "errorAction",
+      "label": "On error",
+      "type": "enum",
+      "flag": "-ErrorAction",
+      "common": true,
+      "enum": [
+        "SilentlyContinue",
+        "Stop",
+        "Continue"
+      ],
+      "explain": "on error: {value}"
+    }
+  ],
+  "presets": [
+    {
+      "id": "run-keys",
+      "name": "Run and RunOnce keys (machine and user)",
+      "values": {
+        "path": [
+          "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
+          "HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce",
+          "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
+          "HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce"
+        ],
+        "errorAction": "SilentlyContinue"
+      },
+      "ttps": [
+        "T1547.001"
+      ]
+    },
+    {
+      "id": "service-paths",
+      "name": "Service image paths",
+      "values": {
+        "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\*",
+        "name": "ImagePath",
+        "errorAction": "SilentlyContinue"
+      },
+      "ttps": [
+        "T1543.003"
+      ]
+    },
+    {
+      "id": "winlogon",
+      "name": "Winlogon Shell / Userinit",
+      "values": {
+        "path": "HKLM:\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon",
+        "name": [
+          "Shell",
+          "Userinit"
+        ]
+      },
+      "ttps": [
+        "T1547.004"
+      ]
+    },
+    {
+      "id": "ifeo",
+      "name": "Image File Execution Options debuggers",
+      "values": {
+        "path": "HKLM:\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\*",
+        "name": "Debugger",
+        "errorAction": "SilentlyContinue"
+      },
+      "ttps": [
+        "T1546.012"
+      ]
+    },
+    {
+      "id": "service-dlls",
+      "name": "svchost service DLLs (ServiceDll)",
+      "values": {
+        "path": "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\*\\Parameters",
+        "name": "ServiceDll",
+        "errorAction": "SilentlyContinue"
+      },
+      "ttps": [
+        "T1543.003"
+      ]
+    },
+    {
+      "id": "autologon",
+      "name": "Autologon credentials in Winlogon",
+      "values": {
+        "path": "HKLM:\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon",
+        "name": [
+          "DefaultUserName",
+          "DefaultDomainName",
+          "DefaultPassword",
+          "AutoAdminLogon"
+        ],
+        "errorAction": "SilentlyContinue"
+      },
+      "ttps": [
+        "T1552.002"
+      ]
+    }
+  ],
+  "properties": {
+    "PSPath": {},
+    "PSChildName": {},
+    "ImagePath": {}
+  },
+  "ttps": [
+    "T1012"
+  ]
+}

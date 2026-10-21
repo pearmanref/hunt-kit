@@ -1,0 +1,36 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "get-cim-service",
+  "name": "Get-CimInstance Win32_Service",
+  "aliases": ["services", "service path", "sc query", "wmic service", "Get-Service"],
+  "kind": "cmdlet",
+  "shells": [{ "id": "powershell" }],
+  "binary": "Get-CimInstance",
+  "category": "persistence",
+  "summary": "Lists services with their command line (PathName), start mode and account.",
+  "action": "lists services through CIM",
+  "description": "Unlike Get-Service, Win32_Service includes PathName and StartName on both 5.1 and 7. The -Filter is WQL, escaped like the process filter. A service that lives in System32 does not stand out by path alone: pivot on install time (System 7045) and signature (Get-AuthenticodeSignature).",
+  "source": "https://learn.microsoft.com/windows/win32/cimwin32prov/win32-service",
+  "requires": { "elevation": "recommended" },
+  "io": { "stdin": "none", "stdout": "objects" },
+  "template": "{binary} -ClassName Win32_Service {flags}",
+  "fixedExplain": { "-ClassName": "selects the WMI class", "Win32_Service": "the service class (command line, start mode, account)" },
+  "composites": [
+    { "id": "filter", "flag": "-Filter", "join": " AND ", "quote": "ps-dq", "explain": "WQL filter" }
+  ],
+  "params": [
+    { "id": "name", "label": "Service name", "type": "string", "composite": "filter", "fragment": "Name = '{v}'", "encode": "wql", "repeatable": true, "repeatJoin": " OR ", "common": true, "placeholder": "Spooler", "explain": "named {value}" },
+    { "id": "pathLike", "label": "Command line contains", "type": "string", "composite": "filter", "fragment": "PathName LIKE '{v}'", "encode": "wql-like", "repeatable": true, "repeatJoin": " OR ", "common": true, "ioc": ["path", "filename", "process"], "placeholder": "\\AppData\\", "explain": "command line containing {value}" },
+    { "id": "startMode", "label": "Start mode", "type": "enum", "composite": "filter", "fragment": "StartMode = '{v}'", "enum": ["Auto", "Manual", "Disabled", "Boot", "System"], "common": true, "explain": "start mode {value}" },
+    { "id": "state", "label": "State", "type": "enum", "composite": "filter", "fragment": "State = '{v}'", "enum": ["Running", "Stopped", "Paused"], "explain": "state {value}" },
+    { "id": "startName", "label": "Runs as", "type": "string", "composite": "filter", "fragment": "StartName = '{v}'", "encode": "wql", "ioc": ["user"], "placeholder": "LocalSystem", "explain": "running as {value}" }
+  ],
+  "presets": [
+    { "id": "all", "name": "Every service", "values": {}, "ttps": ["T1007", "T1543.003"] },
+    { "id": "auto-start", "name": "Auto-start services", "values": { "startMode": "Auto" }, "ttps": ["T1543.003"] },
+    { "id": "user-writable", "name": "Command line in a user-writable folder", "values": { "pathLike": ["\\Users\\", "\\ProgramData\\", "\\Temp\\", "\\AppData\\"] }, "ttps": ["T1543.003", "T1036.005"] },
+    { "id": "script-hosts", "name": "Service runs a script host or shell", "values": { "pathLike": ["powershell", "cmd.exe", "wscript", "cscript", "mshta", "rundll32"] }, "ttps": ["T1543.003", "T1569.002"] }
+  ],
+  "properties": { "Name": {}, "DisplayName": {}, "State": {}, "StartMode": {}, "StartName": {}, "PathName": {}, "ProcessId": {}, "Description": {} },
+  "ttps": ["T1007", "T1543.003"]
+}

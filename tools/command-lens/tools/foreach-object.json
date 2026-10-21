@@ -1,0 +1,28 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "foreach-object",
+  "name": "ForEach-Object { }",
+  "aliases": ["%", "% { }", "foreach", "for each", "script block", "transform"],
+  "kind": "cmdlet",
+  "shells": [{ "id": "powershell" }],
+  "binary": "ForEach-Object",
+  "category": "pipeline",
+  "summary": "Runs a PowerShell script block for each object ($_ is the current object) and passes on what it returns.",
+  "action": "runs a script block on each object",
+  "description": "Pipeline glue for reshaping values, such as pulling the executable path out of a service command line. The script block is PowerShell code and is passed as written; Command Lens checks that brackets and quotes balance. % is the short alias.",
+  "source": "https://learn.microsoft.com/powershell/module/microsoft.powershell.core/foreach-object",
+  "requires": { "elevation": "none" },
+  "io": { "stdin": "objects", "stdout": "objects" },
+  "template": "{binary} {flags}",
+  "params": [
+    { "id": "process", "label": "Script block", "type": "string", "flag": "-Process", "encode": "ps-scriptblock", "rawCode": true, "required": true, "common": true,
+      "placeholder": "$_.FullName", "desc": "PowerShell code run once per object; $_ is the object.", "explain": "running {value}" }
+  ],
+  "presets": [
+    { "id": "service-binary", "name": "Executable path from a service command line", "values": { "process": "[Environment]::ExpandEnvironmentVariables(($_.PathName -replace '^\"?([^\"]+?\\.(exe|dll|sys))\"?.*$','$1'))" }, "ttps": ["T1543.003"],
+      "opsec": "Pipe Get-CimInstance Win32_Service into this; follow with Sort-Object -Unique and Get-AuthenticodeSignature." },
+    { "id": "task-actions", "name": "Scheduled task: name, action and run-as user", "values": { "process": "[pscustomobject]@{ Task = $_.TaskPath + $_.TaskName; Run = ($_.Actions | ForEach-Object { \"$($_.Execute) $($_.Arguments)\" }) -join '; '; As = $_.Principal.UserId }" }, "ttps": ["T1053.005"] },
+    { "id": "conn-process", "name": "Connection with the owning process path", "values": { "process": "[pscustomobject]@{ Local = $_.LocalPort; Remote = \"$($_.RemoteAddress):$($_.RemotePort)\"; PID = $_.OwningProcess; Path = (Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue).Path }" }, "ttps": ["T1049", "T1048.001"] }
+  ],
+  "ttps": []
+}

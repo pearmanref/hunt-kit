@@ -1,0 +1,725 @@
+{
+  "app": "command-lens",
+  "schemaVersion": 1,
+  "exported": "2026-10-15T00:00:00Z",
+  "settings": {
+    "note": "Fictional sample: RFC 5737 IPs, .example/.test domains, invented hashes."
+  },
+  "history": [
+    {
+      "id": "h-sample-0",
+      "ts": "2026-10-15T00:00:00Z",
+      "shell": "bash",
+      "state": {
+        "v": 1,
+        "shell": {
+          "id": "bash",
+          "version": null
+        },
+        "root": {
+          "kind": "group",
+          "style": "none",
+          "items": [
+            {
+              "kind": "layer",
+              "id": "L1",
+              "tool": "grep",
+              "preset": null,
+              "values": {
+                "pattern": {
+                  "ioc": {
+                    "set": "case-0314",
+                    "type": "ipv4",
+                    "mode": "all",
+                    "strategy": "multi"
+                  }
+                },
+                "path": "/var/log/auth.log"
+              },
+              "redirs": [],
+              "disabled": false,
+              "collapsed": false
+            },
+            {
+              "kind": "layer",
+              "id": "L2",
+              "tool": "grep",
+              "preset": null,
+              "values": {
+                "pattern": "Accepted",
+                "fixed": true
+              },
+              "redirs": [],
+              "disabled": false,
+              "collapsed": false
+            }
+          ],
+          "joins": [
+            "pipe"
+          ]
+        }
+      },
+      "text": "grep -F -e 198.51.100.23 -e 203.0.113.77 -e 192.0.2.146 /var/log/auth.log | grep -F Accepted",
+      "summary": "grep keeps lines that match (pattern is plain text; matching '198.51.100.23', '203.0.113.77' or '192.0.2.146'; in '/var/log/auth.log') against all 3 ipv4 IOCs from \"IR-2026-0314 (fictional)\", then passes the output to grep, which keeps lines that match (pattern is plain text; matching 'Accepted').",
+      "ttps": [
+        "T1083"
+      ],
+      "tools": [
+        "grep",
+        "grep"
+      ],
+      "iocs": [
+        {
+          "type": "ipv4",
+          "value": "198.51.100.23"
+        },
+        {
+          "type": "ipv4",
+          "value": "203.0.113.77"
+        },
+        {
+          "type": "ipv4",
+          "value": "192.0.2.146"
+        }
+      ],
+      "tags": [
+        "sample"
+      ],
+      "note": "",
+      "pinned": false,
+      "source": "copy"
+    },
+    {
+      "id": "h-sample-1",
+      "ts": "2026-10-15T00:00:00Z",
+      "shell": "PowerShell 7",
+      "state": {
+        "v": 1,
+        "shell": {
+          "id": "powershell",
+          "version": "7"
+        },
+        "root": {
+          "kind": "group",
+          "style": "none",
+          "items": [
+            {
+              "kind": "layer",
+              "id": "L1",
+              "tool": "get-nettcpconnection",
+              "preset": null,
+              "values": {},
+              "redirs": [],
+              "disabled": false,
+              "collapsed": false
+            },
+            {
+              "kind": "layer",
+              "id": "L2",
+              "tool": "where-object",
+              "preset": null,
+              "values": {
+                "op": "-Like",
+                "property": "RemoteAddress",
+                "value": {
+                  "ioc": {
+                    "set": "case-0314",
+                    "type": "ipv4",
+                    "mode": "all",
+                    "strategy": "multi"
+                  }
+                }
+              },
+              "redirs": [],
+              "disabled": false,
+              "collapsed": false
+            },
+            {
+              "kind": "layer",
+              "id": "L3",
+              "tool": "select-object",
+              "preset": null,
+              "values": {
+                "property": [
+                  "LocalPort",
+                  "RemoteAddress",
+                  "RemotePort",
+                  "OwningProcess"
+                ]
+              },
+              "redirs": [],
+              "disabled": false,
+              "collapsed": false
+            }
+          ],
+          "joins": [
+            "pipe",
+            "pipe"
+          ]
+        }
+      },
+      "text": "Get-NetTCPConnection | Where-Object -Property RemoteAddress -In -Value '198.51.100.23','203.0.113.77','192.0.2.146' | Select-Object -Property LocalPort,RemoteAddress,RemotePort,OwningProcess",
+      "summary": "Get-NetTCPConnection lists TCP connections, then passes the output to Where-Object, which keeps objects (where 'RemoteAddress'; is one of; '198.51.100.23', '203.0.113.77' or '192.0.2.146') against all 3 ipv4 IOCs from \"IR-2026-0314 (fictional)\", then passes the output to Select-Object, which keeps selected properties (properties any of 4 values).",
+      "ttps": [
+        "T1049"
+      ],
+      "tools": [
+        "Get-NetTCPConnection",
+        "Where-Object",
+        "Select-Object"
+      ],
+      "iocs": [
+        {
+          "type": "ipv4",
+          "value": "198.51.100.23"
+        },
+        {
+          "type": "ipv4",
+          "value": "203.0.113.77"
+        },
+        {
+          "type": "ipv4",
+          "value": "192.0.2.146"
+        }
+      ],
+      "tags": [
+        "sample"
+      ],
+      "note": "",
+      "pinned": false,
+      "source": "copy"
+    },
+    {
+      "id": "h-sample-2",
+      "ts": "2026-10-15T00:00:00Z",
+      "shell": "cmd",
+      "state": {
+        "v": 1,
+        "shell": {
+          "id": "cmd",
+          "version": null
+        },
+        "root": {
+          "kind": "group",
+          "style": "none",
+          "items": [
+            {
+              "kind": "layer",
+              "id": "L1",
+              "tool": "netstat",
+              "preset": "ano",
+              "values": {
+                "all": true,
+                "numeric": true,
+                "pid": true
+              },
+              "redirs": [],
+              "disabled": false,
+              "collapsed": false
+            },
+            {
+              "kind": "layer",
+              "id": "L2",
+              "tool": "findstr",
+              "preset": null,
+              "values": {
+                "search": {
+                  "ioc": {
+                    "set": "case-0314",
+                    "type": "ipv4",
+                    "mode": "all",
+                    "strategy": "multi"
+                  }
+                }
+              },
+              "redirs": [],
+              "disabled": false,
+              "collapsed": false
+            }
+          ],
+          "joins": [
+            "pipe"
+          ]
+        }
+      },
+      "text": "netstat -a -n -o | findstr /c:198.51.100.23 /c:203.0.113.77 /c:192.0.2.146 /l /i",
+      "summary": "netstat lists network connections (all connections and listening ports; numeric addresses (no DNS lookups); with the owning PID), then passes the output to findstr, which keeps lines that match (matching '198.51.100.23', '203.0.113.77' or '192.0.2.146'; literal text; ignoring case) against all 3 ipv4 IOCs from \"IR-2026-0314 (fictional)\".",
+      "ttps": [
+        "T1049"
+      ],
+      "tools": [
+        "netstat",
+        "findstr"
+      ],
+      "iocs": [
+        {
+          "type": "ipv4",
+          "value": "198.51.100.23"
+        },
+        {
+          "type": "ipv4",
+          "value": "203.0.113.77"
+        },
+        {
+          "type": "ipv4",
+          "value": "192.0.2.146"
+        }
+      ],
+      "tags": [
+        "sample"
+      ],
+      "note": "",
+      "pinned": false,
+      "source": "copy"
+    },
+    {
+      "id": "h-sample-3",
+      "ts": "2026-10-15T00:00:00Z",
+      "shell": "PowerShell 7",
+      "state": {
+        "v": 1,
+        "shell": {
+          "id": "powershell",
+          "version": "7"
+        },
+        "root": {
+          "kind": "group",
+          "style": "none",
+          "items": [
+            {
+              "kind": "layer",
+              "id": "L1",
+              "tool": "get-childitem",
+              "preset": "temp-exes",
+              "values": {
+                "path": "C:\\Users\\*\\AppData\\Local\\Temp",
+                "include": [
+                  "*.exe",
+                  "*.dll",
+                  "*.ps1",
+                  "*.bat",
+                  "*.vbs"
+                ],
+                "recurse": true,
+                "force": true,
+                "file": true,
+                "errorAction": "SilentlyContinue"
+              },
+              "redirs": [],
+              "disabled": false,
+              "collapsed": false
+            },
+            {
+              "kind": "layer",
+              "id": "L2",
+              "tool": "get-filehash",
+              "preset": null,
+              "values": {},
+              "redirs": [],
+              "disabled": false,
+              "collapsed": false
+            },
+            {
+              "kind": "layer",
+              "id": "L3",
+              "tool": "where-object",
+              "preset": null,
+              "values": {
+                "op": "-Like",
+                "property": "Hash",
+                "value": {
+                  "ioc": {
+                    "set": "case-0314",
+                    "type": "sha256",
+                    "mode": "all",
+                    "strategy": "multi"
+                  }
+                }
+              },
+              "redirs": [],
+              "disabled": false,
+              "collapsed": false
+            }
+          ],
+          "joins": [
+            "pipe",
+            "pipe"
+          ]
+        }
+      },
+      "text": "Get-ChildItem -Path 'C:\\Users\\*\\AppData\\Local\\Temp' -Include '*.exe','*.dll','*.ps1','*.bat','*.vbs' -Recurse -Force -File -ErrorAction SilentlyContinue | Get-FileHash | Where-Object -Property Hash -In -Value '9f2c4e6a8b0d1f3e5c7a9b2d4f6e8a0c1b3d5f7e9a2c4e6b8d0f1a3c5e7b9d2f','0a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f9'",
+      "summary": "Get-ChildItem lists items (in 'C:\\Users\\*\\AppData\\Local\\Temp'; matching any of 5 values; recursively; including hidden and system items; files only; on error: SilentlyContinue), then passes the output to Get-FileHash, which hashes files, then passes the output to Where-Object, which keeps objects (where 'Hash'; is one of; '9f2c4e6a8b0d1f3e5c7a9b2d4f6e8a0c1b3d5f7e9a2c4e6b8d0f1a3c5e7b9d2f' or '0a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f9') against all 2 sha256 IOCs from \"IR-2026-0314 (fictional)\".",
+      "ttps": [
+        "T1083",
+        "T1105",
+        "T1204.002"
+      ],
+      "tools": [
+        "Get-ChildItem",
+        "Get-FileHash",
+        "Where-Object"
+      ],
+      "iocs": [
+        {
+          "type": "sha256",
+          "value": "9f2c4e6a8b0d1f3e5c7a9b2d4f6e8a0c1b3d5f7e9a2c4e6b8d0f1a3c5e7b9d2f"
+        },
+        {
+          "type": "sha256",
+          "value": "0a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f9"
+        }
+      ],
+      "tags": [
+        "sample"
+      ],
+      "note": "",
+      "pinned": false,
+      "source": "copy"
+    }
+  ],
+  "recipes": [
+    {
+      "id": "r-sample-0",
+      "name": "Accepted SSH logins from any IOC address",
+      "created": "2026-10-15T00:00:00Z",
+      "state": {
+        "v": 1,
+        "shell": {
+          "id": "bash",
+          "version": null
+        },
+        "root": {
+          "kind": "group",
+          "style": "none",
+          "items": [
+            {
+              "kind": "layer",
+              "id": "L1",
+              "tool": "grep",
+              "preset": null,
+              "values": {
+                "pattern": {
+                  "var": "ipv4"
+                },
+                "path": "/var/log/auth.log"
+              },
+              "redirs": [],
+              "disabled": false,
+              "collapsed": false
+            },
+            {
+              "kind": "layer",
+              "id": "L2",
+              "tool": "grep",
+              "preset": null,
+              "values": {
+                "pattern": "Accepted",
+                "fixed": true
+              },
+              "redirs": [],
+              "disabled": false,
+              "collapsed": false
+            }
+          ],
+          "joins": [
+            "pipe"
+          ]
+        }
+      },
+      "vars": [
+        {
+          "name": "ipv4",
+          "type": "ioc:ipv4",
+          "mode": "all",
+          "strategy": "multi",
+          "layer": "L1",
+          "param": "pattern",
+          "example": null
+        }
+      ],
+      "text": "grep -F -e 198.51.100.23 -e 203.0.113.77 -e 192.0.2.146 /var/log/auth.log | grep -F Accepted",
+      "tags": [
+        "sample"
+      ]
+    },
+    {
+      "id": "r-sample-1",
+      "name": "TCP connections to IOC addresses",
+      "created": "2026-10-15T00:00:00Z",
+      "state": {
+        "v": 1,
+        "shell": {
+          "id": "powershell",
+          "version": "7"
+        },
+        "root": {
+          "kind": "group",
+          "style": "none",
+          "items": [
+            {
+              "kind": "layer",
+              "id": "L1",
+              "tool": "get-nettcpconnection",
+              "preset": null,
+              "values": {},
+              "redirs": [],
+              "disabled": false,
+              "collapsed": false
+            },
+            {
+              "kind": "layer",
+              "id": "L2",
+              "tool": "where-object",
+              "preset": null,
+              "values": {
+                "op": "-Like",
+                "property": "RemoteAddress",
+                "value": {
+                  "var": "ipv4"
+                }
+              },
+              "redirs": [],
+              "disabled": false,
+              "collapsed": false
+            },
+            {
+              "kind": "layer",
+              "id": "L3",
+              "tool": "select-object",
+              "preset": null,
+              "values": {
+                "property": [
+                  "LocalPort",
+                  "RemoteAddress",
+                  "RemotePort",
+                  "OwningProcess"
+                ]
+              },
+              "redirs": [],
+              "disabled": false,
+              "collapsed": false
+            }
+          ],
+          "joins": [
+            "pipe",
+            "pipe"
+          ]
+        }
+      },
+      "vars": [
+        {
+          "name": "ipv4",
+          "type": "ioc:ipv4",
+          "mode": "all",
+          "strategy": "multi",
+          "layer": "L2",
+          "param": "value",
+          "example": null
+        }
+      ],
+      "text": "Get-NetTCPConnection | Where-Object -Property RemoteAddress -In -Value '198.51.100.23','203.0.113.77','192.0.2.146' | Select-Object -Property LocalPort,RemoteAddress,RemotePort,OwningProcess",
+      "tags": [
+        "sample"
+      ]
+    },
+    {
+      "id": "r-sample-2",
+      "name": "netstat filtered to IOC addresses",
+      "created": "2026-10-15T00:00:00Z",
+      "state": {
+        "v": 1,
+        "shell": {
+          "id": "cmd",
+          "version": null
+        },
+        "root": {
+          "kind": "group",
+          "style": "none",
+          "items": [
+            {
+              "kind": "layer",
+              "id": "L1",
+              "tool": "netstat",
+              "preset": "ano",
+              "values": {
+                "all": true,
+                "numeric": true,
+                "pid": true
+              },
+              "redirs": [],
+              "disabled": false,
+              "collapsed": false
+            },
+            {
+              "kind": "layer",
+              "id": "L2",
+              "tool": "findstr",
+              "preset": null,
+              "values": {
+                "search": {
+                  "var": "ipv4"
+                }
+              },
+              "redirs": [],
+              "disabled": false,
+              "collapsed": false
+            }
+          ],
+          "joins": [
+            "pipe"
+          ]
+        }
+      },
+      "vars": [
+        {
+          "name": "ipv4",
+          "type": "ioc:ipv4",
+          "mode": "all",
+          "strategy": "multi",
+          "layer": "L2",
+          "param": "search",
+          "example": null
+        }
+      ],
+      "text": "netstat -a -n -o | findstr /c:198.51.100.23 /c:203.0.113.77 /c:192.0.2.146 /l /i",
+      "tags": [
+        "sample"
+      ]
+    },
+    {
+      "id": "r-sample-3",
+      "name": "Temp executables matching IOC hashes",
+      "created": "2026-10-15T00:00:00Z",
+      "state": {
+        "v": 1,
+        "shell": {
+          "id": "powershell",
+          "version": "7"
+        },
+        "root": {
+          "kind": "group",
+          "style": "none",
+          "items": [
+            {
+              "kind": "layer",
+              "id": "L1",
+              "tool": "get-childitem",
+              "preset": "temp-exes",
+              "values": {
+                "path": "C:\\Users\\*\\AppData\\Local\\Temp",
+                "include": [
+                  "*.exe",
+                  "*.dll",
+                  "*.ps1",
+                  "*.bat",
+                  "*.vbs"
+                ],
+                "recurse": true,
+                "force": true,
+                "file": true,
+                "errorAction": "SilentlyContinue"
+              },
+              "redirs": [],
+              "disabled": false,
+              "collapsed": false
+            },
+            {
+              "kind": "layer",
+              "id": "L2",
+              "tool": "get-filehash",
+              "preset": null,
+              "values": {},
+              "redirs": [],
+              "disabled": false,
+              "collapsed": false
+            },
+            {
+              "kind": "layer",
+              "id": "L3",
+              "tool": "where-object",
+              "preset": null,
+              "values": {
+                "op": "-Like",
+                "property": "Hash",
+                "value": {
+                  "var": "sha256"
+                }
+              },
+              "redirs": [],
+              "disabled": false,
+              "collapsed": false
+            }
+          ],
+          "joins": [
+            "pipe",
+            "pipe"
+          ]
+        }
+      },
+      "vars": [
+        {
+          "name": "sha256",
+          "type": "ioc:sha256",
+          "mode": "all",
+          "strategy": "multi",
+          "layer": "L3",
+          "param": "value",
+          "example": null
+        }
+      ],
+      "text": "Get-ChildItem -Path 'C:\\Users\\*\\AppData\\Local\\Temp' -Include '*.exe','*.dll','*.ps1','*.bat','*.vbs' -Recurse -Force -File -ErrorAction SilentlyContinue | Get-FileHash | Where-Object -Property Hash -In -Value '9f2c4e6a8b0d1f3e5c7a9b2d4f6e8a0c1b3d5f7e9a2c4e6b8d0f1a3c5e7b9d2f','0a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f9'",
+      "tags": [
+        "sample"
+      ]
+    }
+  ],
+  "iocSets": [
+    {
+      "note": "Fictional sample set for trying recipes.",
+      "created": "2026-10-15T00:00:00Z",
+      "id": "case-0314",
+      "name": "IR-2026-0314 (fictional)",
+      "items": [
+        {
+          "type": "ipv4",
+          "value": "198.51.100.23"
+        },
+        {
+          "type": "ipv4",
+          "value": "203.0.113.77"
+        },
+        {
+          "type": "ipv4",
+          "value": "192.0.2.146"
+        },
+        {
+          "type": "domain",
+          "value": "update-check.example.net"
+        },
+        {
+          "type": "domain",
+          "value": "cdn.badcorp.test"
+        },
+        {
+          "type": "sha256",
+          "value": "9f2c4e6a8b0d1f3e5c7a9b2d4f6e8a0c1b3d5f7e9a2c4e6b8d0f1a3c5e7b9d2f"
+        },
+        {
+          "type": "sha256",
+          "value": "0a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f9"
+        },
+        {
+          "type": "process",
+          "value": "svch0st.exe"
+        },
+        {
+          "type": "process",
+          "value": "updater.exe"
+        }
+      ]
+    }
+  ],
+  "userPaths": [],
+  "userTools": [],
+  "userShells": []
+}

@@ -1,0 +1,43 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hunt Kit</title><link rel="stylesheet" href="assets/site.css"></head><body data-base="" class="hub">
+<header class="top"><a class="brand" href="index.html">Hunt Kit</a><span class="crumb">Home</span>
+<div class="search"><input id="q" type="search" placeholder="Search everything  ( / )" autocomplete="off"><div id="results" class="results" hidden></div></div>
+<a class="btn" href="tools/hunt-notes.html" target="_blank">Hunt Notes</a>
+<button class="btn" id="tocBtn" title="Contents">☰</button><button class="btn" id="railBtn" title="Questions pane">Q</button><button class="btn" id="themeBtn" title="Theme">◐</button></header>
+<div class="layout hubl"><main class="content">
+<section class="hero"><h1>Hunt Kit</h1><p>Host threat-hunt and DFIR reference: one method, the commands that run it, and the tools to record it. Search finds any command, artifact or step across every document. Press <kbd>/</kbd>.</p>
+<div class="bigsearch"><input id="q2" type="search" placeholder="e.g. netscan · amcache · 4648 · systemd enabled · timestomp" autocomplete="off"><div id="results2" class="results inline" hidden></div></div></section>
+<h2>Start here</h2><div class="cards"><a class="card" href="docs/investigation-runbook.html"><b>Two-Host Investigation Runbook</b><span>Rules, five questions, gates, pre-flight, per-host sequence, time budget, tear-off.</span></a></div><h2>Execution</h2><div class="cards"><a class="card" href="docs/execution-reference.html"><b>Execution Reference</b><span>Every command: Windows + Linux live triage, native execution artifacts, Volatility 3/2, FTK, Autopsy, KQL, Suricata, Zeek.</span></a><a class="card" href="docs/ftk-runbook.html"><b>FTK Runbook</b><span>Linear FTK Imager + FTK investigation, step by step against Q1–Q5.</span></a><a class="card" href="docs/autopsy-runbook.html"><b>Autopsy Runbook</b><span>Linear Autopsy investigation, step by step against Q1–Q5, incl. timeline and $SI/$FN.</span></a><a class="card" href="docs/sysinternals.html"><b>Sysinternals Reference</b><span>Autoruns, Sigcheck, TCPView, Process Explorer, ListDLLs, Handle, Streams… what to read in each, with native fallbacks.</span></a></div><h2>Method</h2><div class="cards"><a class="card" href="docs/methods-handbook.html"><b>Analyst Methods Handbook</b><span>Collection plan, baseline, dashboards, intel-to-action crosswalk, detection &amp; filter pack, ICS/SCADA.</span></a></div><h2>Tools</h2><div class="cards"><a class="card tool" href="tools/hunt-notes.html" target="_blank"><b>Hunt Notes</b><span>Drop in observations, convert any time zone to UTC, build the timeline, IOC list and coverage grid. Exports MD/CSV/JSON.</span></a><a class="card tool" href="tools/command-lens/index.html" target="_blank"><b>Command Lens (beta)</b><span>Build read-only one-liners for PowerShell, cmd, bash from forms; explains every token.</span></a></div><h2>Print</h2><div class="cards pdfs"><a class="card small" href="pdf/investigation-runbook.pdf"><b>Two-Host Investigation Runbook</b><span>PDF</span></a><a class="card small" href="pdf/execution-reference.pdf"><b>Execution Reference</b><span>PDF</span></a><a class="card small" href="pdf/ftk-runbook.pdf"><b>FTK Runbook</b><span>PDF</span></a><a class="card small" href="pdf/autopsy-runbook.pdf"><b>Autopsy Runbook</b><span>PDF</span></a><a class="card small" href="pdf/sysinternals.pdf"><b>Sysinternals Reference</b><span>PDF</span></a><a class="card small" href="pdf/methods-handbook.pdf"><b>Analyst Methods Handbook</b><span>PDF</span></a></div>
+<p class="foot">Defensive, authorized analysis only. Every live command is read-only. All times recorded in UTC.</p>
+</main><aside id="rail" class="rail">
+  <h2>Five questions</h2>
+  <div class="q"><b>Q1 · What is running that should not be?</b><span>pslist vs psscan · pstree parentage · cmdline · malfind · unsigned or user-writable path</span></div>
+  <div class="q"><b>Q2 · What is talking that should not be?</b><span>netscan / sockstat · session vs the process's job · fixed-interval beacons · same IP on both hosts · DNS cache, hosts file</span></div>
+  <div class="q"><b>Q3 · How does it survive a reboot?</b><span>services, tasks, Run keys, WMI · cron, <i>enabled</i> systemd, rc, ld.so.preload, authorized_keys · target = the Q1 file</span></div>
+  <div class="q"><b>Q4 · Who did it, and how did they get in?</b><span>4624 type 3/10, 4648, 4672 · auth.log, last/lastb, UID 0 · a web request with no matching auth <i>is</i> the answer</span></div>
+  <div class="q"><b>Q5 · When did it start?</b><span>Prefetch, Amcache, UserAssist, BAM before file times · $SI vs $FN · fls + mactime vs access/auth logs</span></div>
+  <h2>Decision gates</h2>
+  <ol>
+    <li><b>G1</b> Unsigned / writable path / bad parent → acquire + hash the file</li>
+    <li><b>G2</b> External session, no business reason → bind to a process and a log</li>
+    <li><b>G3</b> Persistence targets that file → foothold confirmed</li>
+    <li><b>G4</b> Account + auth method found → extend scope to other hosts</li>
+    <li><b>G5</b> First-seen before the alert → intrusion start</li>
+  </ol>
+  <h2>Rules</h2>
+  <ul>
+    <li><b>Acquire before alter.</b> Memory first, hashed.</li>
+    <li><b>Two independent sources</b> or it is a lead, not a finding.</li>
+    <li><b>State the reasoning:</b> expected result before, what changed after.</li>
+    <li><b>Breadth first:</b> Q1–Q5 shallow on both hosts before depth.</li>
+  </ul>
+  <h2>Confidence</h2>
+  <ul>
+    <li><b>Possible</b>: one source, a lead</li>
+    <li><b>Probable</b>: consistent, partly corroborated</li>
+    <li><b>Confirmed</b>: two independent sources agree</li>
+  </ul>
+  <h2>Time</h2>
+  <ul><li>Record UTC. Volatility = UTC. PowerShell, Event Viewer, <code>ls</code>, syslog = host local. Apache carries its own offset.</li></ul>
+</aside></div>
+<script src="assets/search-index.js"></script><script src="assets/site.js"></script></body></html>

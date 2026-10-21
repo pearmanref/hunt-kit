@@ -1,0 +1,84 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "timeout",
+  "name": "timeout",
+  "aliases": [
+    "time limit",
+    "kill after"
+  ],
+  "kind": "native",
+  "shells": [
+    {
+      "id": "bash"
+    },
+    {
+      "id": "zsh"
+    }
+  ],
+  "category": "process",
+  "summary": "Runs a command and stops it if it is still going after a time limit.",
+  "action": "runs a command with a time limit",
+  "description": "Bounds a slow read command, for example a full-disk find, so it cannot run forever on a live host.",
+  "source": "https://www.gnu.org/software/coreutils/manual/html_node/timeout-invocation.html",
+  "requires": {
+    "elevation": "none"
+  },
+  "io": {
+    "stdin": "none",
+    "stdout": "text"
+  },
+  "template": "{binary} {flags} {duration} {cmd}",
+  "params": [
+    {
+      "id": "duration",
+      "label": "Limit",
+      "type": "string",
+      "slot": "duration",
+      "required": true,
+      "common": true,
+      "validate": "^\\d+[smhd]?$",
+      "validateMsg": "e.g. 30, 90s, 5m",
+      "placeholder": "5m",
+      "explain": "for up to {value}"
+    },
+    {
+      "id": "signal",
+      "label": "Signal",
+      "type": "enum",
+      "flag": "-s",
+      "enum": [
+        "TERM",
+        "KILL",
+        "INT",
+        "HUP"
+      ],
+      "explain": "sending {value} at the limit"
+    },
+    {
+      "id": "killAfter",
+      "label": "Hard-kill after",
+      "type": "string",
+      "flag": "-k",
+      "validate": "^\\d+[smhd]?$",
+      "validateMsg": "e.g. 10s",
+      "placeholder": "10s",
+      "explain": "then KILL {value} later if still running"
+    },
+    {
+      "id": "cmd",
+      "label": "Command",
+      "type": "command",
+      "slot": "cmd",
+      "required": true,
+      "common": true,
+      "nest": {
+        "kind": "prefix",
+        "toolFilter": "read-only"
+      },
+      "desc": "The read-only command to bound.",
+      "explain": "running {value}"
+    }
+  ],
+  "presets": [],
+  "ttps": []
+}

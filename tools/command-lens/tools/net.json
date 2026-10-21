@@ -1,0 +1,29 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "net",
+  "name": "net",
+  "aliases": ["net session", "net use", "net share", "net user", "net localgroup"],
+  "kind": "native",
+  "shells": [{ "id": "cmd" }],
+  "category": "users",
+  "summary": "Lists sessions, mapped drives, shares, users and groups (read-only forms only).",
+  "action": "queries Windows networking and accounts",
+  "description": "session = who is connected to this host; use = drives this host has mapped; share = what it shares. user / localgroup with a name show membership. Forms that change anything (add, delete, password) are deliberately not offered.",
+  "source": "https://learn.microsoft.com/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/hh875576(v=ws.11)",
+  "requires": { "elevation": "none", "note": "net session needs an elevated prompt" },
+  "io": { "stdin": "none", "stdout": "text" },
+  "template": "{binary} {command} {name}",
+  "params": [
+    { "id": "command", "label": "Subcommand", "type": "enum", "slot": "command", "required": true, "common": true, "default": "session",
+      "enum": [{ "value": "session", "label": "session (inbound connections)" }, { "value": "use", "label": "use (mapped drives)" }, { "value": "share", "label": "share (local shares)" }, { "value": "user", "label": "user (accounts)" }, { "value": "localgroup", "label": "localgroup (groups)" }, { "value": "accounts", "label": "accounts (password policy)" }],
+      "explain": "{value}" },
+    { "id": "name", "label": "Name", "type": "string", "slot": "name", "common": true, "ioc": ["user"], "placeholder": "Administrators", "desc": "Optional: a user or group name for user / localgroup.", "explain": "for {value}" }
+  ],
+  "presets": [
+    { "id": "session", "name": "Inbound SMB sessions (net session)", "values": { "command": "session" }, "ttps": ["T1021.002", "T1074.002"] },
+    { "id": "use", "name": "Mapped drives (net use)", "values": { "command": "use" }, "ttps": ["T1021.002"] },
+    { "id": "share", "name": "Local shares (net share)", "values": { "command": "share" }, "ttps": ["T1135"] },
+    { "id": "admins", "name": "Local Administrators members", "values": { "command": "localgroup", "name": "Administrators" }, "ttps": ["T1078.003", "T1069.001"] }
+  ],
+  "ttps": []
+}

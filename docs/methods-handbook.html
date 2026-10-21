@@ -1,0 +1,2878 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Analyst Methods Handbook</title><link rel="stylesheet" href="../assets/site.css"></head><body data-base="../" class="doc">
+<header class="top"><a class="brand" href="../index.html">Hunt Kit</a><span class="crumb">Analyst Methods Handbook</span>
+<div class="search"><input id="q" type="search" placeholder="Search everything  ( / )" autocomplete="off"><div id="results" class="results" hidden></div></div>
+<a class="btn" href="../tools/hunt-notes.html" target="_blank">Hunt Notes</a><a class="btn" href="../pdf/methods-handbook.pdf" title="Printable PDF">PDF</a>
+<button class="btn" id="tocBtn" title="Contents">☰</button><button class="btn" id="railBtn" title="Questions pane">Q</button><button class="btn" id="themeBtn" title="Theme">◐</button></header>
+<div class="layout"><nav id="toc" class="toc"><div class="toch">Contents</div><a class="l1" href="#collection-plan-methodology">Collection Plan Methodology</a><a class="l2" href="#1-the-organizing-idea-collect-at-terrain-x-threat">1. The
+organizing idea: collect at Terrain x Threat</a><a class="l2" href="#2-inputs-what-you-gather-before-you-plan">2. Inputs — what you
+gather before you plan</a><a class="l2" href="#3-the-method-step-by-step">3. The method, step by step</a><a class="l2" href="#4-host-network-are-one-plan-not-two">4. Host + network are one
+plan, not two</a><a class="l2" href="#5-network-collection-sensor-placement">5. Network collection —
+sensor placement</a><a class="l3" href="#the-one-sensor-problem">The one-sensor problem</a><a class="l3" href="#picking-the-one-spot-decision-logic">Picking the one spot —
+decision logic</a><a class="l3" href="#scoring-candidate-locations">Scoring candidate locations</a><a class="l3" href="#the-secondary-sensor">The secondary sensor</a><a class="l3" href="#practical-wire-notes-carry-these-on-site">Practical wire notes
+(carry these on-site)</a><a class="l2" href="#6-host-collection-what-to-request-vs-deploy">6. Host collection
+— what to request vs deploy</a><a class="l3" href="#windows-request-first">Windows — request first</a><a class="l3" href="#linux-request-first">Linux — request first</a><a class="l3" href="#ingest-note">Ingest note</a><a class="l3" href="#edr-the-deploy-decision-tree">EDR — the deploy decision
+tree</a><a class="l2" href="#7-assumptions-and-category-markers">7. Assumptions and category
+markers</a><a class="l2" href="#8-the-collection-requirement-record">8. The
+collection-requirement record</a><a class="l2" href="#9-fillable-worksheet">9. Fillable worksheet</a><a class="l2" href="#10-coverage-validation-and-gaps">10. Coverage validation and
+gaps</a><a class="l2" href="#11-quick-start-checklist">11. Quick-start checklist</a><a class="l1" href="#baseline-methodology-what-s-normal">Baseline Methodology —
+&quot;What&#x27;s Normal&quot;</a><a class="l2" href="#1-the-organizing-idea-predict-collect-compare">1. The organizing
+idea: predict, collect, compare</a><a class="l2" href="#2-vocabulary-two-kinds-of-normal">2. Vocabulary — two kinds of
+&quot;normal&quot;</a><a class="l2" href="#3-phase-0-pre-site-build-the-expected-baseline-provisional">3.
+Phase 0 — Pre-site: build the expected baseline (provisional)</a><a class="l2" href="#4-phase-1-on-site-ground-truth-and-3-state-reconciliation">4.
+Phase 1 — On-site: ground truth and 3-state reconciliation</a><a class="l2" href="#5-phase-2-the-tagging-workflow-earning-normal">5. Phase 2 — The
+tagging workflow (earning &quot;normal&quot;)</a><a class="l2" href="#6-range-ism-catalog-gate-1-content">6. Range-ism catalog (Gate 1
+content)</a><a class="l2" href="#7-the-baseline-register">7. The Baseline Register</a><a class="l2" href="#8-guardrails-not-fooling-yourself">8. Guardrails — not fooling
+yourself</a><a class="l2" href="#9-filter-emission-hand-off-to-the-detection-pack">9. Filter
+emission (hand-off to the Detection pack)</a><a class="l2" href="#10-quick-start-checklist">10. Quick-start checklist</a><a class="l1" href="#kibana-dashboards-host-network">Kibana Dashboards — Host +
+Network</a><a class="l2" href="#1-organizing-idea-funnel-and-one-question-per-panel">1.
+Organizing idea: funnel, and one question per panel</a><a class="l2" href="#2-data-model-assumptions-ecs-indices">2. Data model assumptions
+(ECS + indices)</a><a class="l2" href="#3-overview-dashboard-landing">3. Overview dashboard
+(landing)</a><a class="l2" href="#4-host-dashboard">4. Host dashboard</a><a class="l2" href="#5-network-dashboard">5. Network dashboard</a><a class="l2" href="#6-build-mechanics">6. Build mechanics</a><a class="l2" href="#7-baseline-integration-filters-applied-first">7. Baseline
+integration (filters applied first)</a><a class="l1" href="#intelligence-analysis-methodology-intel-to-action">Intelligence
+Analysis Methodology — Intel to Action</a><a class="l2" href="#1-the-organizing-idea-every-technique-writes-to-a-known-plac">1.
+The organizing idea: every technique writes to a known place</a><a class="l2" href="#2-classify-the-intel-input">2. Classify the intel input</a><a class="l2" href="#3-the-reference-process">3. The reference process</a><a class="l2" href="#4-technique-to-data-crosswalk">4. Technique-to-data
+crosswalk</a><a class="l3" href="#execution">Execution</a><a class="l3" href="#persistence-privilege-escalation">Persistence / Privilege
+Escalation</a><a class="l3" href="#defense-evasion">Defense Evasion</a><a class="l3" href="#credential-access">Credential Access</a><a class="l3" href="#lateral-movement">Lateral Movement</a><a class="l3" href="#command-and-control">Command and Control</a><a class="l3" href="#impact">Impact</a><a class="l3" href="#linux">Linux</a><a class="l2" href="#5-evaluate-the-result">5. Evaluate the result</a><a class="l2" href="#6-indicator-crosswalk">6. Indicator crosswalk</a><a class="l2" href="#7-pivot-one-technique-implies-its-neighbors">7. Pivot — one
+technique implies its neighbors</a><a class="l2" href="#8-confidence-and-reporting">8. Confidence and reporting</a><a class="l2" href="#9-collection-gaps">9. Collection gaps</a><a class="l1" href="#detection-filter-pack-suricata-zeek-elastic-defend-kql">Detection
+&amp; Filter Pack — Suricata / Zeek / Elastic Defend / KQL</a><a class="l2" href="#1-organizing-idea-layers-and-baseline-filters-first">1.
+Organizing idea: layers, and baseline filters first</a><a class="l2" href="#2-kql-hunt-library">2. KQL hunt library</a><a class="l3" href="#host-hunts">Host hunts</a><a class="l3" href="#network-hunts">Network hunts</a><a class="l2" href="#3-suricata">3. Suricata</a><a class="l2" href="#4-zeek">4. Zeek</a><a class="l2" href="#5-elastic-defend-endpoint">5. Elastic Defend (endpoint)</a><a class="l2" href="#6-mapping-the-layers-to-the-threat-coverage-check">6. Mapping
+the layers to the threat (coverage check)</a><a class="l2" href="#7-filter-emission-one-table-all-stacks">7. Filter emission —
+one table, all stacks</a><a class="l1" href="#ics-scada-defensive-overview">ICS/SCADA Defensive Overview</a><a class="l2" href="#1-the-systems">1. The Systems</a><a class="l2" href="#2-the-protocols">2. The Protocols</a><a class="l2" href="#3-common-weaknesses">3. Common Weaknesses</a><a class="l2" href="#4-identifying-attacks-manipulation">4. Identifying Attacks /
+Manipulation</a></nav>
+<main class="content"><h1>Analyst Methods Handbook</h1>
+<p><em>Threat Hunt / DFIR Methodology Reference</em></p>
+<hr/>
+<h1 id="collection-plan-methodology">Collection Plan Methodology</h1>
+<p><strong>Purpose.</strong> Walk onto a network, look at how it is
+built and (when you have it) who is coming after it, and decide <em>what
+to collect, where to collect it, how, and why</em> — before you drown in
+data you can't use or miss the data you needed. This is the front of the
+pipeline:</p>
+<pre><code>   [ COLLECT ]  -&gt;  [ BASELINE ]  -&gt;  [ VISUALIZE ]  -&gt;  [ DETECT ]
+  collection plan   what's normal     Kibana dashes     Suricata/Zeek/Defend/KQL</code></pre>
+<p>Everything downstream inherits the decisions you make here. A
+dashboard can only show what you collected; a baseline can only
+normalize what you collected; a detection can only fire on what you
+collected. Collection is the first and most expensive mistake to get
+wrong.</p>
+<hr/>
+<h2 id="1-the-organizing-idea-collect-at-terrain-x-threat">1. The
+organizing idea: collect at Terrain x Threat</h2>
+<p>The instinct on a new network is to "collect everything." You can't,
+and you shouldn't — you have finite sensors, finite ingest, finite
+analysts, and some collection is actively harmful (crashing an OT
+device, tipping off an actor you're watching). So you need a principle
+that tells you <em>where the value is</em>.</p>
+<p>The value is at the <strong>intersection of terrain and
+threat:</strong></p>
+<ul>
+<li><strong>Terrain</strong> = what exists and what matters. The network
+build, the segments, the choke points, the crown jewels, the data flows.
+Terrain tells you <em>where things can happen and where it would
+hurt.</em></li>
+<li><strong>Threat</strong> = what the adversary does. Their TTPs,
+expressed as ATT&amp;CK techniques, each of which leaves evidence in a
+specific place and data source. Threat tells you <em>what to look for
+and what records it leaves.</em></li>
+</ul>
+<pre><code>                 THREAT (what the adversary does)
+                 techniques -&gt; required telemetry
+                          |
+                          v
+   TERRAIN  -------&gt;  [ CROSSWALK ]  -------&gt;  COLLECTION REQUIREMENTS
+   where things       where a technique        what / where / how /
+   happen &amp; hurt      would land on YOUR        why / priority / owner
+                      terrain, and what
+                      data source sees it</code></pre>
+<p>Where a technique the threat uses would land on terrain you care
+about, and a data source exists that would see it — that is a collection
+requirement. Rank those requirements, place sensors and request logs to
+satisfy the top ones within your constraints, then prove your coverage
+back against both axes.</p>
+<p>Two framings feed the crosswalk and you use both:</p>
+<ul>
+<li><strong>Threat-informed</strong> — start from the actor. "APTxx uses
+T1021.002 (SMB/admin shares) for lateral movement" -&gt; you need SMB
+session + auth telemetry on the segments where lateral movement would
+occur. Precise, but only as good as your intel.</li>
+<li><strong>Coverage-informed</strong> — start from the platform. "This
+is a Windows AD environment" -&gt; there is a known default set of
+techniques and a known default telemetry set that covers most of them
+(process creation, auth, PowerShell, persistence, network). Broad, works
+with zero intel, and catches the actor your intel didn't name.</li>
+</ul>
+<p><strong>Rule of thumb:</strong> coverage-informed sets your floor
+(you always collect the default visibility set for the platform);
+threat-informed raises specific areas above the floor (you collect
+<em>extra</em> where a named actor concentrates). If you have no intel,
+you still have a complete plan from the coverage side alone.</p>
+<hr/>
+<h2 id="2-inputs-what-you-gather-before-you-plan">2. Inputs — what you
+gather before you plan</h2>
+<p>You can't crosswalk terrain against threat until you've modeled both.
+Collect these first:</p>
+<p><strong>Network build / terrain</strong></p>
+<ul>
+<li>Network diagram(s) — L2/L3, VLANs/segments, routing, egress points,
+DMZ, management network, OT/ICS boundary if any.</li>
+<li>Asset inventory — hosts, roles (DC, file server, web, DB,
+workstation, jump host), OS/version, owners, criticality.</li>
+<li>Data-flow / service map — who talks to whom, on what ports, in which
+direction; where the crown-jewel data lives and moves.</li>
+<li>Choke points — where traffic concentrates (egress,
+core/distribution, inter-segment routers, VPN concentrators).</li>
+<li>Existing visibility — what's already logging, what's already
+forwarding, where sensors already sit. Don't re-collect what you already
+have.</li>
+</ul>
+<p><strong>Threat intel (when available)</strong></p>
+<ul>
+<li>Named actor(s) and their TTPs -&gt; translate to ATT&amp;CK
+technique IDs.</li>
+<li>Known IOCs (hashes, domains, IPs, JA3/JA4) — these feed detection
+(intel framework / indicator matching), not collection placement, but
+note them.</li>
+<li>Targeted sectors/data — tells you which crown jewels are in
+play.</li>
+<li>If <strong>no intel</strong>: use the platform default technique set
+(coverage-informed). Don't stall waiting for intel.</li>
+</ul>
+<p><strong>Engagement / constraints</strong></p>
+<ul>
+<li>Objective — hunt known compromise? establish monitoring? validate
+after an incident? This changes priority weighting.</li>
+<li>ROE / authorities — what you are allowed to touch, deploy, decrypt,
+and collect. Hard boundary.</li>
+<li>Environment — <strong>range</strong> vs <strong>real client</strong>
+(drives your assumption markers, Section 7).</li>
+<li>Resources — sensor count (often <strong>one</strong>), ingest
+budget, analyst hours, change-control friction.</li>
+</ul>
+<hr/>
+<h2 id="3-the-method-step-by-step">3. The method, step by step</h2>
+<pre class="bash"><code> 1. MAP TERRAIN      enumerate assets, segments, choke points,
+                     crown jewels, flows -&gt; terrain model
+
+ 2. CHARACTERIZE     intel -&gt; ATT&amp;CK techniques -&gt; required data sources
+    THREAT           (no intel? platform default technique set)
+
+ 3. CROSSWALK        overlay each technique on terrain: where would it
+                     manifest here, what data source would see it?
+                     -&gt; candidate collection requirements
+
+ 4. PRIORITIZE       score each = likelihood x detection-value x feasibility
+                     -&gt; ranked requirement list
+
+ 5. PLACE / REQUEST  network: choose sensor location(s)  (Section 5)
+                     host:    request logs / deploy agents  (Section 6)
+
+ 6. DOCUMENT         write each as a collection-requirement record
+                     (Section 8) -&gt; the collection plan
+
+ 7. VALIDATE         map planned collection back onto ATT&amp;CK + terrain;
+                     find and log the gaps (Section 10)</code></pre>
+<p><strong>Step 2 detail — technique to data source.</strong> Each
+ATT&amp;CK technique has associated <em>data sources / data
+components</em> (ATT&amp;CK publishes these). That mapping is the bridge
+from "what the actor does" to "what I must collect." Examples:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Technique (example)</th>
+<th>Primary data source(s)</th>
+<th>Where it lands</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>T1059.001 PowerShell</td>
+<td>Script block logging (4104), process creation (Sysmon 1 / 4688),
+module logging</td>
+<td>Endpoint</td>
+</tr>
+<tr class="even">
+<td>T1021.002 SMB/Admin shares</td>
+<td>Logon (4624 type 3), network share (5140/5145), SMB flows</td>
+<td>Endpoint + network</td>
+</tr>
+<tr class="odd">
+<td>T1071 App-layer C2</td>
+<td>Network connection, DNS, TLS metadata, proxy/flow</td>
+<td>Network sensor</td>
+</tr>
+<tr class="even">
+<td>T1053.005 Scheduled task</td>
+<td>Task events (4698/4702), Sysmon 1, registry</td>
+<td>Endpoint</td>
+</tr>
+<tr class="odd">
+<td>T1003 Cred dumping (LSASS)</td>
+<td>Process access (Sysmon 10), EDR behavioral, memory</td>
+<td>Endpoint (EDR)</td>
+</tr>
+<tr class="even">
+<td>T1048 Exfil over alt proto</td>
+<td>Flow records, bytes-out, DNS, protocol metadata</td>
+<td>Network sensor</td>
+</tr>
+</tbody>
+</table>
+<p>The point of the table is the <em>pattern</em>: some techniques are
+only visible on the host, some only on the wire, many on both — and that
+tells you whether a requirement is a sensor-placement decision or a
+log-request/agent decision.</p>
+<p><strong>Step 4 detail — the priority score.</strong> Rank every
+candidate requirement by three factors (1-5 each; multiply, or weight if
+you prefer):</p>
+<ul>
+<li><strong>Threat likelihood</strong> — how probable is this technique
+on this terrain, given intel + platform? (No intel -&gt; rate by
+prevalence on the platform.)</li>
+<li><strong>Detection value</strong> — if you collect this, how much
+does it actually buy you? High for telemetry that covers many techniques
+(process creation, auth, DNS); low for narrow one-off sources.</li>
+<li><strong>Feasibility</strong> — can you realistically collect it?
+Accounts for sensor access, ingest cost, change control, host fragility,
+ROE. A perfect requirement you can't satisfy scores zero in
+practice.</li>
+</ul>
+<p><code>priority = likelihood x detection_value x feasibility</code></p>
+<p>This forces the hard trade honestly: a high-value source you cannot
+feasibly collect drops below a medium-value source you can. You collect
+the plan you can actually execute, not the plan you wish you had.</p>
+<hr/>
+<h2 id="4-host-network-are-one-plan-not-two">4. Host + network are one
+plan, not two</h2>
+<p>Keep them in one document because the same technique often shows on
+both, and the two collection surfaces <em>cover each other's blind
+spots:</em></p>
+<ul>
+<li>The <strong>network sensor</strong> sees breadth cheaply (every host
+that crosses the sensor, no agent needed) but goes blind on encryption,
+on same-segment host-local activity, and on anything that never crosses
+the sensor.</li>
+<li><strong>Host collection</strong> sees depth (process lineage, script
+content, in-memory behavior, local file writes) but only on hosts you've
+instrumented, and it's expensive per host.</li>
+</ul>
+<p>So the plan reads: <em>network sensor for breadth and the wire; host
+collection to add depth where the terrain is valuable or the network
+sensor is blind.</em> The two sections below are halves of the same
+decision.</p>
+<hr/>
+<h2 id="5-network-collection-sensor-placement">5. Network collection —
+sensor placement</h2>
+<h3 id="the-one-sensor-problem">The one-sensor problem</h3>
+<p>Assume you get <strong>one</strong> sensor. Where it sits decides
+what the entire network side of your operation can see, so this is the
+highest-leverage single decision in the plan. The question is which axis
+of traffic you buy visibility into:</p>
+<pre><code>        NORTH  (Internet / external)
+          ^
+          |   &lt;-- egress / boundary choke:
+          |       sees C2 beacon-out, ingress, exfil,
+   [ PERIMETER / EGRESS ]        inbound exploit
+          |
+   ======================  &lt;-- core / distribution choke:
+          |                    sees east-west, lateral movement,
+   [ CORE / DISTRIBUTION ]      internal recon, crown-jewel access
+          |
+   [ ACCESS / HOSTS ]
+          v
+        SOUTH  (internal)</code></pre>
+<p><strong>North-south (egress/boundary)</strong> catches the
+adversary's <em>conversations with the outside world</em> — C2
+check-ins, data exfiltration, inbound exploitation, downloads. If the
+engagement is an external threat actor, C2, or exfil, this is usually
+the default. It is also the cheapest high-value spot because nearly all
+external-facing badness funnels through it.</p>
+<p><strong>East-west (core/distribution)</strong> catches <em>movement
+inside the perimeter</em> — lateral movement, internal recon, credential
+reuse, access to crown jewels. If the engagement is an insider, an
+already-established foothold, or protecting specific internal assets,
+this axis wins.</p>
+<h3 id="picking-the-one-spot-decision-logic">Picking the one spot —
+decision logic</h3>
+<pre><code>Start.
+  |
+  Q1: Is the engagement external threat / C2 / exfil / unknown?
+  |      YES -&gt; default to the EGRESS / boundary choke point.
+  |      NO  -&gt; continue.
+  |
+  Q2: Is the engagement internal (insider, established foothold,
+  |   protect specific crown jewels)?
+  |      YES -&gt; default to the CORE / distribution choke that
+  |             carries the crown-jewel flows.
+  |      NO  -&gt; continue.
+  |
+  Q3: Is there ONE choke point that carries both the egress AND
+  |   the bulk of east-west? (small/flat networks often have this)
+  |      YES -&gt; put it there; you get both axes at once.
+  |      NO  -&gt; fall back to egress (broadest default coverage).
+  |
+  Then adjust for feasibility (below) before committing.</code></pre>
+<h3 id="scoring-candidate-locations">Scoring candidate locations</h3>
+<p>Rate each physical candidate and let feasibility veto:</p>
+<ul>
+<li><strong>Coverage breadth</strong> — how many hosts/flows of interest
+cross this point.</li>
+<li><strong>Choke centrality</strong> — does traffic concentrate here,
+or will you miss flows that route around it?</li>
+<li><strong>Crown-jewel visibility</strong> — does the sensor see the
+traffic to/from what matters most?</li>
+<li><strong>Decryption availability</strong> — can you see inside TLS
+here (proxy break, keys), or only metadata? Placement near a decryption
+point is worth a lot.</li>
+<li><strong>Feasibility</strong> — SPAN capacity on the switch, physical
+TAP access, throughput/oversubscription, asymmetric routing (do you see
+both directions?), and whether you're allowed to tap at all.</li>
+</ul>
+<h3 id="the-secondary-sensor">The secondary sensor</h3>
+<p>If scope allows a second sensor, <strong>do not duplicate the first —
+cover the first one's blind spot.</strong> The whole value of #2 is
+complementary coverage:</p>
+<ul>
+<li>If #1 is at egress (north-south), put #2 at the core/distribution
+for east-west, or on the segment holding the crown jewels.</li>
+<li>If #1 is at the core, put #2 at egress to pick up C2/exfil.</li>
+<li>Special case: if there's an OT/ICS boundary or a high-value enclave,
+#2 on that boundary is often worth more than generic east-west — it's
+terrain you can't afford to be blind to and usually can't instrument at
+the host.</li>
+</ul>
+<h3 id="practical-wire-notes-carry-these-on-site">Practical wire notes
+(carry these on-site)</h3>
+<ul>
+<li><strong>TAP vs SPAN</strong> — TAP is passive, full-fidelity, no
+drops, needs physical access + the right media. SPAN is config-only but
+drops under load, can't exceed the port's bandwidth, and may miss
+errors. Prefer TAP for a monitored choke; SPAN when you can't physically
+tap.</li>
+<li><strong>Aggregation</strong> — a packet broker / aggregation TAP
+combines multiple links and feeds one sensor; useful when the "one
+choke" is really several links.</li>
+<li><strong>Asymmetric routing</strong> — confirm you see <em>both</em>
+directions of a flow, or stateful tools (Suricata/Zeek) misparse
+sessions.</li>
+<li><strong>NAT</strong> — a sensor outside NAT sees the translated
+(public) address and loses the internal host; inside NAT you keep host
+attribution. Prefer inside, or collect both and correlate.</li>
+<li><strong>TLS</strong> — without decryption you still get rich
+metadata: JA3/JA4 (client/server fingerprints), SNI, certificate
+subject/issuer/validity, cert chains. Plan to collect these even when
+you can't see payload.</li>
+<li><strong>Time</strong> — make sure the sensor's clock is NTP-synced
+to the same source as the hosts, or correlation across host/network
+falls apart.</li>
+</ul>
+<hr/>
+<h2 id="6-host-collection-what-to-request-vs-deploy">6. Host collection
+— what to request vs deploy</h2>
+<p>Two categories, and the distinction drives the action:</p>
+<ul>
+<li><strong>Already generated -&gt; request / forward.</strong> The host
+is already writing these; you just need them shipped (Winlogbeat /
+Elastic Agent / syslog). Low risk, no new software behavior.</li>
+<li><strong>Not generated yet -&gt; deploy.</strong> You have to add
+something (Sysmon config, an EDR agent, auditd rules) to produce the
+telemetry. Higher risk, change control, host impact.</li>
+</ul>
+<h3 id="windows-request-first">Windows — request first</h3>
+<ul>
+<li><strong>EVTX, the core set</strong> (request + forward to Kibana via
+Winlogbeat/Elastic Agent):
+<ul>
+<li>Security (4624/4625 logon, 4648 explicit-cred lateral, 4672 priv,
+4688 process w/ cmdline if enabled, 4697 service install, 4698/4702
+scheduled task, 4720/4728/4732 account+group changes, 5140/5145 share
+access, 4768/4769/4771 Kerberos).</li>
+<li>System (7045 service install, 7035/7036 service control).</li>
+<li>Application (app crashes, install MSI events).</li>
+<li><strong>Sysmon</strong> (if present) — 1 process w/
+hashes+cmdline+parent, 3 network, 7 image load, 8 remote thread, 10
+process access (LSASS), 11 file create, 13 registry, 22 DNS. Sysmon is
+the single highest-value Windows host source; if it isn't deployed,
+that's a <strong>deploy</strong> decision below.</li>
+<li><strong>PowerShell</strong> — 4104 script block (deobfuscated script
+content), 4103 module logging, transcription.</li>
+<li>Windows Defender / AV operational log, WMI-Activity, TaskScheduler
+operational, TerminalServices (RDP), Windows Firewall.</li>
+</ul></li>
+<li><strong>Dead-box / triage artifacts</strong> (request as a
+collection or pull with a triage tool — Velociraptor/KAPE if ROE
+allows): $MFT, USN journal, Amcache/Shimcache, Prefetch, registry hives
+(SYSTEM/SOFTWARE/SAM/NTUSER), SRUM, Scheduled Tasks XML, Autoruns,
+browser history, memory image for the live-response cases.</li>
+<li><strong>Server app logs</strong> — IIS, Apache/Nginx on Windows, DB
+logs, Exchange, anything web-facing (webshell hunting).</li>
+</ul>
+<h3 id="linux-request-first">Linux — request first</h3>
+<ul>
+<li><strong>auth</strong> (<code>/var/log/auth.log</code> /
+<code>secure</code>), <strong>journald</strong>, and
+<strong>auditd</strong> (execve, file, network syscalls — auditd is the
+Linux equivalent of Sysmon in value; if not configured, it's a deploy
+decision).</li>
+<li>Shell history (<code>.bash_history</code>, with timestamps if
+<code>HISTTIMEFORMAT</code> set), <strong>cron</strong>,
+<code>/etc/</code> change evidence, package-manager logs.</li>
+<li>Web/app logs — <strong>Apache/Nginx access+error</strong> (webshell
++ exploitation), app logs, DB logs.</li>
+<li>Running state for live response — processes, listening sockets,
+loaded modules, <code>/proc</code>, open files.</li>
+</ul>
+<h3 id="ingest-note">Ingest note</h3>
+<p>EVTX and syslog ship cleanly into Kibana via Winlogbeat / Filebeat /
+Elastic Agent, mapped to ECS. Decide <strong>per source</strong> whether
+it's worth the ingest cost — ingest budget is a real constraint, and
+some logs (verbose Application noise) cost more than they return.
+Priority score (Section 3) applies to log sources too.</p>
+<h3 id="edr-the-deploy-decision-tree">EDR — the deploy decision
+tree</h3>
+<p>EDR gives real-time process/network/file/registry telemetry,
+in-memory behavioral detection, and a response capability
+(isolate/kill/collect). It's powerful and it's intrusive — a
+kernel-level agent on someone else's production box. Decide
+deliberately:</p>
+<pre><code>For each host (or host group):
+
+  Q1: Is it OT/ICS, embedded, medical, legacy, or an
+  |   unsupported/fragile platform?
+  |      YES -&gt; DO NOT deploy an agent. Risk to stability/safety
+  |             and likely unsupported. Cover it with PASSIVE
+  |             NETWORK collection at its segment boundary instead.
+  |      NO  -&gt; continue.
+  |
+  Q2: Does ROE / ownership / change control permit an agent here,
+  |   and is the host in scope?
+  |      NO  -&gt; request logs only (or passive network). Stop.
+  |      YES -&gt; continue.
+  |
+  Q3: Do you need a RESPONSE capability here (isolate, kill,
+  |   remote-collect) or real-time BEHAVIORAL / memory detection
+  |   (e.g. cred dumping, injection) that logs won't give you?
+  |      YES -&gt; DEPLOY EDR.
+  |      NO  -&gt; continue.
+  |
+  Q4: Is this a high-value / high-likelihood host — DC, jump host,
+  |   crown-jewel server, externally exposed, known/suspected
+  |   foothold or pivot?
+  |      YES -&gt; DEPLOY EDR (start here, expand outward by priority).
+  |      NO  -&gt; continue.
+  |
+  Q5: Does native logging (EVTX+Sysmon / auditd) already cover the
+  |   threat adequately for this host's priority?
+  |      YES -&gt; request logs; skip the agent (save it for where it
+  |             earns its place).
+  |      NO  -&gt; DEPLOY EDR.
+  |
+  Overlay (can override a YES): is a COVERT posture required because
+  you're observing a live actor? A new agent install is detectable
+  and can tip them off / trigger anti-forensics. If so, weigh
+  passive + existing-log collection first and stage EDR for the
+  containment phase.</code></pre>
+<p><strong>When you should NOT deploy EDR — collected in one
+place:</strong></p>
+<ul>
+<li>OT/ICS/embedded/medical/legacy or any platform where the agent risks
+stability or isn't supported -&gt; passive network only.</li>
+<li>Hosts outside ROE / ownership, or under change control that forbids
+it.</li>
+<li>When covertness matters more than depth right now (live actor you're
+watching) — the install is noisy.</li>
+<li>When native logging already covers the threat and the host is low
+priority — don't spend the agent slot.</li>
+<li>Where it merely duplicates coverage you already have.</li>
+</ul>
+<p><strong>Deployment order when you do deploy:</strong> crown jewels
+and likely targets -&gt; pivot points (jump hosts, DCs) -&gt; externally
+exposed servers -&gt; suspected foothold hosts -&gt; expand down the
+priority list as capacity allows. You rarely blanket-deploy; you deploy
+by priority, same as everything else in this plan.</p>
+<hr/>
+<h2 id="7-assumptions-and-category-markers">7. Assumptions and category
+markers</h2>
+<p>Every requirement and every sensor/host decision rests on
+assumptions, and the assumptions differ sharply between a range and a
+real client. Tag each one so you know what to revalidate when the
+environment changes:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Marker</th>
+<th>Meaning</th>
+<th>Why it matters</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>[RANGE]</code></td>
+<td>Holds on the range / exercise network</td>
+<td>Synthetic traffic, known build, duplicated images, orchestration and
+traffic-generator noise, no real production impact, decryption often
+available. Many "normals" are range artifacts, not real.</td>
+</tr>
+<tr class="even">
+<td><code>[CLIENT]</code></td>
+<td>Holds on a real operational network</td>
+<td>Unknown build, real users, real production-impact risk, strict ROE,
+legal boundaries, encryption you can't break, change control.
+Assumptions here are <em>unverified until confirmed on site.</em></td>
+</tr>
+<tr class="odd">
+<td><code>[BOTH]</code></td>
+<td>Holds regardless of environment</td>
+<td>Platform/protocol truths (AD uses Kerberos, SMB on 445, DNS on 53).
+Safe to carry across.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why this is its own section and not a footnote:</strong> the
+single most common way a good plan fails is carrying a range assumption
+onto a real client (or vice versa). A <code>[RANGE]</code> sensor spot
+that relied on a known flat build may be wrong on a segmented client
+network; a <code>[RANGE]</code> "collect everything, decrypt freely"
+assumption is often illegal or impossible at a client. The markers are
+the hand-off contract between environments — when you move, you walk the
+list and every <code>[RANGE]</code>/<code>[CLIENT]</code> line gets
+re-checked; <code>[BOTH]</code> lines you keep. (These same markers feed
+the baseline doc's pre-site model — a <code>[RANGE]</code> normal is
+provisional in a way a <code>[BOTH]</code> normal isn't.)</p>
+<hr/>
+<h2 id="8-the-collection-requirement-record">8. The
+collection-requirement record</h2>
+<p>The atomic unit of the plan. One record per requirement; the fillable
+worksheet produces these.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>ID</strong></td>
+<td>CR-001, CR-002 ...</td>
+</tr>
+<tr class="even">
+<td><strong>What</strong></td>
+<td>The telemetry/data source (e.g. "PowerShell 4104 script block
+logs").</td>
+</tr>
+<tr class="odd">
+<td><strong>Where</strong></td>
+<td>Terrain location (segment, host group, sensor point).</td>
+</tr>
+<tr class="even">
+<td><strong>How</strong></td>
+<td>Collection method (SPAN at core, Winlogbeat forward, Sysmon deploy,
+EDR agent, triage pull).</td>
+</tr>
+<tr class="odd">
+<td><strong>Why</strong></td>
+<td>Technique(s) / engagement it serves — ATT&amp;CK ID(s) or objective.
+This is the justification you defend to the asset owner.</td>
+</tr>
+<tr class="even">
+<td><strong>Priority</strong></td>
+<td>likelihood x detection-value x feasibility (Section 3).</td>
+</tr>
+<tr class="odd">
+<td><strong>Marker</strong></td>
+<td><code>[RANGE]</code> / <code>[CLIENT]</code> /
+<code>[BOTH]</code>.</td>
+</tr>
+<tr class="even">
+<td><strong>Owner</strong></td>
+<td>Who executes it (you, host admin, network team).</td>
+</tr>
+<tr class="odd">
+<td><strong>Status</strong></td>
+<td>planned / requested / collecting / failed / gap.</td>
+</tr>
+<tr class="even">
+<td><strong>Dependency</strong></td>
+<td>What it needs first (decryption, agent install, ROE approval, ingest
+capacity).</td>
+</tr>
+</tbody>
+</table>
+<hr/>
+<h2 id="9-fillable-worksheet">9. Fillable worksheet</h2>
+<p>A reusable worksheet ships alongside this methodology (interactive
+HTML: add/remove requirement rows, set fields and markers, export to CSV
+or markdown for the binder). The methodology is the
+<em>how-to-think</em>; the worksheet is the <em>fill-in-the-blanks</em>
+that produces the actual plan for a given network. Use the worksheet on
+site; keep the filled copy with the engagement binder.</p>
+<p>ASCII skeleton (what the worksheet captures):</p>
+<pre><code>COLLECTION PLAN — &lt;network&gt; — &lt;date&gt; — &lt;analyst&gt;
+Engagement: ____________________   Env: [RANGE]/[CLIENT]   Sensors avail: __
+
+TERRAIN SUMMARY
+  Segments: ______   Crown jewels: ______   Egress: ______   Core choke: ______
+
+SENSOR PLACEMENT
+  #1 location: ______  axis: N-S / E-W  rationale: ______  decrypt: Y/N
+  #2 (if any): ______  covers blind spot: ______
+
+REQUIREMENTS
+  ID   What                         Where        How          Why(ATT&amp;CK)  Pri  Mark  Owner  Status
+  CR1  _________________________    ___________  ___________  __________   ___  ____  _____  ______
+  CR2  ...</code></pre>
+<hr/>
+<h2 id="10-coverage-validation-and-gaps">10. Coverage validation and
+gaps</h2>
+<p>The plan isn't done when you've listed requirements — it's done when
+you've proven what you <em>can't</em> see. Two validation passes:</p>
+<ul>
+<li><strong>Against ATT&amp;CK</strong> — lay your planned collection
+over the technique set from Step 2. Every technique should map to at
+least one collected data source. Techniques with none are
+<strong>detection gaps</strong> — log them explicitly ("we are blind to
+in-memory cred theft on the non-EDR hosts").</li>
+<li><strong>Against terrain</strong> — walk the diagram. Every segment,
+crown jewel, and egress should map to a sensor or host source that sees
+it. Terrain with none is a <strong>visibility gap</strong> ("the OT
+segment has no host collection and the sensor only sees its
+boundary").</li>
+</ul>
+<p>A named gap is a decision ("accepted — out of ROE") or a to-do
+("request second sensor"). An <em>unnamed</em> gap is how you get
+surprised. The gap list is a deliverable in its own right and it feeds
+straight into the baseline doc: a thing you can't collect is a thing you
+can't baseline, and both facts belong in the engagement record.</p>
+<hr/>
+<h2 id="11-quick-start-checklist">11. Quick-start checklist</h2>
+<pre><code>[ ] Pull terrain: diagram, asset inventory, flows, choke points, existing visibility
+[ ] Pull/translate threat intel -&gt; ATT&amp;CK techniques  (none? use platform default set)
+[ ] Map techniques -&gt; required data sources (host? wire? both?)
+[ ] Crosswalk onto terrain -&gt; candidate requirements
+[ ] Score each: likelihood x detection-value x feasibility
+[ ] Place sensor #1 (egress by default; core if internal engagement); plan #2 to cover its blind spot
+[ ] Decide host collection: request existing logs; run the EDR deploy tree per host group
+[ ] Write requirement records; tag every one [RANGE]/[CLIENT]/[BOTH]
+[ ] Validate coverage vs ATT&amp;CK and vs terrain; log every gap
+[ ] Hand the filled worksheet to the binder</code></pre>
+<blockquote>
+<p><strong>Defensive use.</strong> This methodology is for authorized
+defensive collection, hunt, and monitoring on networks you are tasked to
+defend, under ROE. Collection placement, decryption, and agent
+deployment all have legal and operational boundaries — confirm authority
+before execution.</p>
+</blockquote>
+<h1 id="baseline-methodology-what-s-normal">Baseline Methodology —
+"What's Normal"</h1>
+<p><strong>Purpose.</strong> A repeatable way to look at collected data
+and decide, defensibly, that a given thing is <em>normal</em> — so it
+can be filtered out and your attention goes to what's left. The output
+is filters; the methodology is how you <strong>earn</strong> each
+"normal" verdict instead of guessing at it. This is the second stage of
+the pipeline:</p>
+<pre><code>   [ COLLECT ]  -&gt;  [ BASELINE ]  -&gt;  [ VISUALIZE ]  -&gt;  [ DETECT ]</code></pre>
+<p>You can only baseline what the collection plan gave you, and
+everything you confirm as normal becomes a filter the dashboards and
+detections apply. Get baselining wrong in either direction and you
+either drown in noise (nothing filtered) or filter away the intrusion
+(too much filtered). The whole method exists to make that call
+honest.</p>
+<hr/>
+<h2 id="1-the-organizing-idea-predict-collect-compare">1. The organizing
+idea: predict, collect, compare</h2>
+<p>Most baselining is <strong>reactive</strong> — you stare at what you
+collected and try to explain it after the fact. That's slow, it's biased
+toward "looks fine," and it gives you no way to notice the thing that
+<em>should</em> be there and isn't.</p>
+<p>Flip it to <strong>predictive</strong>. Before you ever see the data,
+derive what you <em>expect</em> normal to look like from the network
+build and known environment behavior. Then on site, compare expected
+against actual. The <strong>difference is the product</strong> — matched
+traffic is pre-cleared, and your attention lands on the delta.</p>
+<pre><code>   PHASE 0: PREDICT            PHASE 1: COMPARE             PHASE 2: TAG
+   (pre-site)                  (on-site)                    (ongoing)
+   build + range + intel        actual collected data        classify each
+        |                            |                       observation,
+        v                            v                       lock normals,
+   EXPECTED normal   ---- diff ----&gt; reconcile 3 ways        emit filters
+   (PROVISIONAL)                 confirm / gap / unknown</code></pre>
+<p>The discipline that keeps this safe: <strong>a prediction is a
+hypothesis, not a fact.</strong> Pre-site expectations enter the
+register as <em>provisional</em> and only become <em>confirmed</em>
+after on-site data matches them and they pass one real sanity check. An
+expectation never silently filters traffic you haven't actually looked
+at — otherwise the one actor who happens to mimic an expected service
+gets filtered straight into your blind spot. (This is expectation bias,
+and Section 8 is about not falling into it.)</p>
+<hr/>
+<h2 id="2-vocabulary-two-kinds-of-normal">2. Vocabulary — two kinds of
+"normal"</h2>
+<p>Precision here prevents the whole method from collapsing into "stuff
+I've seen before":</p>
+<ul>
+<li><strong>Known-good</strong> — normal you can <em>affirmatively
+justify</em>: it maps to a documented baseline item, a range/range
+artifact, an expected protocol for that terrain, or sanctioned
+automation. You can say <em>why</em> it's normal. Only known-good gets
+filtered.</li>
+<li><strong>Unknown-benign</strong> — traffic that <em>looks</em>
+harmless but you can't yet justify. It has not earned "normal." It stays
+visible and goes to triage/hunt until it is either justified (-&gt;
+known-good) or found hostile.</li>
+</ul>
+<p>The failure mode is treating unknown-benign as known-good because
+it's quiet and you're busy. The gates in Section 5 exist precisely to
+stop that.</p>
+<hr/>
+<h2 id="3-phase-0-pre-site-build-the-expected-baseline-provisional">3.
+Phase 0 — Pre-site: build the expected baseline (provisional)</h2>
+<p>Before arrival, derive what normal <em>should</em> be from everything
+you can know without touching the live network. Output: an
+<strong>expected-normal register</strong> (every item marked
+<code>provisional</code>) plus an <strong>expected sensor-coverage
+map</strong> (what each planned sensor/host source should be seeing if
+the collection plan is right).</p>
+<p><strong>Sources for the prediction (most also fed the collection plan
+— shared inputs):</strong></p>
+<ul>
+<li>Network diagram + asset inventory -&gt; expected hosts, roles,
+segments, and the flows that <em>must</em> exist (DC replication, DNS to
+the resolver, workstations to file servers, egress via the proxy).</li>
+<li>Service/port matrix + authorized-software list -&gt; expected
+protocols and ports per segment.</li>
+<li>Known management/monitoring tooling -&gt; expected admin traffic
+(WSUS/SCCM, patch, backup, vuln scanner sweeps, monitoring
+beacons).</li>
+<li><strong>range build / range docs + traffic-gen (e.g. a
+synthetic-user generator) configs</strong> -&gt; expected synthetic
+users, orchestration traffic, scoring server/grading traffic, injected
+"internet" (see Section 6).</li>
+<li>Prior-engagement baselines for the same environment -&gt; start from
+last time's confirmed normals (re-marked provisional until
+re-confirmed).</li>
+<li>Vendor / protocol defaults -&gt; expected chatter (NTP, ARP,
+NetBIOS, mDNS, DHCP, CRL/OCSP, telemetry).</li>
+</ul>
+<p><strong>For each expected item, record:</strong> the observable
+(host/flow/protocol/process), <em>why</em> you expect it (which source
+predicted it), the expected sensor that should see it, a confidence, and
+the environment marker
+(<code>[RANGE]</code>/<code>[CLIENT]</code>/<code>[BOTH]</code> — a
+<code>[BOTH]</code> prediction is higher-confidence than a
+<code>[RANGE]</code> one). State = <code>provisional</code>.</p>
+<p>The act of doing this before arrival is half the value even before
+you compare: it forces you to actually read the build, and it surfaces
+<em>expected</em> telemetry you'll then check is arriving (a coverage
+check you otherwise skip).</p>
+<hr/>
+<h2 id="4-phase-1-on-site-ground-truth-and-3-state-reconciliation">4.
+Phase 1 — On-site: ground truth and 3-state reconciliation</h2>
+<p>Capture the actual collected data, then diff it against the expected
+baseline. Every observable lands in exactly one of three states:</p>
+<pre><code>                        OBSERVED on site?
+                     yes               no
+          +--------------------+---------------------+
+EXPECTED  | CONFIRM            | GAP / ANOMALY       |
+  yes     | matches prediction | expected but ABSENT:|
+          | -&gt; sanity-check    | coverage gap, down  |
+          | once, then promote | service, blocked    |
+          | provisional-&gt;      | collection, or a    |
+          | confirmed          | real change. INVEST.|
+          +--------------------+---------------------+
+  no      | UNKNOWN            |   (n/a)             |
+          | not predicted:     |                     |
+          | ism? new normal?   |                     |
+          | threat? -&gt; TRIAGE  |                     |
+          +--------------------+---------------------+</code></pre>
+<ul>
+<li><strong>CONFIRM (expected + observed).</strong> Run the prediction
+through one real check the first time (is it actually the WSUS server,
+actually the traffic-generator user pattern?), then promote
+<code>provisional -&gt; confirmed</code>. Now it can emit a filter.</li>
+<li><strong>GAP / ANOMALY (expected + absent).</strong> The sleeper
+value of the whole method. Something you were sure you'd see isn't
+there. Three causes, all worth knowing: (a) a
+<strong>collection/coverage gap</strong> — the sensor or agent isn't
+seeing what it should, your collection plan has a hole; (b) a
+<strong>down/blocked service</strong> — operationally relevant; (c) a
+<strong>real change or incident</strong> — something altered the
+environment. Pure reactive baselining never surfaces this cell, because
+you can't notice the absence of a thing you weren't expecting.</li>
+<li><strong>UNKNOWN (observed + unexpected).</strong> Not predicted.
+Route through the tagging gates (Section 5): is it a range-ism? a
+legitimately new normal you add to the baseline? or a hunt lead? This is
+where real findings hide.</li>
+</ul>
+<p>The reconciliation is itself an analytic deliverable — the
+confirm/gap/unknown breakdown tells the engagement lead the state of
+visibility and the size of the hunt surface on day one.</p>
+<hr/>
+<h2 id="5-phase-2-the-tagging-workflow-earning-normal">5. Phase 2 — The
+tagging workflow (earning "normal")</h2>
+<p>For any observation that needs a verdict (every UNKNOWN, and anything
+new that appears later), run it through escalating gates. The first gate
+that justifies it wins; if none do, it stays visible and goes to hunt.
+Order matters — cheapest/most-certain justification first.</p>
+<pre><code>Observation needing a verdict
+      |
+  GATE 1: Is it a known range ism? (Section 6 catalog)
+      |      YES -&gt; known-good [RANGE]. Tag, note the ism, emit filter (scoped to range).
+      |      NO  -&gt; down.
+      |
+  GATE 2: Does it match a DOCUMENTED baseline item (confirmed register,
+      |   prior engagement, asset/service matrix)?
+      |      YES -&gt; known-good. Tag, link the register ID, emit filter.
+      |      NO  -&gt; down.
+      |
+  GATE 3: Is it an EXPECTED protocol/flow for THIS terrain?
+      |   (DNS from host to resolver, SMB host-&gt;file server, Kerberos to DC,
+      |   NTP to time source, the documented egress path)
+      |      YES -&gt; known-good, but VERIFY endpoints/direction match terrain
+      |             (right source, right destination, right port, right volume).
+      |             Confirmed -&gt; emit filter. Mismatch -&gt; treat as UNKNOWN, down.
+      |      NO  -&gt; down.
+      |
+  GATE 4: Is it sanctioned/benign AUTOMATION?
+      |   (patch, backup, vuln scan, SCCM/WSUS, monitoring, scoring server)
+      |      YES -&gt; VERIFY it's the real source/schedule/volume, then known-good,
+      |             emit filter.
+      |      NO  -&gt; down.
+      |
+  NO GATE PASSED -&gt; UNKNOWN-BENIGN at best. Do NOT filter.
+      -&gt; keep visible, send to hunt / triage as a lead.</code></pre>
+<p>Each gate has a <em>verify</em> step for a reason: the gate tells you
+a benign explanation is <em>plausible</em>; the verify step confirms the
+traffic actually <em>is</em> that thing and not an actor wearing its
+clothes (a "WSUS" flow to the wrong host, SMB in the wrong direction, a
+"backup" at the wrong hour). Plausible is not confirmed.</p>
+<hr/>
+<h2 id="6-range-ism-catalog-gate-1-content">6. Range-ism catalog (Gate 1
+content)</h2>
+<p>Range networks generate traffic that looks strange or alarming but is
+an artifact of how the range is built. Know these cold so you filter
+them fast — and so you <em>don't</em> mistake a real technique for one.
+(Draft list; prune/extend per the specific range build.)</p>
+<table>
+<thead>
+<tr class="header">
+<th>Ism</th>
+<th>What you see</th>
+<th>How to confirm it's the range, not a threat</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Range NAT / jump hosts</strong></td>
+<td>Many internal hosts sourcing from one address; odd gateway hops</td>
+<td>Matches the documented range NAT/jump layout; address is the known
+range infra</td>
+</tr>
+<tr class="even">
+<td><strong>Orchestration traffic</strong></td>
+<td>Control-plane chatter to a management host (provisioning, config
+push)</td>
+<td>Destination is the known orchestration host; regular, structured,
+from the build docs</td>
+</tr>
+<tr class="odd">
+<td><strong>traffic-generator / synthetic users</strong></td>
+<td>"User" activity that's too regular — same sites, same intervals,
+24/7, no human rhythm</td>
+<td>Matches the traffic-generator config; machine-perfect periodicity;
+originates from the seeded user hosts</td>
+</tr>
+<tr class="even">
+<td><strong>Cloned-image duplicates</strong></td>
+<td>Duplicate hostnames, duplicate MACs, same machine SIDs/GUIDs across
+hosts</td>
+<td>Images were cloned from one golden build; expected on a range,
+alarming on a client</td>
+</tr>
+<tr class="odd">
+<td><strong>INetSim / simulated internet</strong></td>
+<td>"Internet" services all resolving to one internal responder; every
+domain answers, often same IP</td>
+<td>DNS/HTTP all funnel to the known simulation host; real internet
+doesn't behave this uniformly</td>
+</tr>
+<tr class="even">
+<td><strong>PXE / imaging traffic</strong></td>
+<td>TFTP/DHCP/PXE bursts, large image pulls at range reset</td>
+<td>Coincides with range build/reset windows; to/from the imaging
+server</td>
+</tr>
+<tr class="odd">
+<td><strong>Monitoring beacons</strong></td>
+<td>Periodic check-ins to a monitoring/collection host</td>
+<td>Destination is the known monitoring stack; your own tooling</td>
+</tr>
+<tr class="even">
+<td><strong>Scoring server / grading traffic</strong></td>
+<td>Regular polling to a scoring host, health checks</td>
+<td>Destination is the exercise scoring server; part of the exercise,
+not the scenario</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Why this is a gate and not just a note:</strong> these are
+the highest-volume false alarms on a range, and every one of them has a
+real-world lookalike (NAT vs C2 aggregation, traffic-generator vs
+beaconing, INetSim vs sinkhole, cloned MACs vs spoofing). Clearing them
+<em>first</em>, by matching the documented build, both drops the noise
+floor and trains you to verify rather than assume. Every
+<code>[RANGE]</code> filter is scoped to the range and dropped when you
+move to a client — this ties directly to the
+<code>[RANGE]</code>/<code>[CLIENT]</code>/<code>[BOTH]</code> markers
+from the collection plan.</p>
+<hr/>
+<h2 id="7-the-baseline-register">7. The Baseline Register</h2>
+<p>The durable record of every "normal" verdict. One row per observable;
+the <code>state</code> column drives the predict-&gt;confirm
+lifecycle.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Column</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>ID</strong></td>
+<td>BL-001 ...</td>
+</tr>
+<tr class="even">
+<td><strong>Date</strong></td>
+<td>When recorded / last reviewed</td>
+</tr>
+<tr class="odd">
+<td><strong>Scope</strong></td>
+<td>Segment / host group / sensor it applies to (filters are scoped,
+never global-by-accident)</td>
+</tr>
+<tr class="even">
+<td><strong>Observable</strong></td>
+<td>The thing: host, flow (src/dst/port/proto), process, domain, JA3,
+user pattern</td>
+</tr>
+<tr class="odd">
+<td><strong>Class</strong></td>
+<td>network / host-process / host-auth / dns / tls / automation /
+user</td>
+</tr>
+<tr class="even">
+<td><strong>State</strong></td>
+<td><code>provisional</code> (predicted, pre-site) -&gt;
+<code>confirmed</code> (observed + verified) -&gt; <code>retired</code>
+(no longer valid)</td>
+</tr>
+<tr class="odd">
+<td><strong>Justification</strong></td>
+<td><em>Why</em> it's normal: ism name, register link, terrain
+expectation, automation source. No justification -&gt; it doesn't belong
+here.</td>
+</tr>
+<tr class="even">
+<td><strong>Marker</strong></td>
+<td><code>[RANGE]</code> / <code>[CLIENT]</code> /
+<code>[BOTH]</code></td>
+</tr>
+<tr class="odd">
+<td><strong>Filter</strong></td>
+<td>The emitted filter (KQL / Suricata suppress / Zeek intel exclusion /
+Defend event filter) — see Section 9</td>
+</tr>
+<tr class="even">
+<td><strong>Analyst</strong></td>
+<td>Who made the call</td>
+</tr>
+<tr class="odd">
+<td><strong>Review-by</strong></td>
+<td>When to re-verify (nothing is normal forever)</td>
+</tr>
+</tbody>
+</table>
+<p>Rules: only <code>confirmed</code> items emit active filters.
+<code>provisional</code> items are visible-but-flagged, never filtered.
+A filter always carries its register ID so anyone can trace <em>why</em>
+traffic is being suppressed back to a justification — a filter with no
+traceable reason is how intrusions get hidden.</p>
+<hr/>
+<h2 id="8-guardrails-not-fooling-yourself">8. Guardrails — not fooling
+yourself</h2>
+<p>The method's power (pre-cleared expectations) is also its danger (you
+see what you expect). Hard rules:</p>
+<ul>
+<li><strong>Provisional never filters.</strong> A pre-site prediction is
+a lead to confirm, not a license to suppress. Nothing gets filtered
+until it's <code>confirmed</code> with a verified justification.</li>
+<li><strong>Confirm = observed + one real check.</strong> Promotion
+isn't automatic on a match; the first match gets a sanity check against
+the actual endpoints/volume/timing.</li>
+<li><strong>Plausible is not confirmed.</strong> Every gate's verify
+step exists because a benign <em>category</em> (WSUS, backup,
+traffic-generator) is exactly what a smart actor hides inside.</li>
+<li><strong>Filters are scoped and sourced.</strong> Every filter has a
+scope (segment/host) and a register ID. No global suppressions, no
+orphan filters.</li>
+<li><strong>Absence is a finding.</strong> The GAP cell is not "nothing
+to do" — expected-but-absent gets investigated like any anomaly.</li>
+<li><strong>Re-verify on a clock.</strong> <code>review-by</code> on
+every row. A normal from three weeks and one patch cycle ago may be
+stale.</li>
+</ul>
+<hr/>
+<h2 id="9-filter-emission-hand-off-to-the-detection-pack">9. Filter
+emission (hand-off to the Detection pack)</h2>
+<p>A confirmed register item becomes a concrete filter in whatever stack
+carries that data. The exact syntax lives in the <strong>Detection &amp;
+Filter Pack</strong>; the mapping is:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Register class</th>
+<th>Emits to</th>
+<th>Form</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>network flow / host / port</td>
+<td>Kibana saved filter; Zeek intel exclusion</td>
+<td>KQL <code>NOT (...)</code>; Zeek script/notice suppression</td>
+</tr>
+<tr class="even">
+<td>Suricata-visible pattern</td>
+<td>Suricata</td>
+<td><code>suppress</code>/<code>threshold</code> by sig+host, or scoped
+rule</td>
+</tr>
+<tr class="odd">
+<td>host process / parent-child / user pattern</td>
+<td>Elastic Defend</td>
+<td><strong>event filter</strong> (drop at agent) or
+<strong>exception</strong> (on a rule)</td>
+</tr>
+<tr class="even">
+<td>DNS / TLS (JA3, SNI)</td>
+<td>Kibana / Zeek</td>
+<td>KQL filter; Zeek intel-framework exclusion</td>
+</tr>
+</tbody>
+</table>
+<p>Baseline filtering is applied <strong>first</strong> in the
+dashboards and detections — confirmed-normal drops out before analysis —
+so the noise floor set here directly determines the signal downstream.
+This is why the register's discipline matters: a sloppy "normal" here
+silently blinds every dashboard and rule that inherits the filter.</p>
+<hr/>
+<h2 id="10-quick-start-checklist">10. Quick-start checklist</h2>
+<pre><code>PRE-SITE (Phase 0)
+[ ] Read the build: diagram, assets, service matrix, range/traffic-generator docs, prior baselines
+[ ] Derive expected normals -&gt; register, every row state=provisional, marked [RANGE]/[CLIENT]/[BOTH]
+[ ] Build expected sensor-coverage map (what each source SHOULD see)
+
+ON-SITE (Phase 1)
+[ ] Capture actual collected data
+[ ] 3-state diff vs expected: CONFIRM / GAP-ANOMALY / UNKNOWN
+[ ] Work the GAP cell: coverage hole? down service? real change?
+[ ] Promote confirmed (observed + sanity check): provisional -&gt; confirmed
+
+ONGOING (Phase 2)
+[ ] Run every UNKNOWN through Gates 1-4; verify, don't assume
+[ ] Known-good -&gt; register + scoped, sourced filter; unknown-benign -&gt; stays visible, to hunt
+[ ] Set review-by on every row; re-verify on schedule
+[ ] Drop all [RANGE] filters when moving to a client network</code></pre>
+<blockquote>
+<p><strong>Defensive use.</strong> Baselining determines what gets
+filtered out of defensive analysis. The guardrails exist so that
+filtering never hides hostile activity. Applied as written — justify
+every normal, scope every filter, treat absence as a finding — the
+method reduces noise without reducing coverage.</p>
+</blockquote>
+<h1 id="kibana-dashboards-host-network">Kibana Dashboards — Host +
+Network</h1>
+<p><strong>Purpose.</strong> Standard dashboards that let you triage a
+host and a network view fast, from a known-good / known-bad posture.
+This is the third pipeline stage — the visualize layer that sits on top
+of what you collected and after baseline filtering removes the
+confirmed-normal:</p>
+<pre><code>   [ COLLECT ]  -&gt;  [ BASELINE ]  -&gt;  [ VISUALIZE ]  -&gt;  [ DETECT ]</code></pre>
+<p>A dashboard shows only what collection delivered and baseline left
+behind. Build these to mirror that pipeline, not as a wall of pretty
+charts.</p>
+<hr/>
+<h2 id="1-organizing-idea-funnel-and-one-question-per-panel">1.
+Organizing idea: funnel, and one question per panel</h2>
+<p>Two rules shape every dashboard here:</p>
+<ol type="1">
+<li><strong>Each panel answers one hunting question.</strong> Not "show
+me network traffic" — "which internal hosts are beaconing to an external
+destination on a fixed interval?" If you can't state the question a
+panel answers, cut it. A panel with no question is decoration, and
+decoration is where findings hide.</li>
+<li><strong>Layout is a funnel: overview -&gt; drilldown.</strong> Top
+of the dashboard is the widest, cheapest triage (counts, top-N,
+timelines) so you can see the shape of the data in one screen. Lower
+panels get narrower and more specific. You scan the top, something looks
+off, you click down. This matches how you actually hunt and it keeps the
+dashboard usable on a bad-bandwidth day on site.</li>
+</ol>
+<p>Three dashboards, in funnel order: <strong>Overview</strong>
+(landing, both axes) -&gt; <strong>Host</strong> -&gt;
+<strong>Network</strong>. Baseline filters (from the baseline doc's
+register) are applied as pinned filters so confirmed-normal is already
+gone before you look.</p>
+<hr/>
+<h2 id="2-data-model-assumptions-ecs-indices">2. Data model assumptions
+(ECS + indices)</h2>
+<p>Built on Elastic Common Schema (ECS) so host and network fields line
+up for correlation. Assumed sources/indices (adjust to the stack on
+site):</p>
+<table>
+<thead>
+<tr class="header">
+<th>Source</th>
+<th>Index pattern / data view</th>
+<th>Key ECS fields</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Windows events / Sysmon (Elastic Agent or Winlogbeat)</td>
+<td><code>logs-windows.*</code>, <code>winlogbeat-*</code></td>
+<td><code>event.code</code>, <code>process.name</code>,
+<code>process.command_line</code>, <code>process.parent.name</code>,
+<code>user.name</code>, <code>winlog.event_data.*</code>,
+<code>host.name</code></td>
+</tr>
+<tr class="even">
+<td>Linux auditd / journald (Elastic Agent)</td>
+<td><code>logs-system.*</code>, <code>logs-auditd.*</code></td>
+<td><code>process.*</code>, <code>user.name</code>,
+<code>event.action</code>, <code>host.name</code></td>
+</tr>
+<tr class="odd">
+<td>Elastic Defend (endpoint)</td>
+<td><code>logs-endpoint.events.*</code>,
+<code>.alerts-security.*</code></td>
+<td><code>event.category</code>, <code>process.*</code>,
+<code>destination.ip</code>, <code>dll.*</code>,
+<code>event.type</code></td>
+</tr>
+<tr class="even">
+<td>Zeek (via Filebeat zeek module)</td>
+<td><code>logs-zeek.*</code>, <code>filebeat-*</code></td>
+<td><code>zeek.conn.*</code>, <code>zeek.dns.*</code>,
+<code>zeek.ssl.*</code>, <code>zeek.http.*</code>,
+<code>source.ip</code>, <code>destination.ip</code>,
+<code>network.bytes</code></td>
+</tr>
+<tr class="odd">
+<td>Suricata (eve.json via Filebeat)</td>
+<td><code>logs-suricata.*</code></td>
+<td><code>suricata.eve.alert.*</code>, <code>event.severity</code>,
+<code>source.ip</code>, <code>destination.ip</code>,
+<code>network.protocol</code></td>
+</tr>
+<tr class="even">
+<td>Packetbeat (if used)</td>
+<td><code>packetbeat-*</code></td>
+<td><code>network.*</code>, <code>dns.*</code>, <code>tls.*</code>,
+<code>source/destination.*</code></td>
+</tr>
+</tbody>
+</table>
+<p>Mechanics: build <strong>data views</strong> per source (or one
+<code>logs-*</code> + the <code>.alerts-*</code> view). Where a field
+you want isn't mapped, add a <strong>runtime field</strong> (e.g. parse
+a domain's length, extract a registry path). Queries below are
+<strong>KQL</strong> (Kibana Query Language) unless noted; the Detection
+pack has the ES|QL / Lucene variants and the Zeek/Suricata rule
+text.</p>
+<hr/>
+<h2 id="3-overview-dashboard-landing">3. Overview dashboard
+(landing)</h2>
+<p>Widest triage, both axes, built to be read in one screen before
+coffee:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Panel</th>
+<th>Question</th>
+<th>Viz</th>
+<th>Source/fields</th>
+<th>Query / notes</th>
+<th>Normal looks like</th>
+<th>Pivot on</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Ingest health</td>
+<td>Is every expected source still arriving?</td>
+<td>Area, split by
+<code>event.module</code>/<code>data_stream.dataset</code> over
+time</td>
+<td>all</td>
+<td>count over time per dataset</td>
+<td>steady lines per source</td>
+<td>a line that drops = collection GAP (ties to baseline Phase 1 GAP
+cell)</td>
+</tr>
+<tr class="even">
+<td>Alert volume</td>
+<td>Where are detections firing?</td>
+<td>Bar, split by <code>signal.rule.name</code> /
+<code>suricata.eve.alert.signature</code></td>
+<td><code>.alerts-*</code>, suricata</td>
+<td>last 24h</td>
+<td>low, known-noise sigs</td>
+<td>a spike or a new sig</td>
+</tr>
+<tr class="odd">
+<td>Top talkers</td>
+<td>Who moves the most?</td>
+<td>Bar, <code>source.ip</code> by <code>sum(network.bytes)</code></td>
+<td>zeek.conn</td>
+<td>exclude baseline</td>
+<td>internal servers you expect</td>
+<td>an unexpected host high on the list</td>
+</tr>
+<tr class="even">
+<td>Egress bytes-out</td>
+<td>What's leaving?</td>
+<td>Bar, <code>destination.ip</code> by bytes where
+<code>destination.ip</code> is external</td>
+<td>zeek.conn</td>
+<td>direction = outbound</td>
+<td>known SaaS/update dests</td>
+<td>a high-bytes unknown external dest</td>
+</tr>
+<tr class="odd">
+<td>New hosts</td>
+<td>Anything appear that wasn't predicted?</td>
+<td>Data table, unique <code>host.name</code>/<code>source.ip</code> not
+in baseline</td>
+<td>all</td>
+<td>compare to Baseline Register</td>
+<td>nothing new</td>
+<td>a host = UNKNOWN (baseline Gate it)</td>
+</tr>
+</tbody>
+</table>
+<hr/>
+<h2 id="4-host-dashboard">4. Host dashboard</h2>
+<p>Depth on endpoints. Funnel: process activity -&gt; persistence -&gt;
+identity -&gt; host-network. Each panel is a known hunting
+technique.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Panel</th>
+<th>Question</th>
+<th>Viz</th>
+<th>Source / fields</th>
+<th>Query (KQL)</th>
+<th>Normal</th>
+<th>Pivot</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Process timeline</td>
+<td>What's executing, when?</td>
+<td>Histogram split by <code>process.name</code></td>
+<td>Sysmon 1 / 4688</td>
+<td><code>event.code:("1" or "4688")</code></td>
+<td>steady business apps</td>
+<td>burst of rare/new names</td>
+</tr>
+<tr class="even">
+<td>Rare processes</td>
+<td>What runs almost nowhere?</td>
+<td>Data table, <code>process.name</code> by count asc, split by
+<code>host.name</code></td>
+<td>Sysmon 1</td>
+<td><code>event.code:"1"</code> + sort rare</td>
+<td>common binaries only</td>
+<td>a binary on 1-2 hosts</td>
+</tr>
+<tr class="odd">
+<td>Parent-child anomalies</td>
+<td>Spawns that shouldn't happen</td>
+<td>Table, <code>process.parent.name</code> -&gt;
+<code>process.name</code></td>
+<td>Sysmon 1</td>
+<td><code>process.parent.name:("winword.exe" or "excel.exe" or "outlook.exe") and process.name:("cmd.exe" or "powershell.exe" or "wscript.exe" or "mshta.exe")</code></td>
+<td>empty</td>
+<td>any hit (Office spawning a shell)</td>
+</tr>
+<tr class="even">
+<td>LOLBins</td>
+<td>Living-off-the-land binaries</td>
+<td>Table, <code>process.name</code> +
+<code>process.command_line</code></td>
+<td>Sysmon 1</td>
+<td><code>process.name:("rundll32.exe" or "regsvr32.exe" or "mshta.exe" or "certutil.exe" or "bitsadmin.exe" or "wmic.exe")</code></td>
+<td>known admin use</td>
+<td>odd args (URLs, encoded, temp paths)</td>
+</tr>
+<tr class="odd">
+<td>Encoded PowerShell</td>
+<td>Obfuscated PS</td>
+<td>Table, <code>process.command_line</code></td>
+<td>Sysmon 1 / 4104</td>
+<td><code>process.name:"powershell.exe" and process.command_line:(*enc* or *-e* or *FromBase64* or *IEX* or *DownloadString*)</code></td>
+<td>none/known jobs</td>
+<td>any encoded one-liner</td>
+</tr>
+<tr class="even">
+<td>Script block content</td>
+<td>What did PS actually run?</td>
+<td>Table, <code>powershell.file.script_block_text</code></td>
+<td>4104</td>
+<td><code>event.code:"4104"</code></td>
+<td>admin scripts</td>
+<td>obfuscation, download cradles</td>
+</tr>
+<tr class="odd">
+<td>Persistence</td>
+<td>New autostart</td>
+<td>Table, event by <code>host.name</code></td>
+<td>7045/4697/4698/4702, Sysmon 13</td>
+<td><code>event.code:("7045" or "4697" or "4698" or "4702")</code></td>
+<td>planned installs</td>
+<td>unscheduled new service/task</td>
+</tr>
+<tr class="even">
+<td>Logon activity</td>
+<td>Who authenticated, how?</td>
+<td>Table, <code>winlog.event_data.LogonType</code>,
+<code>user.name</code>, <code>source.ip</code></td>
+<td>4624/4625</td>
+<td><code>event.code:("4624" or "4625")</code></td>
+<td>type 2/3/5 from known hosts</td>
+<td>type 3/10 spraying, off-hours admin</td>
+</tr>
+<tr class="odd">
+<td>Lateral (explicit creds)</td>
+<td>Admin reuse across hosts</td>
+<td>Table, <code>user.name</code> x <code>host.name</code></td>
+<td>4648</td>
+<td><code>event.code:"4648"</code></td>
+<td>few admin paths</td>
+<td>one account hitting many hosts</td>
+</tr>
+<tr class="even">
+<td>Priv use</td>
+<td>Privilege escalation markers</td>
+<td>Table</td>
+<td>4672</td>
+<td><code>event.code:"4672"</code></td>
+<td>known admins</td>
+<td>a workstation user getting priv</td>
+</tr>
+<tr class="odd">
+<td>Host-network by process</td>
+<td>What is a process talking to?</td>
+<td>Table, <code>process.name</code> -&gt;
+<code>destination.ip</code></td>
+<td>Sysmon 3 / Defend</td>
+<td><code>event.category:"network"</code></td>
+<td>browser/updater to known</td>
+<td>lsass/odd proc making external conns</td>
+</tr>
+<tr class="even">
+<td>EDR alerts</td>
+<td>Behavioral detections</td>
+<td>Table, <code>signal.rule.name</code>, <code>host.name</code></td>
+<td><code>.alerts-*</code></td>
+<td>all</td>
+<td>low known-noise</td>
+<td>malware/injection/ransomware class</td>
+</tr>
+</tbody>
+</table>
+<hr/>
+<h2 id="5-network-dashboard">5. Network dashboard</h2>
+<p>Breadth on the wire. Funnel: connection shape -&gt; DNS -&gt; TLS
+-&gt; HTTP -&gt; alerts. Encryption-aware (metadata when you can't see
+payload).</p>
+<table>
+<thead>
+<tr class="header">
+<th>Panel</th>
+<th>Question</th>
+<th>Viz</th>
+<th>Source / fields</th>
+<th>Query</th>
+<th>Normal</th>
+<th>Pivot</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Connection overview</td>
+<td>Shape of all traffic</td>
+<td>Histogram by <code>network.protocol</code></td>
+<td>zeek.conn</td>
+<td>all</td>
+<td>expected protocol mix</td>
+<td>a protocol that shouldn't be there</td>
+</tr>
+<tr class="even">
+<td>Top talkers / listeners</td>
+<td>Who dominates?</td>
+<td>Bars, <code>source.ip</code> / <code>destination.port</code> by
+bytes+count</td>
+<td>zeek.conn</td>
+<td>exclude baseline</td>
+<td>servers + proxy</td>
+<td>an unexpected heavy host</td>
+</tr>
+<tr class="odd">
+<td>Egress destinations</td>
+<td>Where does outbound go?</td>
+<td>Table, external
+<code>destination.ip</code>/<code>.as.organization</code> by bytes</td>
+<td>zeek.conn</td>
+<td>outbound only</td>
+<td>CDNs, update, SaaS</td>
+<td>unknown ASN / raw IP / high bytes</td>
+</tr>
+<tr class="even">
+<td>Long connections</td>
+<td>Sessions that never end</td>
+<td>Table, <code>zeek.conn.duration</code> desc</td>
+<td>zeek.conn</td>
+<td><code>zeek.conn.duration &gt; 3600</code></td>
+<td>backups, DB, RDP sessions</td>
+<td>long conn to an external unknown</td>
+</tr>
+<tr class="odd">
+<td>Beaconing</td>
+<td>Fixed-interval check-ins</td>
+<td>Table/Lens, group
+<code>source.ip</code>+<code>destination.ip</code>, look at interval
+regularity of <code>@timestamp</code></td>
+<td>zeek.conn</td>
+<td>see Detection pack (interval analysis)</td>
+<td>traffic-generator (ism), NTP, update polls</td>
+<td>regular small conns to one external dst</td>
+</tr>
+<tr class="even">
+<td>Rare destinations</td>
+<td>First/seldom-seen externals</td>
+<td>Table, <code>destination.ip</code> by count asc</td>
+<td>zeek.conn</td>
+<td>rare sort</td>
+<td>none new</td>
+<td>a brand-new external endpoint</td>
+</tr>
+<tr class="odd">
+<td>DNS volume + NXDOMAIN</td>
+<td>Resolution anomalies</td>
+<td>Histogram <code>dns.question.name</code>; table
+<code>dns.response_code:"NXDOMAIN"</code></td>
+<td>zeek.dns</td>
+<td>all</td>
+<td>known domains</td>
+<td>NXDOMAIN spikes (DGA), TXT floods</td>
+</tr>
+<tr class="even">
+<td>Long / rare domains</td>
+<td>Tunneling + DGA markers</td>
+<td>Table, runtime field <code>domain length</code>;
+<code>dns.question.type:"TXT"</code> count</td>
+<td>zeek.dns</td>
+<td><code>length &gt; 50</code> or high-entropy</td>
+<td>normal FQDNs</td>
+<td>long/high-entropy names, TXT tunneling</td>
+</tr>
+<tr class="odd">
+<td>TLS fingerprints</td>
+<td>Client/cert anomalies</td>
+<td>Table, <code>tls.client.ja3</code>/<code>ja4</code>,
+<code>tls.server.x509.issuer</code>, <code>tls.server.ja3s</code></td>
+<td>zeek.ssl/x509</td>
+<td>all</td>
+<td>known JA3 set, real CAs</td>
+<td>rare JA3, self-signed, odd SNI vs cert</td>
+</tr>
+<tr class="even">
+<td>SNI vs destination</td>
+<td>Domain fronting / mismatch</td>
+<td>Table, <code>tls.client.server_name</code> x
+<code>destination.ip</code></td>
+<td>zeek.ssl</td>
+<td>all</td>
+<td>SNI matches expected IP/ASN</td>
+<td>SNI not matching the endpoint</td>
+</tr>
+<tr class="odd">
+<td>HTTP UA + URI</td>
+<td>Web badness</td>
+<td>Table, <code>http.user_agent.original</code>,
+<code>url.path</code></td>
+<td>zeek.http</td>
+<td>all</td>
+<td>browser/known UAs</td>
+<td>rare UA, suspicious URIs, webshell paths</td>
+</tr>
+<tr class="even">
+<td>Suricata alerts</td>
+<td>Signature hits</td>
+<td>Table, <code>suricata.eve.alert.signature</code> by
+<code>event.severity</code></td>
+<td>suricata</td>
+<td>all</td>
+<td>tuned known-noise</td>
+<td>high-sev or new category</td>
+</tr>
+</tbody>
+</table>
+<hr/>
+<h2 id="6-build-mechanics">6. Build mechanics</h2>
+<ul>
+<li><strong>Data views / index patterns</strong> — create per source
+(<code>logs-windows.*</code>, <code>logs-zeek.*</code>,
+<code>logs-suricata.*</code>, <code>.alerts-*</code>) or a combined
+<code>logs-*</code>. Set the time field (<code>@timestamp</code>).</li>
+<li><strong>Runtime fields</strong> — add for anything not mapped:
+domain length/entropy, extracted registry path, parsed command-line
+token, bytes ratio (out/in). Define on the data view so every panel can
+use them.</li>
+<li><strong>Saved searches</strong> — build the heavy KQL once as a
+saved search, then base panels on it; keeps queries consistent and
+editable in one place.</li>
+<li><strong>Panels</strong> — Lens for most (fast), TSVB for
+time-series/interval work (beaconing), Data Table for triage lists. Give
+each panel a title that <em>states its question</em>.</li>
+<li><strong>Pinned / dashboard-level filters</strong> — apply the
+<strong>baseline filters</strong> here (Section 7) so confirmed-normal
+is removed dashboard-wide. Pin the environment filter
+(<code>[RANGE]</code> range infra out) at the dashboard level.</li>
+<li><strong>Drilldowns</strong> — wire panel drilldowns: click a
+<code>host.name</code> in Network -&gt; open the Host dashboard filtered
+to that host; click a <code>destination.ip</code> -&gt; open a
+destination-detail dashboard. This is the funnel made clickable and it's
+where triage speed comes from.</li>
+<li><strong>Time + refresh</strong> — default a short relative window
+(last 24h) with a quick-select; don't auto-refresh aggressively on a
+constrained sensor.</li>
+<li><strong>Saved objects / portability</strong> — export the dashboards
++ data views + saved searches as an <strong>NDJSON saved-objects
+bundle</strong> so the whole pack imports onto the next stack in one
+step. Keep that bundle in the engagement binder alongside these docs.
+Watch index-pattern name drift between environments — re-point data
+views on import.</li>
+</ul>
+<hr/>
+<h2 id="7-baseline-integration-filters-applied-first">7. Baseline
+integration (filters applied first)</h2>
+<p>The dashboards inherit the Baseline Register. A
+<code>confirmed</code> register item with a KQL filter becomes a
+<strong>dashboard-level negative filter</strong>, so the
+confirmed-normal is gone before any panel aggregates. Pattern:</p>
+<pre class="kql"><code>Baseline Register (confirmed, [RANGE]/[CLIENT]/[BOTH])
+        |
+        v   emit KQL
+Dashboard-level filters (pinned):
+   NOT (source.ip: &lt;range NAT/jump&gt;)              // BL-003 [RANGE] ism
+   NOT (destination.ip: &lt;WSUS&gt; and destination.port: 8530)  // BL-011 automation
+   NOT (tls.client.ja3: &lt;known-good JA3 set&gt;)     // BL-020 confirmed
+        |
+        v
+Panels aggregate on what's LEFT  =  the hunt surface</code></pre>
+<p>Rules carried from the baseline doc: only <code>confirmed</code>
+items filter; every filter names its <code>BL-ID</code>; drop all
+<code>[RANGE]</code> filters when the dashboards move to a client. A
+dashboard quietly filtering on an unsourced rule is the same failure as
+an unsourced register row — the filter list is auditable or it's
+dangerous.</p>
+<blockquote>
+<p><strong>Defensive use.</strong> These dashboards visualize defensive
+telemetry for hunt and triage on authorized networks. The baseline
+filters reduce noise; keep every filter traceable to a Baseline Register
+justification so visualization never hides activity.</p>
+</blockquote>
+<h1 id="intelligence-analysis-methodology-intel-to-action">Intelligence
+Analysis Methodology — Intel to Action</h1>
+<p><strong>Purpose.</strong> Convert a piece of threat intelligence into
+a defined analytic action: the data to examine, the query to run, and
+the evidence that confirms or clears it. Intel names a behavior; this
+methodology resolves that behavior to a record in collected data. It
+sits between collection and detection and is applied during hunt and
+triage:</p>
+<pre><code>   [ COLLECT ]  -&gt;  [ BASELINE ]  -&gt;  [ VISUALIZE ]  -&gt;  [ DETECT ]
+                           \                               /
+                            \                             /
+                             -----&gt;  [ INTEL -&gt; ACTION ]  &lt;-----
+                              technique / indicator -&gt; data source -&gt; query -&gt; verdict</code></pre>
+<p>An intel input is a tasking, not a conclusion. The deliverable of
+this process is a verdict — present, absent, or not collectable — backed
+by a query result and a second corroborating source.</p>
+<hr/>
+<h2 id="1-the-organizing-idea-every-technique-writes-to-a-known-plac">1.
+The organizing idea: every technique writes to a known place</h2>
+<p>A technique is an action taken on a host or a network. Every action
+that matters leaves a record in a specific data source. ATT&amp;CK
+already names that data source for each technique as a <em>data
+component</em> — process creation, command execution, network traffic
+flow, logon session, file modification, Windows registry key
+modification, and so on. The collection plan already mapped those data
+components to concrete telemetry: Sysmon, forwarded EVTX, Zeek,
+Suricata, EDR, memory, and disk artifacts.</p>
+<p>The intel-to-action path is the composition of those two
+mappings:</p>
+<pre><code>   TECHNIQUE (T-code)
+        |  ATT&amp;CK: technique -&gt; data component(s)
+        v
+   DATA COMPONENT  (e.g. "Command Execution")
+        |  collection plan: data component -&gt; collected telemetry
+        v
+   COLLECTED TELEMETRY  (e.g. Sysmon 1 + PS 4104 in Kibana)
+        |  this doc: telemetry -&gt; query
+        v
+   QUERY  -&gt;  RESULT  -&gt;  VERDICT (+ corroboration)</code></pre>
+<p>The analyst does not improvise where to look. The technique dictates
+the data component, the data component dictates the telemetry, and the
+telemetry dictates the query. When any link is missing, the gap is
+explicit and named, not discovered by failing to find evidence.</p>
+<hr/>
+<h2 id="2-classify-the-intel-input">2. Classify the intel input</h2>
+<p>Intel arrives in five forms. The form sets the entry point into the
+pipeline.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Input</th>
+<th>Example</th>
+<th>Entry point</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Technique ID</td>
+<td><code>T1059.001</code></td>
+<td>Section 4 crosswalk — the primary path</td>
+</tr>
+<tr class="even">
+<td>Tactic only</td>
+<td>"credential access reported"</td>
+<td>Expand to the technique set for that tactic (Section 7), run
+each</td>
+</tr>
+<tr class="odd">
+<td>Procedure / tool</td>
+<td>"actor uses PsExec", "Cobalt Strike"</td>
+<td>Resolve the tool to its technique(s), then the crosswalk</td>
+</tr>
+<tr class="even">
+<td>Atomic indicator</td>
+<td>hash, IP, domain, filename</td>
+<td>Section 6 indicator crosswalk</td>
+</tr>
+<tr class="odd">
+<td>Behavioral report</td>
+<td>"beaconing to a rare host every 60s"</td>
+<td>Describe-to-technique, then the crosswalk</td>
+</tr>
+</tbody>
+</table>
+<p>Record the input verbatim and its source and date before acting.
+Stale intel and precise intel are both actionable, but they are weighted
+differently at the reporting stage.</p>
+<p>Normalize every input to one or more technique IDs where possible. A
+tool name is not a tasking until it is resolved to the techniques it
+performs. PsExec is <code>T1569.002</code> and <code>T1021.002</code>.
+Mimikatz is <code>T1003.001</code>. The resolution is the first analytic
+step, and it is recorded.</p>
+<hr/>
+<h2 id="3-the-reference-process">3. The reference process</h2>
+<p>Run the same loop for every technique under examination.</p>
+<pre><code>  1 SCOPE       Which hosts/segments could exhibit this technique? Restrict the query to them.
+  2 MAP         Technique -&gt; data component -&gt; collected telemetry (Section 4 table).
+  3 QUERY       Run the mapped query over the incident window.
+  4 EVALUATE    Hit / miss / not-collectable. A miss is only valid if the source was collected.
+  5 CORROBORATE A hit requires a second independent source before it is a finding.
+  6 PIVOT       A confirmed technique implies adjacent techniques (Section 7). Queue them.
+  7 RECORD      Technique, query, result, corroboration, verdict, confidence (Section 8).</code></pre>
+<p>Two rules govern the loop:</p>
+<ul>
+<li><strong>A miss is not a clear unless the source was
+collected.</strong> "No 4104 events" means the technique is absent only
+if Script Block logging was on and forwarded. If it was not, the verdict
+is <em>not collectable</em>, which is a collection gap, not a negative
+finding.</li>
+<li><strong>A hit is a lead until corroborated.</strong> One source
+places a technique; a second independent source confirms it. The
+corroboration column in Section 4 names the second source for each
+technique.</li>
+</ul>
+<hr/>
+<h2 id="4-technique-to-data-crosswalk">4. Technique-to-data
+crosswalk</h2>
+<p>Each entry gives: what the technique writes, where it was collected,
+the query to run, and the independent source that corroborates a hit.
+Queries are Kibana KQL against the collected index unless marked.
+Replace the window and host placeholders. Host-live and memory
+equivalents are given where the collected telemetry may be absent.</p>
+<h3 id="execution">Execution</h3>
+<p><strong>T1059.001 — PowerShell</strong></p>
+<ul>
+<li>Writes: command execution, script block text, process creation.</li>
+<li>Collected: PowerShell/Operational 4104 and 4103; Sysmon 1; Prefetch
+<code>POWERSHELL.EXE-*.pf</code>.</li>
+<li>Query:</li>
+</ul>
+<pre class="kql"><code>event.code:4104 and powershell.file.script_block_text:(*FromBase64String* or *IEX* or *Invoke-Expression* or *DownloadString* or *Net.WebClient* or *-enc* or *-ec* or *EncodedCommand*)</code></pre>
+<pre class="kql"><code>event.code:1 and process.name:powershell.exe and process.command_line:(*-enc* or *-w hidden* or *-nop* or *bypass*)</code></pre>
+<ul>
+<li>Corroborate: 4104 script text against the Sysmon 1 command line for
+the same PID and time; a network child from the same PID.</li>
+<li>Common benign: SCCM, Intune, admin automation from management hosts
+— confirm source host against the baseline before clearing.</li>
+<li>Pivot: parent of the PowerShell process (<code>T1566</code> phishing
+document, <code>T1059</code> chain), network destination
+(<code>T1071</code>), files written (<code>T1105</code>).</li>
+</ul>
+<p><strong>T1059.003 — Windows Command Shell</strong></p>
+<ul>
+<li>Collected: Sysmon 1; 4688 if process-creation auditing with command
+line is on.</li>
+<li>Query:</li>
+</ul>
+<pre class="kql"><code>event.code:1 and process.parent.name:(winword.exe or excel.exe or outlook.exe or w3wp.exe or httpd.exe) and process.name:(cmd.exe or powershell.exe)</code></pre>
+<ul>
+<li>Corroborate: parent process document or service, and any file the
+child wrote.</li>
+</ul>
+<h3 id="persistence-privilege-escalation">Persistence / Privilege
+Escalation</h3>
+<p><strong>T1053.005 — Scheduled Task</strong></p>
+<ul>
+<li>Writes: scheduled job creation, file and registry modification.</li>
+<li>Collected: Security 4698 create, 4702 update, 4699 delete; Sysmon 1
+(<code>svchost.exe -k netsvcs</code> or <code>taskeng.exe</code>
+spawning the action); disk <code>C:\Windows\System32\Tasks\</code>;
+registry <code>...\TaskCache\Tree</code>.</li>
+<li>Query:</li>
+</ul>
+<pre class="kql"><code>event.code:(4698 or 4702) and not winlog.event_data.TaskName:("\\Microsoft\\*")</code></pre>
+<ul>
+<li>Corroborate: the task XML on disk against the 4698 record; the
+action binary against a process-creation event at the task's trigger
+time.</li>
+<li>Pivot: the action binary (<code>T1059</code>, <code>T1105</code>),
+the account that created the task (<code>T1078</code>).</li>
+</ul>
+<p><strong>T1547.001 — Registry Run Keys / Startup Folder</strong></p>
+<ul>
+<li>Collected: Sysmon 13 registry value set; Security 4657 if registry
+auditing is on; disk Run keys and Startup folders; Autoruns output.</li>
+<li>Query:</li>
+</ul>
+<pre class="kql"><code>event.code:13 and registry.path:(*\\CurrentVersion\\Run* or *\\CurrentVersion\\RunOnce* or *\\CurrentVersion\\Explorer\\Shell Folders*)</code></pre>
+<ul>
+<li>Corroborate: the referenced binary against a process-creation event
+at boot or logon.</li>
+<li>Pivot: the referenced binary and its signer.</li>
+</ul>
+<p><strong>T1543.003 — Windows Service</strong></p>
+<ul>
+<li>Collected: System 7045 service installed; Security 4697; Sysmon 13
+under <code>...\Services\</code>.</li>
+<li>Query:</li>
+</ul>
+<pre class="kql"><code>event.code:7045 and not winlog.event_data.ImagePath:("C:\\Windows\\*" or "C:\\Program Files*")</code></pre>
+<ul>
+<li>Corroborate: the service image path against a process-creation and
+the on-disk file hash.</li>
+<li>Pivot: <code>T1569.002</code> service execution, lateral origin if
+the service was created remotely.</li>
+</ul>
+<h3 id="defense-evasion">Defense Evasion</h3>
+<p><strong>T1055 — Process Injection</strong></p>
+<ul>
+<li>Writes: process access, remote thread creation; the injected region
+is only in memory.</li>
+<li>Collected: Sysmon 8 CreateRemoteThread, Sysmon 10 ProcessAccess;
+memory image.</li>
+<li>Query:</li>
+</ul>
+<pre class="kql"><code>event.code:8 or (event.code:10 and winlog.event_data.TargetImage:(*lsass.exe or *explorer.exe or *svchost.exe))</code></pre>
+<ul>
+<li>Memory: <code>windows.malfind</code> for private committed RWX
+regions; <code>windows.ldrmodules</code> for unlinked modules.</li>
+<li>Corroborate: Sysmon 8/10 source process against a
+<code>malfind</code> hit in the same process in the memory image.</li>
+<li>Pivot: the source process (its origin technique), the target process
+network and handles.</li>
+</ul>
+<p><strong>T1070.001 — Clear Windows Event Logs</strong></p>
+<ul>
+<li>Collected: Security 1102; System 104.</li>
+<li>Query:</li>
+</ul>
+<pre class="kql"><code>event.code:(1102 or 104)</code></pre>
+<ul>
+<li>Corroborate: a gap in the cleared log's continuity against the
+1102/104 timestamp; the account that performed the clear.</li>
+<li>Note: a log clear is itself the indicator. Treat the window after it
+as reduced-visibility and lean on memory and disk.</li>
+</ul>
+<p><strong>T1070.006 — Timestomp</strong></p>
+<ul>
+<li>Collected: <code>$MFT</code>, USN journal.</li>
+<li>Query (disk, not Kibana):</li>
+</ul>
+<pre class="bash"><code># MFT: compare $STANDARD_INFO vs $FILE_NAME timestamps per record
+MFTECmd.exe -f $MFT --csv out ; # then filter records where SI &lt; FN or SI sub-second = .0000000</code></pre>
+<ul>
+<li>Corroborate: an execution artifact (Prefetch, Amcache first-seen)
+that contradicts the file's standard-information time.</li>
+</ul>
+<h3 id="credential-access">Credential Access</h3>
+<p><strong>T1003.001 — LSASS Memory</strong></p>
+<ul>
+<li>Collected: Sysmon 10 ProcessAccess to lsass; Security 4656/4663 on
+lsass if object auditing is on; Sysmon 1 for dump tooling.</li>
+<li>Query:</li>
+</ul>
+<pre class="kql"><code>event.code:10 and winlog.event_data.TargetImage:*lsass.exe and winlog.event_data.GrantedAccess:("0x1010" or "0x1410" or "0x143a" or "0x1438")</code></pre>
+<pre class="kql"><code>event.code:1 and process.command_line:(*comsvcs.dll*MiniDump* or *procdump*lsass* or *-ma*lsass*)</code></pre>
+<ul>
+<li>Corroborate: the accessing process against its origin, and any
+<code>.dmp</code> file written (Sysmon 11).</li>
+<li>Pivot: the account whose credentials were exposed, then lateral
+movement under that account (<code>T1021</code>).</li>
+</ul>
+<h3 id="lateral-movement">Lateral Movement</h3>
+<p><strong>T1021.001 — Remote Desktop</strong></p>
+<ul>
+<li>Collected: Security 4624 type 10, 4778/4779; Sysmon 3;
+TerminalServices-RemoteConnectionManager.</li>
+<li>Query:</li>
+</ul>
+<pre class="kql"><code>event.code:4624 and winlog.event_data.LogonType:10</code></pre>
+<ul>
+<li>Corroborate: the source IP against a corresponding outbound RDP
+connection on the source host; the account against its normal logon
+hours.</li>
+</ul>
+<p><strong>T1021.002 — SMB / Windows Admin Shares</strong></p>
+<ul>
+<li>Collected: Security 4624 type 3, 4648 explicit credentials,
+5140/5145 file share access.</li>
+<li>Query:</li>
+</ul>
+<pre class="kql"><code>event.code:4624 and winlog.event_data.LogonType:3 and winlog.event_data.AuthenticationPackageName:NTLM and not user.name:(*$)</code></pre>
+<pre class="kql"><code>event.code:5145 and winlog.event_data.ShareName:(*\\ADMIN$ or *\\C$)</code></pre>
+<ul>
+<li>Corroborate: one source account reaching many destinations in a
+short window; a service or scheduled task created at the destination
+immediately after (<code>T1569.002</code>, <code>T1053.005</code>).</li>
+<li>Pivot: fan-out from the source account defines the spread; scope
+every destination.</li>
+</ul>
+<h3 id="command-and-control">Command and Control</h3>
+<p><strong>T1071.001 — Web Protocols</strong></p>
+<ul>
+<li>Collected: Zeek <code>conn</code>, <code>http</code>,
+<code>ssl</code>; Suricata; proxy logs.</li>
+<li>Query:</li>
+</ul>
+<pre class="kql"><code>event.dataset:zeek.conn and destination.port:(80 or 443) and not destination.ip:&lt;known_good_cidr&gt;</code></pre>
+<ul>
+<li>Analysis: group by <code>destination.ip</code> and derive connection
+interval and byte symmetry. A fixed interval with small, regular request
+sizes is a beacon. Irregular timing and asymmetric volume is normal
+browsing.</li>
+<li>Corroborate: the beaconing host's Sysmon 3 for the owning process;
+the process against Q1 of the host triage.</li>
+<li>Pivot: the owning process (its persistence and origin), the
+destination across all hosts.</li>
+</ul>
+<p><strong>T1071.004 — DNS</strong></p>
+<ul>
+<li>Collected: Zeek <code>dns</code>; EVTX DNS client; firewall
+DNS.</li>
+<li>Query:</li>
+</ul>
+<pre class="kql"><code>event.dataset:zeek.dns and (dns.question.name:/.{50,}/ or dns.response_code:NXDOMAIN)</code></pre>
+<ul>
+<li>Analysis: high query volume to one parent domain, long or
+high-entropy subdomain labels, sustained NXDOMAIN — DNS tunneling or
+domain generation.</li>
+<li>Corroborate: the querying host's process holding the resolver
+socket.</li>
+</ul>
+<p><strong>T1105 — Ingress Tool Transfer</strong></p>
+<ul>
+<li>Collected: Zeek <code>files</code>/<code>http</code>; Sysmon 11 file
+create plus Sysmon 3 network from the same process.</li>
+<li>Query:</li>
+</ul>
+<pre class="kql"><code>event.code:11 and file.path:(*\\Temp\\* or *\\AppData\\* or *\\ProgramData\\* or *\\Public\\*) and file.extension:(exe or dll or ps1 or bat or scr)</code></pre>
+<ul>
+<li>Corroborate: the Sysmon 3 network event that preceded the file write
+from the same PID; the file hash against intel.</li>
+</ul>
+<h3 id="impact">Impact</h3>
+<p><strong>T1486 — Data Encrypted for Impact</strong></p>
+<ul>
+<li>Collected: Sysmon 11 high-rate file creation; Security 4663; Sysmon
+1 for shadow-copy deletion.</li>
+<li>Query:</li>
+</ul>
+<pre class="kql"><code>event.code:1 and process.command_line:(*vssadmin*delete*shadows* or *wmic*shadowcopy*delete* or *bcdedit*recoveryenabled*no*)</code></pre>
+<ul>
+<li>Corroborate: a burst of file writes with a common new extension from
+one process against the shadow-deletion command from the same host.</li>
+</ul>
+<h3 id="linux">Linux</h3>
+<p><strong>T1053.003 — Cron</strong></p>
+<ul>
+<li>Collected: auditd execve; <code>/etc/cron*</code>,
+<code>/var/spool/cron/</code>; syslog cron facility.</li>
+<li>Query (host):</li>
+</ul>
+<pre class="bash"><code>for f in /etc/cron* /var/spool/cron/crontabs/*; do echo "== $f"; cat "$f" 2&gt;/dev/null; done</code></pre>
+<ul>
+<li>Corroborate: the cron command against an auditd execve at the
+scheduled time.</li>
+</ul>
+<p><strong>T1543.002 — Systemd Service</strong></p>
+<ul>
+<li>Collected: auditd; unit files under <code>/etc/systemd</code>,
+<code>/lib/systemd</code>, <code>~/.config/systemd</code>;
+journald.</li>
+<li>Query (host):</li>
+</ul>
+<pre class="bash"><code>find /etc/systemd /lib/systemd /usr/lib/systemd /home/*/.config/systemd -name '*.service' -mtime -14 -ls 2&gt;/dev/null</code></pre>
+<ul>
+<li>Corroborate: the unit <code>ExecStart</code> binary against a
+running process and its on-disk hash.</li>
+</ul>
+<p><strong>T1505.003 — Web Shell</strong></p>
+<ul>
+<li>Collected: web-root file creation; web access log; auditd; Zeek
+<code>http</code>.</li>
+<li>Query (host):</li>
+</ul>
+<pre class="bash"><code>find /var/www -type f -name '*.php*' -mtime -30 -printf '%TY-%Tm-%Td %p\n' | sort</code></pre>
+<pre class="bash"><code>grep -RliE 'eval\(|base64_decode|system\(|assert\(|passthru\(|\$_(GET|POST|REQUEST)\[' /var/www 2&gt;/dev/null</code></pre>
+<ul>
+<li>Corroborate: a POST in the access log to the suspect path at or
+after its file-creation time.</li>
+<li>Pivot: the web process's child shells (<code>T1059</code>) and
+outbound sockets (<code>T1071</code>).</li>
+</ul>
+<p><strong>T1098.004 — SSH authorized_keys</strong></p>
+<ul>
+<li>Collected: file modification; auditd watch on the keys files.</li>
+<li>Query (host):</li>
+</ul>
+<pre class="bash"><code>for f in /root/.ssh/authorized_keys /home/*/.ssh/authorized_keys; do echo "== $f"; cat "$f" 2&gt;/dev/null; done</code></pre>
+<ul>
+<li>Corroborate: the key's modification time against an auth.log session
+for that account.</li>
+</ul>
+<hr/>
+<h2 id="5-evaluate-the-result">5. Evaluate the result</h2>
+<p>Three verdicts, and only three.</p>
+<ul>
+<li><strong>Present.</strong> The query returned records consistent with
+the technique and a second source agrees. This is a finding. Record both
+sources.</li>
+<li><strong>Absent.</strong> The query returned nothing, the source was
+confirmed collected for the window, and the baseline for that source is
+understood. This is a defensible negative.</li>
+<li><strong>Not collectable.</strong> The mapped source was not
+collected, not forwarded, or not retained for the window. This is a
+collection gap. It is neither a hit nor a clear.</li>
+</ul>
+<p>A query that returns records is not automatically a hit. Apply the
+baseline first — known-good automation, management hosts, and sanctioned
+tooling are cleared against the baseline register before a record is
+escalated. Only records that survive the baseline are evaluated against
+the technique.</p>
+<p>Record which verdict applies and the evidence for it. "Absent" and
+"not collectable" look identical in an empty result set and must never
+be reported as the same thing.</p>
+<hr/>
+<h2 id="6-indicator-crosswalk">6. Indicator crosswalk</h2>
+<p>Atomic indicators resolve to data sources the same way techniques
+do.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Indicator</th>
+<th>Collected in</th>
+<th>Query field</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>File hash</td>
+<td>EDR, Sysmon 1/6/7, Amcache, Prefetch</td>
+<td><code>process.hash.sha256</code> / <code>file.hash.sha256</code> /
+Amcache first-seen</td>
+</tr>
+<tr class="even">
+<td>IP address</td>
+<td>Zeek <code>conn</code>, firewall, Sysmon 3, proxy</td>
+<td><code>destination.ip</code> / <code>source.ip</code></td>
+</tr>
+<tr class="odd">
+<td>Domain</td>
+<td>Zeek <code>dns</code>/<code>http</code>/<code>ssl</code>, DNS
+client, proxy</td>
+<td><code>dns.question.name</code> / <code>url.domain</code> /
+<code>tls.server.name</code></td>
+</tr>
+<tr class="even">
+<td>Filename / path</td>
+<td><code>$MFT</code>, Sysmon 11, EDR</td>
+<td><code>file.path</code> / <code>file.name</code></td>
+</tr>
+<tr class="odd">
+<td>JA3 / JA4</td>
+<td>Zeek <code>ssl</code>, Suricata</td>
+<td><code>tls.client.ja3</code> / <code>tls.client.ja4</code></td>
+</tr>
+<tr class="even">
+<td>Email sender / subject</td>
+<td>mail gateway</td>
+<td>gateway index</td>
+</tr>
+</tbody>
+</table>
+<p>An indicator hit is still one source. A hash seen in Amcache is
+corroborated by the execution artifact and the network the process
+generated; a domain in the DNS log is corroborated by the host and
+process that resolved it. Resolve a hit to the host, then run the host
+through the technique crosswalk to establish what the indicator did, not
+only that it was present.</p>
+<hr/>
+<h2 id="7-pivot-one-technique-implies-its-neighbors">7. Pivot — one
+technique implies its neighbors</h2>
+<p>A confirmed technique is a position in an intrusion, not the whole of
+it. Each tactic has predecessors and successors. A confirmed technique
+queues the adjacent techniques for the same host and window.</p>
+<pre><code>  Initial Access -&gt; Execution -&gt; Persistence -&gt; Priv Esc -&gt; Defense Evasion
+         -&gt; Credential Access -&gt; Discovery -&gt; Lateral Movement -&gt; C2 -&gt; Collection -&gt; Exfil -&gt; Impact</code></pre>
+<p>Worked expansions:</p>
+<ul>
+<li><code>T1059.001</code> PowerShell confirmed -&gt; query the parent
+(<code>T1566</code>, <code>T1203</code>), the network child
+(<code>T1071</code>, <code>T1105</code>), and any persistence it wrote
+(<code>T1053</code>, <code>T1547</code>).</li>
+<li><code>T1003.001</code> LSASS access confirmed -&gt; identify the
+exposed account, then query that account for <code>T1021.001/002</code>
+to the hosts it reached.</li>
+<li><code>T1021.002</code> SMB lateral confirmed -&gt; at each
+destination, query <code>T1569.002</code>/<code>T1053.005</code> for the
+execution method and restart the loop on that host.</li>
+<li><code>T1071.001</code> beacon confirmed -&gt; resolve the owning
+process, then query its persistence and the same destination across
+every host.</li>
+</ul>
+<p>Pivoting ends when the queued techniques return absent or
+not-collectable and the timeline is continuous from first activity to
+last.</p>
+<hr/>
+<h2 id="8-confidence-and-reporting">8. Confidence and reporting</h2>
+<p>Two independent judgments, reported separately.</p>
+<ul>
+<li><strong>Evidentiary confirmation</strong> — present, absent, or not
+collectable, from Section 5. This is about the data.</li>
+<li><strong>Analytic confidence</strong> — how strongly the evidence
+supports the assessment. Use the standard gradations: <em>almost
+certainly, highly likely, likely, roughly even chance, unlikely, very
+unlikely.</em> State the basis — source reliability, corroboration
+count, collection completeness — and state what would raise or lower
+it.</li>
+</ul>
+<p>A technique can be confirmed present with low analytic confidence in
+attribution, and that distinction is preserved in the report. Evidence
+of PsExec execution is high-confidence as a technique and says nothing
+by itself about which actor ran it.</p>
+<p>Finding record:</p>
+<pre><code>INTEL IN:    source, date, input as received
+TECHNIQUE:   T-code and name; tool/procedure if resolved
+SCOPE:       hosts/segments queried, window (UTC)
+QUERY:       the exact query run, per source
+RESULT:      present / absent / not-collectable, with counts
+EVIDENCE:    primary source + independent corroborating source, each hashed where applicable
+CONFIDENCE:  analytic gradation + basis + what would change it
+PIVOT:       techniques queued from this finding
+GAPS:        sources that were not collectable for this technique</code></pre>
+<hr/>
+<h2 id="9-collection-gaps">9. Collection gaps</h2>
+<p>A technique whose data source was not collected cannot be confirmed
+or cleared. Do not report it as absent. Record it as a named gap: the
+technique, the data component it needs, and the collection that would
+satisfy it. The gap register feeds back to the collection plan as a
+requirement — this is the threat-informed input that raises collection
+above the platform default for the next iteration.</p>
+<pre><code>GAP:  &lt;T-code&gt; requires &lt;data component&gt; ; not collected because &lt;no sensor / not forwarded / retention&gt; ;
+      satisfied by &lt;specific collection&gt; ; priority &lt;by terrain x threat&gt;</code></pre>
+<p>Reduced visibility is a finding in its own right. An adversary who
+cleared a log or operated where no sensor sees is still placed by the
+absence, and the gap is reported, not hidden by an empty query.</p>
+<blockquote>
+<p>Defensive and authorized. Applied to collected data from provided
+systems under rules of engagement.</p>
+</blockquote>
+<h1 id="detection-filter-pack-suricata-zeek-elastic-defend-kql">Detection
+&amp; Filter Pack — Suricata / Zeek / Elastic Defend / KQL</h1>
+<p><strong>Purpose.</strong> The concrete queries, rules, and filters
+behind the dashboards — the detect stage, plus the filter emission that
+the baseline doc hands off to. One reference so the rule text lives in
+one place instead of scattered across four tools:</p>
+<pre><code>   [ COLLECT ]  -&gt;  [ BASELINE ]  -&gt;  [ VISUALIZE ]  -&gt;  [ DETECT ]
+                         |
+                         +---- emits filters applied first ----+</code></pre>
+<hr/>
+<h2 id="1-organizing-idea-layers-and-baseline-filters-first">1.
+Organizing idea: layers, and baseline filters first</h2>
+<p>Detection is layered by vantage point, and the layers cover each
+other's blind spots (same logic as the collection plan):</p>
+<ul>
+<li><strong>Network layer</strong> — Suricata (signatures, protocol
+anomalies) + Zeek (behavior, metadata, logs). Breadth, no agent, blind
+on encryption payload.</li>
+<li><strong>Host layer</strong> — Elastic Defend (behavioral/memory,
+response) + KQL hunts over EVTX/Sysmon/auditd. Depth, per-host, sees
+what the wire can't.</li>
+</ul>
+<p><strong>Baseline filters run before detection, not after.</strong> A
+confirmed-normal register item is suppressed at the earliest point it
+can be (agent event filter, Suricata suppress, Zeek exclusion, KQL
+negative). You tune <em>out</em> the known-good so the rules fire on
+what's left. Every section ends with how that stack emits a baseline
+filter (Section 7 collects the mapping).</p>
+<p>Order of operations per layer: <strong>baseline filter -&gt; broad
+hunt query -&gt; specific rule -&gt; alert</strong>.</p>
+<hr/>
+<h2 id="2-kql-hunt-library">2. KQL hunt library</h2>
+<p>Run in Kibana Discover / as saved searches / as the basis for
+detection rules. KQL unless marked ES|QL. These are hunts (wide, for a
+human) that graduate to rules (narrow, for the alert engine) once
+tuned.</p>
+<h3 id="host-hunts">Host hunts</h3>
+<pre class="kql"><code># Office / email spawning a shell  (T1566 / T1059)
+process.parent.name:("winword.exe" or "excel.exe" or "powerpnt.exe" or "outlook.exe")
+  and process.name:("cmd.exe" or "powershell.exe" or "wscript.exe" or "cscript.exe" or "mshta.exe")
+
+# Encoded / download-cradle PowerShell  (T1059.001 / T1105)
+process.name:"powershell.exe" and process.command_line:
+  (*-enc* or *-EncodedCommand* or *FromBase64String* or *IEX* or *Invoke-Expression*
+   or *DownloadString* or *Net.WebClient* or *-nop* or *-w hidden*)
+
+# LOLBins with suspicious args  (T1218)
+process.name:("rundll32.exe" or "regsvr32.exe" or "mshta.exe" or "certutil.exe"
+   or "bitsadmin.exe" or "msiexec.exe")
+  and process.command_line:(*http* or *\\temp\\* or *-urlcache* or *javascript:* or *.dll,*)
+
+# LSASS access (credential dumping)  (T1003.001)  — Sysmon 10 / Defend
+event.code:"10" and winlog.event_data.TargetImage:*lsass.exe*
+  and not winlog.event_data.SourceImage:("*\\MsMpEng.exe" or "*\\wininit.exe")   # baseline known
+
+# New service / scheduled task persistence  (T1543.003 / T1053.005)
+event.code:("7045" or "4697" or "4698" or "4702")
+
+# Lateral movement via explicit creds  (T1021 / T1078)
+event.code:"4648"      # then pivot: one user.name -&gt; many host.name
+
+# Failed-logon spray / bruteforce  (T1110)
+event.code:"4625"      # aggregate by source.ip / user.name, threshold on count
+
+# Linux: suspicious execution from web/temp dirs  (T1505.003 webshell / T1059.004)
+host.os.type:"linux" and process.executable:("/tmp/*" or "/dev/shm/*" or "/var/www/*")
+  and process.parent.name:("apache2" or "httpd" or "nginx" or "php-fpm")   # web proc spawning shell</code></pre>
+<h3 id="network-hunts">Network hunts</h3>
+<pre class="kql"><code># Beaconing candidates (fixed-interval small conns to one external dst)  (T1071)
+#  -&gt; use ES|QL for interval stats:
+FROM logs-zeek.*
+| WHERE network.direction == "outbound"
+| STATS conns = COUNT(*), bytes = SUM(network.bytes), uniq_dur = COUNT_DISTINCT(zeek.conn.duration)
+    BY source.ip, destination.ip, destination.port
+| WHERE conns &gt; 20 AND bytes &lt; 500000     # many small, regular conns
+| SORT conns DESC
+
+# Rare external destinations (first-seen)
+destination.ip:* and not destination.ip:(&lt;internal ranges&gt;) and not destination.ip:(&lt;baseline externals&gt;)
+
+# DNS tunneling / DGA markers  (T1071.004 / T1568)
+zeek.dns.query:* and (dns_qlen &gt; 50 or dns_entropy &gt; 4)         # runtime fields
+zeek.dns.qtype_name:"TXT"                                        # aggregate volume by source.ip
+dns.response_code:"NXDOMAIN"                                     # spike by source.ip = DGA
+
+# Self-signed / odd TLS  (T1573 / C2 over TLS)
+tls.server.x509.issuer.distinguished_name : tls.server.x509.subject.distinguished_name   # self-signed
+  or tls.client.ja3:(&lt;known-bad JA3&gt;) 
+  or (tls.client.server_name:* and not destination.ip:&lt;expected for that SNI&gt;)            # SNI/IP mismatch
+
+# Long-lived external sessions
+zeek.conn.duration &gt; 3600 and network.direction:"outbound"</code></pre>
+<hr/>
+<h2 id="3-suricata">3. Suricata</h2>
+<p><strong>Role.</strong> Signature + protocol-anomaly engine on the
+wire. Strong at known-bad (ET/ETPRO rulesets, IOC sigs, exploit sigs,
+protocol violations). Weak at stateful/behavioral detection over time
+(beaconing interval analysis) — push that to Zeek/Kibana. Runs best
+inline with both directions of flow (watch asymmetric routing from the
+collection plan).</p>
+<p><strong>Operate the rulesets, don't hand-write everything.</strong>
+Enable Emerging Threats Open (or ETPRO), enable the categories that
+match your terrain, disable what you can't see. Tune aggressively — an
+untuned ruleset on a range range is a wall of false positives.</p>
+<p><strong>Rule anatomy:</strong></p>
+<pre><code>action proto src_ip src_port -&gt; dst_ip dst_port (msg:"..."; flow:...; content:"..."; \
+   pcre:"..."; classtype:...; sid:1000001; rev:1; metadata:...;)</code></pre>
+<p><strong>Custom examples (defensive, for terrain-specific
+detection):</strong></p>
+<pre class="kql"><code># Outbound cleartext to a known-bad / unexpected external on a monitored egress
+alert tcp $HOME_NET any -&gt; $EXTERNAL_NET any (msg:"CUSTOM Egress to flagged host"; \
+   flow:established,to_server; ip_dst &lt;flagged-ip&gt;; classtype:trojan-activity; sid:9000001; rev:1;)
+
+# Self-signed TLS to external (metadata)
+alert tls $HOME_NET any -&gt; $EXTERNAL_NET any (msg:"CUSTOM Self-signed cert outbound"; \
+   tls.cert_issuer; content:!"CN="; classtype:protocol-command-decode; sid:9000002; rev:1;)
+
+# Suspicious DNS TXT volume (tunneling indicator — pair with Kibana aggregation)
+alert dns $HOME_NET any -&gt; any 53 (msg:"CUSTOM DNS TXT query"; dns.query; \
+   dns.opcode:0; content:"|00 10 00 01|"; classtype:policy-violation; sid:9000003; rev:1;)
+
+# SMB lateral indicator (admin share from a workstation subnet)
+alert smb $WKSTN_NET any -&gt; $SERVER_NET 445 (msg:"CUSTOM Wkstn-&gt;Server admin share"; \
+   flow:to_server; classtype:policy-violation; sid:9000004; rev:1;)</code></pre>
+<p><strong>range / baseline suppression</strong> — knock down the
+range-ism noise (Gate 1 of the baseline doc) in
+<code>threshold.config</code>:</p>
+<pre><code># Suppress a sig entirely from the range NAT/jump source  (BL-003 [RANGE])
+suppress gen_id 1, sig_id 2000419, track by_src, ip &lt;range-nat-ip&gt;
+
+# Rate-limit a noisy-but-real sig to one alert per 5 min per host
+threshold gen_id 1, sig_id 9000003, type threshold, track by_src, count 1, seconds 300
+
+# Suppress traffic-generator synthetic-user hosts from a web-category sig  (BL-007 [RANGE])
+suppress gen_id 1, sig_id 2013028, track by_src, ip &lt;traffic-gen-host-range&gt;</code></pre>
+<p>Every <code>suppress</code> carries its <code>BL-ID</code> in a
+comment — the suppression is traceable back to a confirmed register
+item, or it doesn't go in.</p>
+<hr/>
+<h2 id="4-zeek">4. Zeek</h2>
+<p><strong>Role.</strong> The network's system-of-record and behavioral
+engine. Where Suricata says "this packet matched," Zeek says "here is
+every connection, DNS query, TLS handshake, HTTP request, and file seen,
+as structured logs you can hunt and baseline." Best for the
+stateful/over-time detection Suricata is weak at, and the richest source
+for the Network dashboard.</p>
+<p><strong>Logs to mine (ship to Kibana via Filebeat zeek
+module):</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th>Log</th>
+<th>What it gives</th>
+<th>Hunt use</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>conn.log</code></td>
+<td>every flow: duration, bytes, state, history</td>
+<td>beaconing, long conns, top talkers, exfil ratios</td>
+</tr>
+<tr class="even">
+<td><code>dns.log</code></td>
+<td>queries, responses, rcodes, types</td>
+<td>DGA, tunneling, NXDOMAIN spikes, TXT volume</td>
+</tr>
+<tr class="odd">
+<td><code>http.log</code></td>
+<td>method, host, URI, UA, status</td>
+<td>webshell URIs, rare UAs, suspicious downloads</td>
+</tr>
+<tr class="even">
+<td><code>ssl.log</code> + <code>x509.log</code></td>
+<td>SNI, versions, cert subject/issuer/validity, JA3/JA3S</td>
+<td>self-signed, rare JA3, SNI/IP mismatch</td>
+</tr>
+<tr class="odd">
+<td><code>files.log</code></td>
+<td>files seen, MIME, hashes</td>
+<td>malware delivery, carving (with file extraction)</td>
+</tr>
+<tr class="even">
+<td><code>notice.log</code></td>
+<td>Zeek's own detections</td>
+<td>pre-built behavioral notices</td>
+</tr>
+<tr class="odd">
+<td><code>weird.log</code></td>
+<td>protocol anomalies</td>
+<td>tunneling, evasion, malformed traffic</td>
+</tr>
+</tbody>
+</table>
+<p><strong>JA3/JA4</strong> — load the JA3 package (or built-in JA4 on
+current Zeek) to fingerprint TLS clients/servers; baseline the
+known-good JA3 set, alert/flag the rest.</p>
+<p><strong>Notice framework</strong> — turn a hunt into a standing
+detection. Example (long outbound connection):</p>
+<pre><code># long-conns.zeek  — notice on outbound sessions over 1h
+@load base/frameworks/notice
+redef enum Notice::Type += { Long_Outbound_Conn };
+event connection_state_remove(c: connection) {
+    if ( c$duration &gt; 1hr &amp;&amp; Site::is_local_addr(c$id$orig_h)
+         &amp;&amp; ! Site::is_local_addr(c$id$resp_h) )
+        NOTICE([$note=Long_Outbound_Conn, $conn=c,
+                $msg=fmt("Long outbound conn %s -&gt; %s (%s)",
+                         c$id$orig_h, c$id$resp_h, c$duration)]);
+}</code></pre>
+<p><strong>Intel framework</strong> — feed IOCs (domains, IPs, hashes,
+JA3) from threat intel; Zeek matches them across all logs and writes
+<code>intel.log</code>. This is the clean place to do IOC matching from
+the collection plan's intel inputs.</p>
+<p><strong>Baseline exclusion</strong> — the Zeek way to filter
+confirmed-normal is to <em>exclude in the detection script</em>, not to
+drop the log (keep the record, suppress the alert):</p>
+<pre><code># in a notice policy hook — suppress the ism, cite the register ID
+hook Notice::policy(n: Notice::Info) {
+    if ( n$note == Long_Outbound_Conn &amp;&amp; n$conn$id$resp_h == &lt;backup-server&gt; )
+        break;   # BL-014 [BOTH] confirmed: nightly backup, not a finding
+}</code></pre>
+<hr/>
+<h2 id="5-elastic-defend-endpoint">5. Elastic Defend (endpoint)</h2>
+<p><strong>Role.</strong> The host behavioral + response layer.
+Real-time process/file/network/registry/DLL events, in-memory and
+behavioral protections (malware, ransomware, memory-threat,
+credential-access), and the response actions (isolate host, kill
+process, remote collect). This is what the collection plan's EDR deploy
+tree puts on the high-value hosts.</p>
+<p><strong>Enable:</strong></p>
+<ul>
+<li><strong>Detection rules</strong> — turn on the Elastic prebuilt rule
+set, filtered to the platforms you've deployed on (Windows/Linux). Start
+with the "recommended" + the ATT&amp;CK coverage matching your threat
+(from the collection plan's technique list). Don't enable all 1000+ cold
+on a range — you'll bury yourself.</li>
+<li><strong>Endpoint protections</strong> — malware (ML), ransomware
+(behavioral), memory-threat, and malicious-behavior, set to
+<em>detect</em> first on a range/sensitive client, <em>prevent</em> once
+tuned and authorized. Prevent on a production client without
+authorization is how you cause an outage.</li>
+<li><strong>Response</strong> — enable host isolation / process kill
+only where ROE permits; this is a live action on someone's box.</li>
+</ul>
+<p><strong>Baseline filtering — two mechanisms, know the
+difference:</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th>Mechanism</th>
+<th>What it does</th>
+<th>Use for</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Event filter</strong></td>
+<td>Stops matching events from being <em>written/ingested</em> at the
+agent</td>
+<td>High-volume known-good telemetry you don't want at all (range
+orchestration, traffic-generator process noise). Cheapest filter,
+earliest point.</td>
+</tr>
+<tr class="even">
+<td><strong>Rule exception</strong></td>
+<td>Stops a <em>specific rule</em> from alerting on a match, event still
+ingested</td>
+<td>Known-good that trips one rule but you still want the raw event
+(admin tool that looks like a LOLBin).</td>
+</tr>
+<tr class="odd">
+<td><strong>Trusted application</strong></td>
+<td>Excludes a binary/path/signer from <em>protections</em></td>
+<td>A known tool the malware/behavior engine flags (a red-team or admin
+utility you've sanctioned).</td>
+</tr>
+</tbody>
+</table>
+<p>Example event filter (drop traffic-generator synthetic-user browser
+noise — baseline Gate 1):</p>
+<pre class="kql"><code># Event filter  (BL-007 [RANGE] traffic-generator)
+event.category : "process" and process.parent.name : "&lt;traffic-gen&gt;.exe"</code></pre>
+<p>Example rule exception (admin's legit certutil use trips the LOLBin
+rule):</p>
+<pre><code># Exception on "Certutil URL download" rule  (BL-022 [CLIENT] confirmed admin host)
+host.name : "ADM-TOOLS-01" and user.name : "svc-patch"</code></pre>
+<p>Rules carried through: event filter for volume you never want
+(earliest, cheapest); exception when you still want the event;
+trusted-app only for protection engines. Every one cites its
+<code>BL-ID</code>; <code>[RANGE]</code> filters come off at the client.
+Prefer the <strong>event filter</strong> for pure range noise (keeps the
+index clean), the <strong>exception</strong> when the raw event still
+has hunt value.</p>
+<hr/>
+<h2 id="6-mapping-the-layers-to-the-threat-coverage-check">6. Mapping
+the layers to the threat (coverage check)</h2>
+<p>Tie the pack back to ATT&amp;CK so you can prove coverage (same
+validation idea as the collection plan Section 10):</p>
+<table>
+<thead>
+<tr class="header">
+<th>ATT&amp;CK (example)</th>
+<th>Network (Suricata/Zeek)</th>
+<th>Host (Defend/KQL)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>T1071 App-layer C2</td>
+<td>Zeek conn beaconing, ssl JA3, Suricata C2 sigs</td>
+<td>Defend network events by process</td>
+</tr>
+<tr class="even">
+<td>T1071.004 DNS C2</td>
+<td>Zeek dns (TXT/NXDOMAIN/entropy), Suricata dns</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td>T1059.001 PowerShell</td>
+<td>—</td>
+<td>KQL 4104 / encoded PS, Defend behavioral</td>
+</tr>
+<tr class="even">
+<td>T1003 Cred dumping</td>
+<td>—</td>
+<td>Defend memory-threat, KQL Sysmon 10 LSASS</td>
+</tr>
+<tr class="odd">
+<td>T1021 Lateral movement</td>
+<td>Zeek smb/conn, Suricata smb sig</td>
+<td>KQL 4648/4624 type 3/10</td>
+</tr>
+<tr class="even">
+<td>T1486 Ransomware</td>
+<td>Zeek files (mass rename weird)</td>
+<td>Defend ransomware behavioral</td>
+</tr>
+<tr class="odd">
+<td>T1048 Exfil</td>
+<td>Zeek conn bytes-out ratio, long conns</td>
+<td>Defend network by process</td>
+</tr>
+</tbody>
+</table>
+<p>A technique with no row on either side is a <strong>detection
+gap</strong> — log it, same as the collection and baseline docs.
+Coverage proven across all four docs is the point of building them as
+one pipeline.</p>
+<hr/>
+<h2 id="7-filter-emission-one-table-all-stacks">7. Filter emission —
+one table, all stacks</h2>
+<p>The hand-off from the Baseline Register. A <code>confirmed</code>
+register item becomes:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Register class</th>
+<th>Stack</th>
+<th>Filter form</th>
+<th>Earliest point</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>host process / user pattern (range noise)</td>
+<td>Elastic Defend</td>
+<td><strong>event filter</strong></td>
+<td>at agent (not ingested)</td>
+</tr>
+<tr class="even">
+<td>host process tripping one rule</td>
+<td>Elastic Defend</td>
+<td><strong>rule exception</strong></td>
+<td>at rule (event kept)</td>
+</tr>
+<tr class="odd">
+<td>sanctioned tool flagged by protection</td>
+<td>Elastic Defend</td>
+<td><strong>trusted application</strong></td>
+<td>protection engine</td>
+</tr>
+<tr class="even">
+<td>network sig false-positive / ism</td>
+<td>Suricata</td>
+<td><code>suppress</code> / <code>threshold</code> by sig+host</td>
+<td>sensor</td>
+</tr>
+<tr class="odd">
+<td>network behavior known-good</td>
+<td>Zeek</td>
+<td><code>Notice::policy</code> hook <code>break</code></td>
+<td>notice engine (log kept)</td>
+</tr>
+<tr class="even">
+<td>IOC allowlist</td>
+<td>Zeek</td>
+<td>intel-framework exclusion</td>
+<td>intel match</td>
+</tr>
+<tr class="odd">
+<td>any Kibana-visible flow/host/dns/tls</td>
+<td>Kibana</td>
+<td>pinned <code>NOT (...)</code> dashboard filter</td>
+<td>query time</td>
+</tr>
+</tbody>
+</table>
+<p>Three rules govern all of them, inherited from the baseline doc:</p>
+<ol type="1">
+<li><strong>Only <code>confirmed</code> items filter.</strong>
+Provisional predictions never suppress.</li>
+<li><strong>Every filter cites its <code>BL-ID</code>.</strong>
+Traceable to a justification or it doesn't ship.</li>
+<li><strong><code>[RANGE]</code> filters are dropped at the
+client.</strong> The environment marker is the switch.</li>
+</ol>
+<blockquote>
+<p><strong>Defensive use.</strong> Every rule, query, and filter here is
+for authorized defensive detection and hunt. Prevention/response actions
+(Suricata inline drop, Defend prevent/isolate) are live actions — enable
+them only within ROE and after tuning in detect mode. Baseline filters
+reduce noise, never coverage: keep each one traceable so detection is
+never silently blinded.</p>
+</blockquote>
+<h1 id="ics-scada-defensive-overview">ICS/SCADA Defensive Overview</h1>
+<p>Orientation for a host/network analyst dropped onto an OT network.
+Defensive framing: what the systems are, how they talk, where they're
+weak, and what an attack looks like on the wire and on the host. One
+rule above all others: <strong>on OT, passive first.</strong> An active
+scan that is harmless on IT can hang a PLC or trip a safety function. Do
+nothing that writes, probes, or floods until the asset owner clears
+it.</p>
+<hr/>
+<h2 id="1-the-systems">1. The Systems</h2>
+<p><strong>ICS</strong> (Industrial Control System) is the umbrella.
+<strong>SCADA</strong> (Supervisory Control and Data Acquisition) is the
+geographically distributed kind — pipelines, grid, water — where a
+central master polls remote sites. <strong>DCS</strong> (Distributed
+Control System) is the plant-local kind — a refinery or factory, control
+staying inside the facility. Same components, different spread.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Component</th>
+<th>Role</th>
+<th>Analyst note</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>PLC</strong></td>
+<td>Programmable Logic Controller — runs the physical process (valves,
+motors) on a scan loop</td>
+<td>The target. Logic lives in its memory; "program download" changes
+the process</td>
+</tr>
+<tr class="even">
+<td><strong>RTU</strong></td>
+<td>Remote Terminal Unit — field data collection at a remote SCADA
+site</td>
+<td>Like a PLC, built for remote/telemetry links</td>
+</tr>
+<tr class="odd">
+<td><strong>IED</strong></td>
+<td>Intelligent Electronic Device — protective relay, breaker controller
+(power)</td>
+<td>Speaks IEC 61850; trips breakers</td>
+</tr>
+<tr class="even">
+<td><strong>HMI</strong></td>
+<td>Human-Machine Interface — operator's screen/controls</td>
+<td>Usually Windows. Your most likely host-forensics target</td>
+</tr>
+<tr class="odd">
+<td><strong>EWS</strong></td>
+<td>Engineering Workstation — where logic is written and pushed to
+PLCs</td>
+<td>Highest-value host. Owns the keys to the process</td>
+</tr>
+<tr class="even">
+<td><strong>Historian</strong></td>
+<td>Time-series database of process values</td>
+<td>Windows/DB. Bridges OT and IT; common pivot</td>
+</tr>
+<tr class="odd">
+<td><strong>SIS</strong></td>
+<td>Safety Instrumented System — independent safety shutdown</td>
+<td>Hands-off. Target of TRITON. Interaction can endanger people</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Purdue model</strong> — the reference segmentation. Know
+which level you're on; it sets what's normal.</p>
+<pre><code>L5  Enterprise (corporate IT, internet)
+L4  Business / plant IT (email, ERP)
+---- IT / OT boundary ----
+L3.5 Industrial DMZ   &lt;- historian replica, jump host, patch/AV live here
+L3  Site operations   (historian, domain, EWS)
+L2  Supervisory       (HMI, SCADA servers)
+L1  Control           (PLC, RTU, IED, SIS)
+L0  Process           (sensors, actuators — the physical world)</code></pre>
+<p>Traffic that crosses levels it shouldn't — L4 reaching straight to an
+L1 PLC — is the single most useful anomaly to look for.</p>
+<hr/>
+<h2 id="2-the-protocols">2. The Protocols</h2>
+<p>OT protocols were built for reliable real-time telemetry on trusted
+serial loops, then lifted onto TCP/IP. Most carry <strong>no
+authentication and no encryption</strong> by design. On a flat or poorly
+segmented network that is the whole problem: anyone who can route a
+packet can command a controller.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Protocol</th>
+<th>Port</th>
+<th>Domain</th>
+<th>Auth/crypto</th>
+<th>Watch for</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Modbus TCP</strong></td>
+<td>502/tcp</td>
+<td>General / manufacturing</td>
+<td>None</td>
+<td>Write-single/multiple (FC 5,6,15,16) from an unexpected host; FC 8
+diagnostics</td>
+</tr>
+<tr class="even">
+<td><strong>DNP3</strong></td>
+<td>20000/tcp,udp</td>
+<td>Electric / water SCADA</td>
+<td>None (Secure Auth rarely on)</td>
+<td>Operate/write, cold/warm restart, time-change from a non-master</td>
+</tr>
+<tr class="odd">
+<td><strong>EtherNet/IP + CIP</strong></td>
+<td>44818/tcp, 2222/udp</td>
+<td>Manufacturing (Rockwell)</td>
+<td>None</td>
+<td>CIP program download, "forward open" to controllers, reset
+services</td>
+</tr>
+<tr class="even">
+<td><strong>S7comm / S7+</strong></td>
+<td>102/tcp</td>
+<td>Siemens</td>
+<td>Weak/none (S7+ obfuscated)</td>
+<td>PLC STOP, program upload/download, run-state change</td>
+</tr>
+<tr class="odd">
+<td><strong>OPC UA</strong></td>
+<td>4840/tcp</td>
+<td>Modern integration</td>
+<td>Supports it (often off)</td>
+<td>Unencrypted sessions, anonymous login</td>
+</tr>
+<tr class="even">
+<td><strong>OPC DA (DCOM)</strong></td>
+<td>135 + dynamic</td>
+<td>Legacy integration</td>
+<td>Weak</td>
+<td>Wide dynamic RPC range = firewalling nightmare</td>
+</tr>
+<tr class="odd">
+<td><strong>IEC 60870-5-104</strong></td>
+<td>2404/tcp</td>
+<td>Electric (Europe/Asia)</td>
+<td>None</td>
+<td>C_SC/C_DC control commands, interrogation from unknown source</td>
+</tr>
+<tr class="even">
+<td><strong>IEC 61850 MMS</strong></td>
+<td>102/tcp</td>
+<td>Substations</td>
+<td>None</td>
+<td>Control to IEDs</td>
+</tr>
+<tr class="odd">
+<td><strong>IEC 61850 GOOSE / SV</strong></td>
+<td>L2 multicast (no IP)</td>
+<td>Substations, fast trip</td>
+<td>None</td>
+<td>Spoofed GOOSE with high stNum to force a trip; won't show in an IP
+capture</td>
+</tr>
+<tr class="even">
+<td><strong>BACnet/IP</strong></td>
+<td>47808/udp</td>
+<td>Building automation (HVAC)</td>
+<td>None</td>
+<td>Write-property to controllers</td>
+</tr>
+<tr class="odd">
+<td><strong>PROFINET</strong></td>
+<td>L2 + 34962-34964</td>
+<td>Siemens fieldbus</td>
+<td>None</td>
+<td>Layer-2; needs a SPAN on the right segment</td>
+</tr>
+</tbody>
+</table>
+<p>Rule of thumb: these are <strong>plaintext</strong>. In a pcap you
+can usually read the command intent directly. That's bad for the
+defender's network and good for the defender's packet analysis.</p>
+<hr/>
+<h2 id="3-common-weaknesses">3. Common Weaknesses</h2>
+<p>Ordered roughly by how often they're the finding. Most OT incidents
+are not zero-days; they're these.</p>
+<ol type="1">
+<li><strong>Flat networks / weak segmentation.</strong> No real boundary
+between IT and OT, or between Purdue levels. One phished L4 workstation
+reaches L1. Look for routes and sessions that cross levels.</li>
+<li><strong>Internet-exposed OT.</strong> HMIs, PLCs, and VNC/RDP
+reachable from the internet (findable on Shodan/Censys). Check for
+public-facing 502, 44818, 20000, 47808 and remote-access ports.</li>
+<li><strong>No authentication on control protocols.</strong> By design
+(§2). Compensated only by segmentation — so #1 and #3 compound.</li>
+<li><strong>Default / shared / hardcoded credentials.</strong> Vendor
+defaults on HMIs, switches, and web UIs; shared operator logins with no
+attribution.</li>
+<li><strong>Unpatched, end-of-life systems.</strong> Windows 7/XP HMIs,
+decade-old firmware. Patching is hard because uptime is sacred — so
+legacy CVEs persist for years.</li>
+<li><strong>Dual-homed hosts bridging IT and OT.</strong> Historians and
+EWS with a NIC in each world — the designed-in pivot path. Enumerate
+multi-homed assets.</li>
+<li><strong>Unmanaged remote access.</strong> Vendor maintenance via
+TeamViewer/VNC/cellular modems, often outside the firewall and
+unlogged.</li>
+<li><strong>Removable media &amp; the EWS.</strong> USB is how
+air-gapped plants get updates — and malware (Stuxnet). The EWS is the
+crown jewel: own it and you own the logic pushed to every PLC.</li>
+<li><strong>No OT monitoring.</strong> Many sites have zero packet
+visibility below L3. You often can't answer "is this normal?" because
+nobody ever baselined it. Baselining is itself a deliverable.</li>
+</ol>
+<hr/>
+<h2 id="4-identifying-attacks-manipulation">4. Identifying Attacks /
+Manipulation</h2>
+<p>OT favors the defender in one way: the process is <strong>repetitive
+and predictable</strong>. Normal traffic is the same masters polling the
+same slaves at the same intervals with the same function codes. Malice
+shows up as deviation from that rhythm.</p>
+<p><strong>On the wire</strong></p>
+<ul>
+<li><strong>New talkers.</strong> A host that never spoke a control
+protocol suddenly issuing Modbus writes or S7 commands. Baseline
+who-talks-to-whom; flag the new edge.</li>
+<li><strong>Write/control where you normally see reads.</strong>
+Engineering functions (program download, write-multiple, operate,
+restart) outside a maintenance window, or from an HMI instead of the
+EWS.</li>
+<li><strong>State changes.</strong> PLC STOP/RUN transitions, time-sync
+changes, firmware-update messages you didn't schedule.</li>
+<li><strong>Scan signatures.</strong> Sequential unit-ID / register
+sweeps, connection attempts across the whole L1 range — recon on a
+network that should have fixed, stable flows.</li>
+<li><strong>GOOSE anomalies.</strong> Sudden jump in stNum/sqNum, or two
+publishers for one dataset — a spoof forcing a protective trip. Needs an
+L2 capture on the station bus.</li>
+<li><strong>Timing.</strong> Poll intervals that change, or a flood that
+delays real telemetry — availability attacks matter more than
+confidentiality in OT.</li>
+</ul>
+<p><strong>On the host (HMI / EWS / historian — usually
+Windows)</strong></p>
+<ul>
+<li>Your §1 live-triage and §7–§8 disk/memory flows from the Execution
+Reference apply. Additions for OT:
+<ul>
+<li><strong>Engineering-software processes or project files
+changing</strong> outside a maintenance window (TIA Portal, Studio 5000,
+etc.).</li>
+<li><strong>New/unknown executables on the EWS</strong> — the staging
+point for logic tampering.</li>
+<li><strong>USB insertion events</strong> on air-gapped hosts (EVTX,
+registry USBSTOR).</li>
+<li><strong>Historian queries or exports</strong> that don't match
+normal reporting — data theft or recon.</li>
+<li><strong>Project-file hashes</strong> against a known-good baseline
+to catch logic changes.</li>
+</ul></li>
+</ul>
+<p><strong>Frameworks to anchor findings</strong></p>
+<ul>
+<li><strong>MITRE ATT&amp;CK for ICS</strong> — map each observable to a
+technique (e.g. <em>Modify Controller Tasking</em>, <em>Unauthorized
+Command Message</em>, <em>Loss of Availability</em>). It's the
+ICS-specific matrix, not Enterprise.</li>
+<li><strong>NIST SP 800-82 Rev 3</strong> — the authority for OT
+security architecture and controls.</li>
+<li><strong>CISA ICS advisories</strong> — current vendor/product vulns
+and active-threat alerts.</li>
+</ul>
+<p><strong>Named ICS malware — the historical pattern (study what each
+abused)</strong></p>
+<ul>
+<li><strong>Stuxnet</strong> — USB → EWS → Siemens S7 PLC logic
+tampering; hid from the HMI.</li>
+<li><strong>Industroyer / Industroyer2</strong> — speaks grid protocols
+natively (IEC 101/104, 61850, OPC) to trip breakers.</li>
+<li><strong>TRITON / TRISIS</strong> — targeted the Triconex
+<strong>SIS</strong>; the line that should never be crossed.</li>
+<li><strong>PIPEDREAM / INCONTROLLER</strong> — modular toolkit for
+Modbus, CODESYS, OPC UA; the first "reusable" ICS attack framework.</li>
+<li><strong>FrostyGoop</strong> — Modbus TCP to heating controllers;
+recent, simple, effective.</li>
+</ul>
+<p>The lesson across all of them: the access path is ordinary IT
+(phishing, USB, remote access, a flat network), and the OT-specific
+payload only fires at the end. <strong>Defending the IT→OT boundary and
+the EWS stops most of the kill chain before it reaches the
+process.</strong></p>
+</main>
+<aside id="rail" class="rail">
+  <h2>Five questions</h2>
+  <div class="q"><b>Q1 · What is running that should not be?</b><span>pslist vs psscan · pstree parentage · cmdline · malfind · unsigned or user-writable path</span></div>
+  <div class="q"><b>Q2 · What is talking that should not be?</b><span>netscan / sockstat · session vs the process's job · fixed-interval beacons · same IP on both hosts · DNS cache, hosts file</span></div>
+  <div class="q"><b>Q3 · How does it survive a reboot?</b><span>services, tasks, Run keys, WMI · cron, <i>enabled</i> systemd, rc, ld.so.preload, authorized_keys · target = the Q1 file</span></div>
+  <div class="q"><b>Q4 · Who did it, and how did they get in?</b><span>4624 type 3/10, 4648, 4672 · auth.log, last/lastb, UID 0 · a web request with no matching auth <i>is</i> the answer</span></div>
+  <div class="q"><b>Q5 · When did it start?</b><span>Prefetch, Amcache, UserAssist, BAM before file times · $SI vs $FN · fls + mactime vs access/auth logs</span></div>
+  <h2>Decision gates</h2>
+  <ol>
+    <li><b>G1</b> Unsigned / writable path / bad parent → acquire + hash the file</li>
+    <li><b>G2</b> External session, no business reason → bind to a process and a log</li>
+    <li><b>G3</b> Persistence targets that file → foothold confirmed</li>
+    <li><b>G4</b> Account + auth method found → extend scope to other hosts</li>
+    <li><b>G5</b> First-seen before the alert → intrusion start</li>
+  </ol>
+  <h2>Rules</h2>
+  <ul>
+    <li><b>Acquire before alter.</b> Memory first, hashed.</li>
+    <li><b>Two independent sources</b> or it is a lead, not a finding.</li>
+    <li><b>State the reasoning:</b> expected result before, what changed after.</li>
+    <li><b>Breadth first:</b> Q1–Q5 shallow on both hosts before depth.</li>
+  </ul>
+  <h2>Confidence</h2>
+  <ul>
+    <li><b>Possible</b>: one source, a lead</li>
+    <li><b>Probable</b>: consistent, partly corroborated</li>
+    <li><b>Confirmed</b>: two independent sources agree</li>
+  </ul>
+  <h2>Time</h2>
+  <ul><li>Record UTC. Volatility = UTC. PowerShell, Event Viewer, <code>ls</code>, syslog = host local. Apache carries its own offset.</li></ul>
+</aside></div>
+<script src="../assets/search-index.js"></script><script src="../assets/site.js"></script></body></html>

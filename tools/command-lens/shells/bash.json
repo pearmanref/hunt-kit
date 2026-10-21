@@ -1,0 +1,34 @@
+{
+  "$schema": "../schema/shell.schema.json",
+  "id": "bash",
+  "order": 1,
+  "name": "bash",
+  "os": "linux",
+  "prompt": "$",
+  "highlight": "bash",
+  "quoting": { "strategy": "posix" },
+  "comment": { "token": "#", "interactive": true },
+  "continuation": "\\",
+  "nullDevice": "/dev/null",
+  "operators": [
+    { "id": "pipe", "symbol": "|", "kind": "pipe", "desc": "Pipe: the left command's output becomes the right command's input." },
+    { "id": "pipe-all", "symbol": "|&", "kind": "pipe-all", "desc": "Pipe output and errors together (same as 2>&1 |)." },
+    { "id": "and", "symbol": "&&", "kind": "and", "desc": "AND: run the right side only if the left side succeeded (exit status 0)." },
+    { "id": "or", "symbol": "||", "kind": "or", "desc": "OR: run the right side only if the left side failed." },
+    { "id": "seq", "symbol": ";", "kind": "seq", "desc": "Sequence: run the right side after the left, whatever the result." }
+  ],
+  "redirections": [
+    { "id": "out", "symbol": ">", "target": "path", "desc": "Write output to a file, replacing it" },
+    { "id": "append", "symbol": ">>", "target": "path", "desc": "Append output to a file" },
+    { "id": "errfile", "symbol": "2>", "target": "path", "desc": "Write errors to a file" },
+    { "id": "errout", "symbol": "2>&1", "target": null, "desc": "Send errors to the same place as output" },
+    { "id": "errnull", "symbol": "2>/dev/null", "target": null, "desc": "Discard errors (e.g. permission denied)" }
+  ],
+  "loop": {
+    "template": "for ioc in {items}; do {body}; done",
+    "ref": "\"$ioc\"",
+    "refInString": "\"$ioc\""
+  },
+  "groups": { "subshell": ["(", ")"], "brace": ["{", "; }"] },
+  "aliasShadows": {}
+}

@@ -1,0 +1,223 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "get-cim-process",
+  "name": "Get-CimInstance Win32_Process",
+  "aliases": [
+    "wmi process",
+    "command line",
+    "parent process",
+    "wmic process"
+  ],
+  "kind": "cmdlet",
+  "shells": [
+    {
+      "id": "powershell"
+    }
+  ],
+  "binary": "Get-CimInstance",
+  "category": "process",
+  "summary": "Queries processes through WMI/CIM, including command line and parent PID.",
+  "action": "queries processes through CIM",
+  "description": "Works the same on 5.1 and 7. The -Filter is WQL, evaluated by WMI: values inside it are WQL string literals (\\ and ' escaped) and LIKE patterns use % and _ as wildcards, which the tool escapes with [ ] when they are literal. The whole filter sits in a PowerShell double-quoted string with $ and ` escaped.",
+  "source": "https://learn.microsoft.com/windows/win32/cimwin32prov/win32-process",
+  "requires": {
+    "elevation": "recommended",
+    "note": "other users' command lines need an elevated session"
+  },
+  "io": {
+    "stdin": "none",
+    "stdout": "objects"
+  },
+  "template": "{binary} -ClassName Win32_Process {flags}",
+  "fixedExplain": {
+    "-ClassName": "selects the WMI class",
+    "Win32_Process": "the process class (command line, parent PID, executable path)"
+  },
+  "composites": [
+    {
+      "id": "filter",
+      "flag": "-Filter",
+      "join": " AND ",
+      "quote": "ps-dq",
+      "explain": "WQL filter"
+    }
+  ],
+  "params": [
+    {
+      "id": "name",
+      "label": "Name",
+      "type": "string",
+      "composite": "filter",
+      "fragment": "Name = '{v}'",
+      "encode": "wql",
+      "repeatable": true,
+      "repeatJoin": " OR ",
+      "common": true,
+      "ioc": [
+        "process",
+        "filename"
+      ],
+      "bulk": {
+        "multi": {}
+      },
+      "placeholder": "powershell.exe",
+      "explain": "named {value}"
+    },
+    {
+      "id": "cmdLike",
+      "label": "Command line contains",
+      "type": "string",
+      "composite": "filter",
+      "fragment": "CommandLine LIKE '{v}'",
+      "encode": "wql-like",
+      "repeatable": true,
+      "repeatJoin": " OR ",
+      "common": true,
+      "ioc": "*",
+      "bulk": {
+        "multi": {}
+      },
+      "placeholder": "-enc",
+      "explain": "command line containing {value}"
+    },
+    {
+      "id": "exeLike",
+      "label": "Path contains",
+      "type": "string",
+      "composite": "filter",
+      "fragment": "ExecutablePath LIKE '{v}'",
+      "encode": "wql-like",
+      "repeatable": true,
+      "repeatJoin": " OR ",
+      "ioc": [
+        "path"
+      ],
+      "placeholder": "\\AppData\\",
+      "explain": "executable path containing {value}"
+    },
+    {
+      "id": "pid",
+      "label": "PID",
+      "type": "int",
+      "composite": "filter",
+      "fragment": "ProcessId = {v}",
+      "repeatable": true,
+      "repeatJoin": " OR ",
+      "explain": "PID {value}"
+    },
+    {
+      "id": "ppid",
+      "label": "Parent PID",
+      "type": "int",
+      "composite": "filter",
+      "fragment": "ParentProcessId = {v}",
+      "repeatable": true,
+      "repeatJoin": " OR ",
+      "explain": "parent PID {value}"
+    }
+  ],
+  "presets": [
+    {
+      "id": "encoded",
+      "name": "Encoded PowerShell command lines",
+      "values": {
+        "cmdLike": [
+          "-enc",
+          "-EncodedCommand"
+        ]
+      },
+      "ttps": [
+        "T1059.001",
+        "T1027"
+      ]
+    },
+    {
+      "id": "appdata",
+      "name": "Running from AppData or Temp",
+      "values": {
+        "exeLike": [
+          "\\AppData\\",
+          "\\Temp\\"
+        ]
+      },
+      "ttps": [
+        "T1036.005",
+        "T1204.002"
+      ]
+    },
+    {
+      "id": "lolbins",
+      "name": "Script hosts and LOLBins",
+      "values": {
+        "name": [
+          "mshta.exe",
+          "rundll32.exe",
+          "regsvr32.exe",
+          "wscript.exe",
+          "cscript.exe"
+        ]
+      },
+      "ttps": [
+        "T1218.011",
+        "T1059"
+      ]
+    },
+    {
+      "id": "archivers",
+      "name": "Archivers running (staging)",
+      "values": {
+        "name": [
+          "7z.exe",
+          "7za.exe",
+          "rar.exe",
+          "winrar.exe",
+          "makecab.exe",
+          "tar.exe"
+        ]
+      },
+      "ttps": [
+        "T1560.001",
+        "T1074.002"
+      ]
+    },
+    {
+      "id": "transfer-tools",
+      "name": "Encryption / transfer tools in command lines",
+      "values": {
+        "cmdLike": [
+          "openssl",
+          "rclone",
+          "scp ",
+          "sftp",
+          "ftp ",
+          "curl ",
+          "bitsadmin"
+        ]
+      },
+      "ttps": [
+        "T1048.001",
+        "T1105"
+      ]
+    },
+    {
+      "id": "all",
+      "name": "Every process (pipe into Where-Object { })",
+      "values": {},
+      "ttps": [
+        "T1057"
+      ]
+    }
+  ],
+  "properties": {
+    "ProcessId": {},
+    "ParentProcessId": {},
+    "Name": {},
+    "CommandLine": {},
+    "ExecutablePath": {},
+    "CreationDate": {}
+  },
+  "ttps": [
+    "T1057",
+    "T1047"
+  ]
+}

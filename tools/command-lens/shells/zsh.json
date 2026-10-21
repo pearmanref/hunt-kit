@@ -1,0 +1,10 @@
+{
+  "$schema": "../schema/shell.schema.json",
+  "id": "zsh",
+  "extends": "bash",
+  "order": 2,
+  "name": "zsh",
+  "prompt": "%",
+  "quoting": { "strategy": "posix", "zsh": true },
+  "comment": { "token": "#", "interactive": false, "note": "Interactive zsh treats # as a normal character unless setopt interactivecomments is on." }
+}

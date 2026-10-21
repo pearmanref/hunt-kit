@@ -1,0 +1,30 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "schtasks",
+  "name": "schtasks",
+  "aliases": ["scheduled tasks"],
+  "kind": "native",
+  "shells": [{ "id": "cmd" }],
+  "category": "persistence",
+  "summary": "Lists scheduled tasks (query only).",
+  "action": "lists scheduled tasks",
+  "description": "Only /query is offered. /v with LIST format shows the 'Task To Run' line for each task, which pipes well into findstr.",
+  "source": "https://learn.microsoft.com/windows-server/administration/windows-commands/schtasks-query",
+  "requires": { "elevation": "recommended" },
+  "io": { "stdin": "none", "stdout": "text" },
+  "template": "{binary} /query {flags}",
+  "fixedExplain": { "/query": "list tasks" },
+  "params": [
+    { "id": "format", "label": "Format", "type": "enum", "flag": "/fo", "common": true, "enum": ["TABLE", "LIST", "CSV"], "explain": "as {value}" },
+    { "id": "verbose", "label": "Verbose", "type": "bool", "flag": "/v", "common": true, "explain": "with every field (command, author, run-as user)" },
+    { "id": "taskName", "label": "Task name", "type": "string", "flag": "/tn", "placeholder": "\\Updater", "explain": "task {value}" },
+    { "id": "noHeader", "label": "No header", "type": "bool", "flag": "/nh", "explain": "without the header row" }
+  ],
+  "presets": [
+    { "id": "list-v", "name": "Every task, verbose list", "values": { "format": "LIST", "verbose": true }, "ttps": ["T1053.005"] }
+  ],
+  "quirks": [
+    { "id": "nh-list", "when": { "set": ["noHeader"], "equals": { "format": "LIST" } }, "level": "info", "reason": "/nh only applies to TABLE and CSV output." }
+  ],
+  "ttps": ["T1053.005"]
+}

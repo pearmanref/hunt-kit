@@ -1,0 +1,23 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "sort-object",
+  "name": "Sort-Object",
+  "aliases": ["sort"],
+  "kind": "cmdlet",
+  "shells": [{ "id": "powershell" }],
+  "category": "pipeline",
+  "summary": "Sorts objects by property.",
+  "action": "sorts the objects",
+  "description": "Pipeline glue.",
+  "source": "https://learn.microsoft.com/powershell/module/microsoft.powershell.utility/sort-object",
+  "requires": { "elevation": "none" },
+  "io": { "stdin": "objects", "stdout": "objects" },
+  "template": "{binary} {flags}",
+  "params": [
+    { "id": "property", "label": "Properties", "type": "string", "flag": "-Property", "common": true, "repeatable": true, "repeat": { "mode": "join", "sep": "," }, "validate": "^[A-Za-z_][A-Za-z0-9_]*$", "validateMsg": "property names", "explain": "by {value}" },
+    { "id": "descending", "label": "Descending", "type": "bool", "flag": "-Descending", "common": true, "explain": "largest/newest first" },
+    { "id": "unique", "label": "Unique", "type": "bool", "flag": "-Unique", "explain": "dropping duplicates" }
+  ],
+  "presets": [],
+  "ttps": []
+}

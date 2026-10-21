@@ -1,0 +1,22 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "out-string",
+  "name": "Out-String",
+  "aliases": ["to text"],
+  "kind": "cmdlet",
+  "shells": [{ "id": "powershell" }],
+  "category": "pipeline",
+  "summary": "Turns objects into the text you would see on screen.",
+  "action": "converts objects to text",
+  "description": "Put it between an object cmdlet and a text tool (Select-String, findstr). Without it, Select-String searches each object's type name instead of what is displayed. -Stream emits one line at a time.",
+  "source": "https://learn.microsoft.com/powershell/module/microsoft.powershell.utility/out-string",
+  "requires": { "elevation": "none" },
+  "io": { "stdin": "objects", "stdout": "text" },
+  "template": "{binary} {flags}",
+  "params": [
+    { "id": "stream", "label": "One line at a time", "type": "bool", "flag": "-Stream", "common": true, "default": true, "explain": "line by line" },
+    { "id": "width", "label": "Width", "type": "int", "min": 80, "flag": "-Width", "common": true, "explain": "{value} characters wide (avoids truncated columns)" }
+  ],
+  "presets": [],
+  "ttps": []
+}

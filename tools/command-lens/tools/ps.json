@@ -1,0 +1,32 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "ps",
+  "name": "ps",
+  "aliases": ["processes", "process list"],
+  "kind": "native",
+  "shells": [{ "id": "bash" }, { "id": "zsh" }],
+  "category": "process",
+  "summary": "Snapshot of running processes (procps-ng).",
+  "action": "lists processes",
+  "description": "UNIX-style options are used throughout (-e, -f, -o). Without -ww, long command lines are cut to the terminal width, which hides the arguments analysts usually need.",
+  "source": "https://man7.org/linux/man-pages/man1/ps.1.html",
+  "requires": { "elevation": "none" },
+  "io": { "stdin": "none", "stdout": "text" },
+  "template": "{binary} {flags}",
+  "params": [
+    { "id": "all", "label": "All processes", "type": "bool", "flag": "-e", "common": true, "conflicts": ["pid", "user"], "explain": "every process" },
+    { "id": "full", "label": "Full format", "type": "bool", "flag": "-f", "common": true, "conflicts": ["format"], "explain": "full format (UID, PID, PPID, start, command line)" },
+    { "id": "format", "label": "Columns", "type": "string", "flag": "-o", "common": true, "conflicts": ["full"], "validate": "^[a-z%_]+(=[^,]*)?(,[a-z%_]+(=[^,]*)?)*$", "validateMsg": "comma-separated column names, e.g. pid,ppid,user,lstart,args",
+      "placeholder": "pid,ppid,user,lstart,args", "explain": "showing columns {value}" },
+    { "id": "forest", "label": "Tree view", "type": "bool", "flag": "--forest", "common": true, "explain": "as a parent/child tree" },
+    { "id": "wide", "label": "Untruncated command lines", "type": "bool", "flag": "-ww", "common": true, "explain": "without truncating command lines" },
+    { "id": "pid", "label": "PIDs", "type": "int", "flag": "-p", "repeatable": true, "repeat": { "mode": "join", "sep": "," }, "conflicts": ["all"], "explain": "only PID {value}" },
+    { "id": "user", "label": "User", "type": "string", "flag": "-u", "repeatable": true, "repeat": { "mode": "join", "sep": "," }, "conflicts": ["all"], "ioc": ["user"], "explain": "only processes of {value}" },
+    { "id": "sort", "label": "Sort by", "type": "string", "flag": "--sort", "flagStyle": "equals", "validate": "^[-+]?[a-z%_]+(,[-+]?[a-z%_]+)*$", "validateMsg": "e.g. -%cpu or start_time", "placeholder": "start_time", "explain": "sorted by {value}" }
+  ],
+  "presets": [
+    { "id": "tree", "name": "Full process tree", "values": { "all": true, "full": true, "forest": true, "wide": true }, "ttps": ["T1057"] },
+    { "id": "lineage", "name": "PID, parent, user, start time, full command", "values": { "all": true, "format": "pid,ppid,user,lstart,args", "wide": true, "sort": "start_time" }, "ttps": ["T1057", "T1059.004"] }
+  ],
+  "ttps": ["T1057"]
+}

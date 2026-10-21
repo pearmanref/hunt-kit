@@ -1,0 +1,95 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "get-authenticodesignature",
+  "name": "Get-AuthenticodeSignature",
+  "aliases": [
+    "signature",
+    "signed",
+    "code signing",
+    "sigcheck"
+  ],
+  "kind": "cmdlet",
+  "shells": [
+    {
+      "id": "powershell"
+    }
+  ],
+  "category": "file system",
+  "summary": "Checks the Authenticode signature of files.",
+  "action": "checks file signatures",
+  "description": "Status is Valid, NotSigned, HashMismatch, UnknownError and so on. Takes paths or file objects from the pipeline. Catalog-signed system files report Valid on Windows; a binary copied next to them without a signature does not.",
+  "source": "https://learn.microsoft.com/powershell/module/microsoft.powershell.security/get-authenticodesignature",
+  "requires": {
+    "elevation": "none",
+    "os": "Windows"
+  },
+  "io": {
+    "stdin": "objects",
+    "stdout": "objects",
+    "accepts": [
+      "files",
+      "paths"
+    ]
+  },
+  "template": "{binary} {flags}",
+  "params": [
+    {
+      "id": "path",
+      "label": "File",
+      "type": "path",
+      "os": "windows",
+      "flag": "-FilePath",
+      "literalFlag": "-LiteralPath",
+      "expand": true,
+      "common": true,
+      "repeatable": true,
+      "repeat": {
+        "mode": "join",
+        "sep": ","
+      },
+      "placeholder": "C:\\Windows\\System32\\*.exe",
+      "desc": "Leave empty when piping files or paths in.",
+      "explain": "of {value}"
+    },
+    {
+      "id": "errorAction",
+      "label": "On error",
+      "type": "enum",
+      "flag": "-ErrorAction",
+      "common": true,
+      "enum": [
+        "SilentlyContinue",
+        "Stop",
+        "Continue"
+      ],
+      "explain": "on error: {value}"
+    }
+  ],
+  "presets": [
+    {
+      "id": "system32",
+      "name": "Every executable in System32",
+      "values": {
+        "path": "C:\\Windows\\System32\\*.exe",
+        "errorAction": "SilentlyContinue"
+      },
+      "ttps": [
+        "T1036.005",
+        "T1553.002"
+      ]
+    }
+  ],
+  "properties": {
+    "Status": {},
+    "StatusMessage": {},
+    "Path": {},
+    "SignerCertificate": {},
+    "SignatureType": {},
+    "IsOSBinary": {
+      "minVersion": "7"
+    }
+  },
+  "ttps": [
+    "T1553.002"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "select-object",
+  "name": "Select-Object",
+  "aliases": ["select", "columns"],
+  "kind": "cmdlet",
+  "shells": [{ "id": "powershell" }],
+  "category": "pipeline",
+  "summary": "Picks properties, or the first/last N objects.",
+  "action": "keeps selected properties",
+  "description": "Pipeline glue. -ExpandProperty returns the value itself instead of an object wrapping it.",
+  "source": "https://learn.microsoft.com/powershell/module/microsoft.powershell.utility/select-object",
+  "requires": { "elevation": "none" },
+  "io": { "stdin": "objects", "stdout": "objects" },
+  "template": "{binary} {flags}",
+  "params": [
+    { "id": "property", "label": "Properties", "type": "string", "flag": "-Property", "common": true, "repeatable": true, "repeat": { "mode": "join", "sep": "," }, "conflicts": ["expand"],
+      "validate": "^[A-Za-z_*][A-Za-z0-9_*]*$", "validateMsg": "property names (wildcards allowed)", "placeholder": "Id,ProcessName,Path", "explain": "properties {value}" },
+    { "id": "expand", "label": "Expand property", "type": "string", "flag": "-ExpandProperty", "conflicts": ["property"], "validate": "^[A-Za-z_][A-Za-z0-9_]*$", "validateMsg": "one property name", "explain": "the value of {value}" },
+    { "id": "first", "label": "First N", "type": "int", "min": 1, "flag": "-First", "common": true, "explain": "first {value}" },
+    { "id": "last", "label": "Last N", "type": "int", "min": 1, "flag": "-Last", "explain": "last {value}" },
+    { "id": "unique", "label": "Unique", "type": "bool", "flag": "-Unique", "explain": "unique only" }
+  ],
+  "presets": [],
+  "ttps": []
+}

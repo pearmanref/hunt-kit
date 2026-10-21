@@ -1,0 +1,85 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "get-filehash",
+  "name": "Get-FileHash",
+  "aliases": [
+    "hash",
+    "sha256"
+  ],
+  "kind": "cmdlet",
+  "shells": [
+    {
+      "id": "powershell"
+    }
+  ],
+  "category": "hashing",
+  "summary": "Computes file hashes.",
+  "action": "hashes files",
+  "description": "Accepts files from the pipeline (Get-ChildItem … | Get-FileHash). Compare with an IOC set using Where-Object -Property Hash -In.",
+  "source": "https://learn.microsoft.com/powershell/module/microsoft.powershell.utility/get-filehash",
+  "requires": {
+    "elevation": "recommended"
+  },
+  "io": {
+    "stdin": "objects",
+    "stdout": "objects",
+    "accepts": [
+      "files",
+      "paths"
+    ]
+  },
+  "template": "{binary} {flags}",
+  "params": [
+    {
+      "id": "path",
+      "label": "Path",
+      "type": "path",
+      "os": "windows",
+      "flag": "-Path",
+      "literalFlag": "-LiteralPath",
+      "expand": true,
+      "common": true,
+      "repeatable": true,
+      "repeat": {
+        "mode": "join",
+        "sep": ","
+      },
+      "placeholder": "C:\\Windows\\Temp\\*.exe",
+      "explain": "of {value}"
+    },
+    {
+      "id": "algorithm",
+      "label": "Algorithm",
+      "type": "enum",
+      "flag": "-Algorithm",
+      "common": true,
+      "enum": [
+        "SHA256",
+        "SHA1",
+        "MD5",
+        "SHA384",
+        "SHA512"
+      ],
+      "explain": "using {value}"
+    },
+    {
+      "id": "errorAction",
+      "label": "On error",
+      "type": "enum",
+      "flag": "-ErrorAction",
+      "enum": [
+        "SilentlyContinue",
+        "Stop",
+        "Continue"
+      ],
+      "explain": "on error: {value}"
+    }
+  ],
+  "presets": [],
+  "properties": {
+    "Algorithm": {},
+    "Hash": {},
+    "Path": {}
+  },
+  "ttps": []
+}

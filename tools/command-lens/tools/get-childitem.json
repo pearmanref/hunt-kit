@@ -1,0 +1,291 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "get-childitem",
+  "name": "Get-ChildItem",
+  "aliases": [
+    "ls",
+    "dir",
+    "gci",
+    "list files"
+  ],
+  "kind": "cmdlet",
+  "shells": [
+    {
+      "id": "powershell"
+    }
+  ],
+  "category": "file system",
+  "summary": "Lists files, folders, registry keys or other provider items.",
+  "action": "lists items",
+  "description": "-Force includes hidden and system files. A path containing [ ] is switched to -LiteralPath automatically, because -Path treats brackets as wildcard ranges.",
+  "source": "https://learn.microsoft.com/powershell/module/microsoft.powershell.management/get-childitem",
+  "requires": {
+    "elevation": "recommended",
+    "note": "other users' profiles need an elevated session"
+  },
+  "io": {
+    "stdin": "none",
+    "stdout": "objects",
+    "emits": "files"
+  },
+  "template": "{binary} {flags}",
+  "params": [
+    {
+      "id": "path",
+      "label": "Path",
+      "type": "path",
+      "os": "windows",
+      "flag": "-Path",
+      "literalFlag": "-LiteralPath",
+      "expand": true,
+      "common": true,
+      "required": true,
+      "repeatable": true,
+      "repeat": {
+        "mode": "join",
+        "sep": ","
+      },
+      "placeholder": "C:\\Users\\*\\AppData\\Local\\Temp",
+      "explain": "in {value}"
+    },
+    {
+      "id": "filter",
+      "label": "Filter",
+      "type": "string",
+      "flag": "-Filter",
+      "common": true,
+      "ioc": [
+        "filename"
+      ],
+      "placeholder": "*.ps1",
+      "desc": "One wildcard pattern, applied by the file system (fast).",
+      "explain": "named {value}"
+    },
+    {
+      "id": "include",
+      "label": "Include",
+      "type": "string",
+      "flag": "-Include",
+      "repeatable": true,
+      "repeat": {
+        "mode": "join",
+        "sep": ","
+      },
+      "placeholder": "*.exe,*.dll",
+      "explain": "matching {value}"
+    },
+    {
+      "id": "recurse",
+      "label": "Recurse",
+      "type": "bool",
+      "flag": "-Recurse",
+      "common": true,
+      "explain": "recursively"
+    },
+    {
+      "id": "depth",
+      "label": "Depth",
+      "type": "int",
+      "min": 0,
+      "flag": "-Depth",
+      "explain": "at most {value} levels deep"
+    },
+    {
+      "id": "force",
+      "label": "Include hidden",
+      "type": "bool",
+      "flag": "-Force",
+      "common": true,
+      "explain": "including hidden and system items"
+    },
+    {
+      "id": "file",
+      "label": "Files only",
+      "type": "bool",
+      "flag": "-File",
+      "common": true,
+      "conflicts": [
+        "directory"
+      ],
+      "explain": "files only"
+    },
+    {
+      "id": "directory",
+      "label": "Folders only",
+      "type": "bool",
+      "flag": "-Directory",
+      "conflicts": [
+        "file"
+      ],
+      "explain": "folders only"
+    },
+    {
+      "id": "errorAction",
+      "label": "On error",
+      "type": "enum",
+      "flag": "-ErrorAction",
+      "common": true,
+      "enum": [
+        "SilentlyContinue",
+        "Stop",
+        "Continue"
+      ],
+      "explain": "on error: {value}"
+    }
+  ],
+  "presets": [
+    {
+      "id": "temp-exes",
+      "name": "Executables in user temp folders",
+      "values": {
+        "path": "C:\\Users\\*\\AppData\\Local\\Temp",
+        "include": [
+          "*.exe",
+          "*.dll",
+          "*.ps1",
+          "*.bat",
+          "*.vbs"
+        ],
+        "recurse": true,
+        "force": true,
+        "file": true,
+        "errorAction": "SilentlyContinue"
+      },
+      "ttps": [
+        "T1105",
+        "T1204.002"
+      ]
+    },
+    {
+      "id": "startup",
+      "name": "Startup folders",
+      "values": {
+        "path": [
+          "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\StartUp",
+          "C:\\Users\\*\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup"
+        ],
+        "force": true,
+        "errorAction": "SilentlyContinue"
+      },
+      "ttps": [
+        "T1547.001"
+      ]
+    },
+    {
+      "id": "ps-history",
+      "name": "PSReadLine history files",
+      "values": {
+        "path": "C:\\Users\\*\\AppData\\Roaming\\Microsoft\\Windows\\PowerShell\\PSReadLine",
+        "force": true,
+        "errorAction": "SilentlyContinue"
+      },
+      "ttps": [
+        "T1552.003",
+        "T1059.001"
+      ]
+    },
+    {
+      "id": "staged-archives",
+      "name": "Archives in common staging folders",
+      "values": {
+        "path": [
+          "C:\\ProgramData",
+          "C:\\Users\\Public",
+          "C:\\Windows\\Temp",
+          "C:\\PerfLogs"
+        ],
+        "include": [
+          "*.zip",
+          "*.rar",
+          "*.7z",
+          "*.cab",
+          "*.gz",
+          "*.tar"
+        ],
+        "recurse": true,
+        "force": true,
+        "file": true,
+        "errorAction": "SilentlyContinue"
+      },
+      "ttps": [
+        "T1074.002",
+        "T1560.001"
+      ]
+    },
+    {
+      "id": "web-scripts",
+      "name": "Server-side scripts in web roots",
+      "values": {
+        "path": [
+          "C:\\inetpub",
+          "C:\\xampp\\htdocs"
+        ],
+        "include": [
+          "*.php",
+          "*.phtml",
+          "*.php5",
+          "*.aspx",
+          "*.ashx",
+          "*.jsp"
+        ],
+        "recurse": true,
+        "file": true,
+        "errorAction": "SilentlyContinue"
+      },
+      "ttps": [
+        "T1505.003"
+      ]
+    },
+    {
+      "id": "config-files",
+      "name": "Config and script files that may hold passwords",
+      "values": {
+        "path": [
+          "C:\\inetpub",
+          "C:\\ProgramData",
+          "C:\\Users"
+        ],
+        "include": [
+          "*.config",
+          "*.xml",
+          "*.ini",
+          "*.ps1",
+          "*.php",
+          "*.env",
+          "*.txt"
+        ],
+        "recurse": true,
+        "file": true,
+        "errorAction": "SilentlyContinue"
+      },
+      "ttps": [
+        "T1552.001"
+      ]
+    },
+    {
+      "id": "system32-exes",
+      "name": "Executables in System32",
+      "values": {
+        "path": "C:\\Windows\\System32",
+        "filter": "*.exe",
+        "file": true
+      },
+      "ttps": [
+        "T1036.005"
+      ]
+    }
+  ],
+  "properties": {
+    "FullName": {},
+    "Name": {},
+    "Length": {},
+    "CreationTime": {},
+    "LastWriteTime": {},
+    "LastAccessTime": {},
+    "Attributes": {},
+    "Mode": {}
+  },
+  "ttps": [
+    "T1083"
+  ]
+}

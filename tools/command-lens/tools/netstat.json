@@ -1,0 +1,30 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "netstat",
+  "name": "netstat",
+  "aliases": ["connections", "ports", "sockets"],
+  "kind": "native",
+  "shells": [{ "id": "cmd" }],
+  "category": "network",
+  "summary": "Lists TCP/UDP connections and listening ports.",
+  "action": "lists network connections",
+  "description": "-ano is the usual triage form: all sockets, numeric, with the owning PID. -b adds the executable name but needs an elevated prompt and is slow.",
+  "source": "https://learn.microsoft.com/windows-server/administration/windows-commands/netstat",
+  "requires": { "elevation": "none", "note": "-b needs an elevated prompt" },
+  "io": { "stdin": "none", "stdout": "text" },
+  "template": "{binary} {flags}",
+  "params": [
+    { "id": "all", "label": "All sockets", "type": "bool", "flag": "-a", "common": true, "explain": "all connections and listening ports" },
+    { "id": "numeric", "label": "Numeric", "type": "bool", "flag": "-n", "common": true, "conflicts": ["fqdn"], "explain": "numeric addresses (no DNS lookups)" },
+    { "id": "pid", "label": "Show PID", "type": "bool", "flag": "-o", "common": true, "explain": "with the owning PID" },
+    { "id": "exe", "label": "Show executable", "type": "bool", "flag": "-b", "explain": "with the executable (elevated, slow)" },
+    { "id": "proto", "label": "Protocol", "type": "enum", "flag": "-p", "enum": ["TCP", "UDP", "TCPv6", "UDPv6"], "explain": "{value} only" },
+    { "id": "fqdn", "label": "Full names", "type": "bool", "flag": "-f", "conflicts": ["numeric"], "explain": "remote hosts as fully qualified names" },
+    { "id": "routes", "label": "Routing table", "type": "bool", "flag": "-r", "explain": "the routing table" }
+  ],
+  "presets": [
+    { "id": "ano", "name": "All sockets with PID (netstat -ano)", "values": { "all": true, "numeric": true, "pid": true }, "ttps": ["T1049"] },
+    { "id": "anob", "name": "All sockets with PID and executable", "values": { "all": true, "numeric": true, "pid": true, "exe": true }, "ttps": ["T1049", "T1071"] }
+  ],
+  "ttps": ["T1049"]
+}

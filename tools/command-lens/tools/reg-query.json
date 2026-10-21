@@ -1,0 +1,197 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "reg-query",
+  "name": "reg query",
+  "aliases": [
+    "registry",
+    "run keys",
+    "reg"
+  ],
+  "kind": "native",
+  "shells": [
+    {
+      "id": "cmd"
+    }
+  ],
+  "binary": "reg",
+  "category": "persistence",
+  "summary": "Reads registry keys and values.",
+  "action": "reads the registry",
+  "description": "Keys are written HKLM\\… (no colon); a provider-style HKLM:\\… key is converted. /s recurses; /f searches names and data.",
+  "source": "https://learn.microsoft.com/windows-server/administration/windows-commands/reg-query",
+  "requires": {
+    "elevation": "recommended"
+  },
+  "io": {
+    "stdin": "none",
+    "stdout": "text"
+  },
+  "template": "{binary} query {key} {flags}",
+  "fixedExplain": {
+    "query": "read keys and values"
+  },
+  "params": [
+    {
+      "id": "key",
+      "label": "Key",
+      "type": "path",
+      "pathKind": "registry",
+      "os": "windows",
+      "slot": "key",
+      "required": true,
+      "common": true,
+      "ioc": [
+        "regkey"
+      ],
+      "placeholder": "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
+      "explain": "key {value}"
+    },
+    {
+      "id": "value",
+      "label": "Value name",
+      "type": "string",
+      "flag": "/v",
+      "common": true,
+      "conflicts": [
+        "defaultValue"
+      ],
+      "placeholder": "ImagePath",
+      "explain": "value {value}"
+    },
+    {
+      "id": "defaultValue",
+      "label": "Default value",
+      "type": "bool",
+      "flag": "/ve",
+      "conflicts": [
+        "value"
+      ],
+      "explain": "the (Default) value"
+    },
+    {
+      "id": "recurse",
+      "label": "Recurse",
+      "type": "bool",
+      "flag": "/s",
+      "common": true,
+      "explain": "including every subkey"
+    },
+    {
+      "id": "find",
+      "label": "Search for",
+      "type": "string",
+      "flag": "/f",
+      "ioc": "*",
+      "placeholder": "AppData",
+      "explain": "searching for {value}"
+    },
+    {
+      "id": "keysOnly",
+      "label": "Search key names",
+      "type": "bool",
+      "flag": "/k",
+      "requires": [
+        "find"
+      ],
+      "explain": "in key names"
+    },
+    {
+      "id": "dataOnly",
+      "label": "Search data",
+      "type": "bool",
+      "flag": "/d",
+      "requires": [
+        "find"
+      ],
+      "explain": "in value data"
+    },
+    {
+      "id": "exact",
+      "label": "Exact match",
+      "type": "bool",
+      "flag": "/e",
+      "requires": [
+        "find"
+      ],
+      "explain": "exact matches only"
+    },
+    {
+      "id": "type",
+      "label": "Value type",
+      "type": "enum",
+      "flag": "/t",
+      "enum": [
+        "REG_SZ",
+        "REG_EXPAND_SZ",
+        "REG_MULTI_SZ",
+        "REG_DWORD",
+        "REG_QWORD",
+        "REG_BINARY"
+      ],
+      "explain": "of type {value}"
+    }
+  ],
+  "presets": [
+    {
+      "id": "run-hklm",
+      "name": "Run key (machine)",
+      "values": {
+        "key": "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run"
+      },
+      "ttps": [
+        "T1547.001"
+      ]
+    },
+    {
+      "id": "run-hkcu",
+      "name": "Run key (current user)",
+      "values": {
+        "key": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run"
+      },
+      "ttps": [
+        "T1547.001"
+      ]
+    },
+    {
+      "id": "services",
+      "name": "Every service ImagePath",
+      "values": {
+        "key": "HKLM\\SYSTEM\\CurrentControlSet\\Services",
+        "recurse": true,
+        "value": "ImagePath"
+      },
+      "ttps": [
+        "T1543.003"
+      ]
+    },
+    {
+      "id": "ifeo",
+      "name": "IFEO Debugger values",
+      "values": {
+        "key": "HKLM\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options",
+        "recurse": true,
+        "value": "Debugger"
+      },
+      "ttps": [
+        "T1546.012"
+      ]
+    },
+    {
+      "id": "password-values",
+      "name": "Values containing 'password' (HKLM, slow)",
+      "values": {
+        "key": "HKLM",
+        "find": "password",
+        "recurse": true,
+        "type": "REG_SZ"
+      },
+      "ttps": [
+        "T1552.002"
+      ],
+      "opsec": "Walks all of HKLM; takes minutes."
+    }
+  ],
+  "ttps": [
+    "T1012"
+  ]
+}

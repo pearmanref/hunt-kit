@@ -1,0 +1,35 @@
+{
+  "$schema": "../schema/shell.schema.json",
+  "id": "cmd",
+  "order": 4,
+  "name": "cmd",
+  "os": "windows",
+  "prompt": "C:\\>",
+  "highlight": "batch",
+  "context": "interactive",
+  "quoting": { "strategy": "cmd" },
+  "comment": { "token": "REM", "interactive": true },
+  "continuation": "^",
+  "nullDevice": "nul",
+  "maxLineLength": 8191,
+  "operators": [
+    { "id": "pipe", "symbol": "|", "kind": "pipe", "desc": "Pipe: the left command's output becomes the right command's input." },
+    { "id": "and", "symbol": "&&", "kind": "and", "desc": "AND: run the right side only if the left side succeeded (errorlevel 0)." },
+    { "id": "or", "symbol": "||", "kind": "or", "desc": "OR: run the right side only if the left side failed." },
+    { "id": "seq", "symbol": "&", "kind": "seq", "desc": "Sequence: run the right side after the left, whatever the result." }
+  ],
+  "redirections": [
+    { "id": "out", "symbol": ">", "target": "path", "desc": "Write output to a file, replacing it" },
+    { "id": "append", "symbol": ">>", "target": "path", "desc": "Append output to a file" },
+    { "id": "errout", "symbol": "2>&1", "target": null, "desc": "Send errors to the same place as output (put it after > file)" },
+    { "id": "errnull", "symbol": "2>nul", "target": null, "desc": "Discard errors" }
+  ],
+  "loop": {
+    "template": "for %i in ({items}) do ({body})",
+    "ref": "\"%~i\"",
+    "refInString": "%~i",
+    "note": "Interactive form. In a .bat file the variable is %%i."
+  },
+  "groups": { "block": ["(", ")"] },
+  "aliasShadows": {}
+}

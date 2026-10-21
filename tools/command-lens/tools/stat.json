@@ -1,0 +1,32 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "stat",
+  "name": "stat",
+  "aliases": ["file times", "inode", "metadata"],
+  "kind": "native",
+  "shells": [{ "id": "bash" }, { "id": "zsh" }],
+  "category": "file system",
+  "execSafe": true,
+  "summary": "Shows a file's inode metadata: size, permissions, owner and the three timestamps.",
+  "action": "shows file metadata",
+  "description": "The -c format gives exactly the fields you want on one line, which is useful for a timeline. Access, modify and change times are %x %y %z.",
+  "source": "https://www.gnu.org/software/coreutils/manual/html_node/stat-invocation.html",
+  "requires": { "elevation": "none" },
+  "io": { "stdin": "none", "stdout": "text" },
+  "template": "{binary} {flags} {path}",
+  "params": [
+    { "id": "format", "label": "Format", "type": "string", "flag": "-c", "common": true,
+      "choices": [
+        { "label": "times + path", "value": "%n A:%x M:%y C:%z", "explain": "name, access, modify and change times" },
+        { "label": "owner, perms, size, path", "value": "%U %G %a %s %n", "explain": "owner, group, octal permissions, size, name" },
+        { "label": "inode + links + path", "value": "%i %h %n", "explain": "inode, hard-link count, name" }
+      ],
+      "desc": "%n name, %s size, %a octal perms, %U user, %G group, %x access, %y modify, %z change, %i inode, %h links.",
+      "explain": "formatted as {value}" },
+    { "id": "deref", "label": "Follow symlinks", "type": "bool", "flag": "-L", "explain": "following symlinks" },
+    { "id": "terse", "label": "Terse", "type": "bool", "flag": "-t", "conflicts": ["format"], "explain": "on one compact line" },
+    { "id": "path", "label": "Files", "type": "path", "os": "linux", "slot": "path", "repeatable": true, "repeat": { "mode": "positional" }, "expand": true, "common": true, "explain": "of {value}" }
+  ],
+  "presets": [],
+  "ttps": ["T1083"]
+}

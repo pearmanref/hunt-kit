@@ -1,0 +1,305 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Autopsy Runbook</title><link rel="stylesheet" href="../assets/site.css"></head><body data-base="../" class="doc">
+<header class="top"><a class="brand" href="../index.html">Hunt Kit</a><span class="crumb">Autopsy Runbook</span>
+<div class="search"><input id="q" type="search" placeholder="Search everything  ( / )" autocomplete="off"><div id="results" class="results" hidden></div></div>
+<a class="btn" href="../tools/hunt-notes.html" target="_blank">Hunt Notes</a><a class="btn" href="../pdf/autopsy-runbook.pdf" title="Printable PDF">PDF</a>
+<button class="btn" id="tocBtn" title="Contents">☰</button><button class="btn" id="railBtn" title="Questions pane">Q</button><button class="btn" id="themeBtn" title="Theme">◐</button></header>
+<div class="layout"><nav id="toc" class="toc"><div class="toch">Contents</div><a class="l2" href="#step-0-pre-flight-5-min">Step 0 — Pre-flight (5 min)</a><a class="l2" href="#step-1-create-the-case-3-min">Step 1 — Create the case (3
+min)</a><a class="l2" href="#step-2-ingest-fast-set-first-5-min-setup-runs-in-background">Step 2
+— Ingest: fast set first (5 min setup, runs in background)</a><a class="l2" href="#step-3-fast-triage-10-min">Step 3 — Fast triage (10 min)</a><a class="l2" href="#step-4-q1-what-is-running-that-should-not-be-prove-it-on-dis">Step
+4 — Q1: What is running that should not be? Prove it on disk (15
+min)</a><a class="l2" href="#step-5-q3-how-does-it-survive-a-reboot-15-min">Step 5 — Q3: How
+does it survive a reboot? (15 min)</a><a class="l2" href="#step-6-q4-who-did-it-and-how-did-they-get-in-15-min">Step 6 —
+Q4: Who did it, and how did they get in? (15 min)</a><a class="l2" href="#step-7-q5-when-did-it-start-20-min">Step 7 — Q5: When did it
+start? (20 min)</a><a class="l2" href="#step-8-optional-depth-only-if-time-remains">Step 8 — Optional
+depth (only if time remains)</a><a class="l2" href="#step-9-report-10-min">Step 9 — Report (10 min)</a><a class="l2" href="#pitfalls">Pitfalls</a></nav>
+<main class="content"><h1>Autopsy Investigation
+Runbook</h1>
+<p><em>Linear disk investigation in Autopsy 4.x, aligned to the five
+questions</em></p>
+<p>Run top to bottom. Each step says what to do, what to look for, and
+what to record. Autopsy 4.19+ labels the tree <strong>Data Artifacts /
+Analysis Results</strong>; older builds put everything under
+<strong>Results → Extracted Content</strong>. Path tables are in the
+Execution Reference §7B. Record in Hunt Notes with source
+<code>Autopsy</code>.</p>
+<p><strong>Where Autopsy fits.</strong> Same role as FTK: disk
+<strong>proves and dates</strong> what memory and live triage found
+(Q1–Q3) and answers Q4–Q5. Autopsy's advantages are that it decodes
+execution artifacts for you (Run Programs, Recent Activity), has a
+built-in <strong>Timeline</strong>, and shows <code>$SI</code> vs
+<code>$FN</code> times per file. Use it for Q5 even if FTK did the
+rest.</p>
+<hr/>
+<h2 id="step-0-pre-flight-5-min">Step 0 — Pre-flight (5 min)</h2>
+<ul class="task-list">
+<li><label><input type="checkbox"/>Version: <code>Help → About</code>.
+Note it.</label></li>
+<li><label><input type="checkbox"/>Target host's <strong>system time
+zone</strong> known (live triage §1.1 / §2.1).</label></li>
+<li><label><input type="checkbox"/>Image hash verified (FTK Imager
+<strong>Verify Drive/Image</strong>, or the provided hash).</label></li>
+<li><label><input type="checkbox"/>Output drive/path
+chosen.</label></li>
+<li><label><input type="checkbox"/>Lead list from Hunt Notes ready:
+names, paths, IPs, hashes, accounts.</label></li>
+</ul>
+<h2 id="step-1-create-the-case-3-min">Step 1 — Create the case (3
+min)</h2>
+<ol type="1">
+<li><code>Case → New Case</code> → name <code>CASE_&lt;host&gt;</code> →
+base directory on the output drive → Next → examiner info → Finish.</li>
+<li><strong>Add Data Source</strong> opens. Host: <em>Generate new host
+name based on data source name</em> → Next.</li>
+<li>Type: <strong>Disk Image or VM File</strong> (E01, raw/dd, VMDK,
+VHD). Use <strong>Local Disk</strong> for a mounted image and
+<strong>Logical Files</strong> for a folder of exported artifacts.</li>
+<li>Select the image → <strong>time zone = the target's</strong> →
+Next.</li>
+</ol>
+<h2 id="step-2-ingest-fast-set-first-5-min-setup-runs-in-background">Step 2
+— Ingest: fast set first (5 min setup, runs in background)</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Run now</th>
+<th>Add later if time (right-click data source → Run Ingest
+Modules)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Recent Activity</td>
+<td>Keyword Search (full index)</td>
+</tr>
+<tr class="even">
+<td>File Type Identification</td>
+<td>PhotoRec Carver</td>
+</tr>
+<tr class="odd">
+<td>Hash Lookup (+ NSRL if loaded)</td>
+<td>Plaso (full super-timeline, slow)</td>
+</tr>
+<tr class="even">
+<td>Extension Mismatch Detector</td>
+<td>Embedded File Extractor</td>
+</tr>
+<tr class="odd">
+<td>Interesting Files Identifier</td>
+<td>Encryption Detection</td>
+</tr>
+<tr class="even">
+<td>Data Source Integrity</td>
+<td>YARA Analyzer (if present)</td>
+</tr>
+</tbody>
+</table>
+<p>Load your lead list as keywords before running Keyword Search:
+<code>Tools → Options → Keyword Search → New List</code> → add IPs,
+filenames, <code>base64_decode</code>, <code>eval(</code> → run Keyword
+Search ingest on the data source.</p>
+<p><strong>Display in UTC:</strong> <code>Tools → Options → View</code>
+→ time zone <strong>GMT/UTC</strong>. Then times you read go into Hunt
+Notes with zone <code>UTC</code>, no conversion.</p>
+<p>Results populate as modules finish. <strong>Start step 3
+immediately.</strong></p>
+<h2 id="step-3-fast-triage-10-min">Step 3 — Fast triage (10 min)</h2>
+<table>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Tree node</th>
+<th>Look for</th>
+<th>Feeds</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>a</td>
+<td>Analysis Results → <strong>Hashset Hits</strong></td>
+<td>Known-bad hash matches</td>
+<td>Q1</td>
+</tr>
+<tr class="even">
+<td>b</td>
+<td>Analysis Results → <strong>Extension Mismatch</strong></td>
+<td><code>.jpg</code> that is a PE</td>
+<td>Q1</td>
+</tr>
+<tr class="odd">
+<td>c</td>
+<td>Analysis Results → <strong>Interesting Items</strong></td>
+<td>Rule matches (from Interesting Files Identifier)</td>
+<td>Q1</td>
+</tr>
+<tr class="even">
+<td>d</td>
+<td>File Views → File Types → <strong>By Extension</strong> →
+Executable, Scripts (<code>.ps1 .bat .vbs .php .sh</code>)</td>
+<td>Sort Modified desc. User, Temp, ProgramData, Public,
+<code>/tmp</code>, <code>/var/www</code></td>
+<td>Q1, Q5</td>
+</tr>
+<tr class="odd">
+<td>e</td>
+<td>File Views → <strong>Deleted Files</strong></td>
+<td>Tools removed after use</td>
+<td>Q1, Q5</td>
+</tr>
+<tr class="even">
+<td>f</td>
+<td>File Views → <strong>File Size</strong></td>
+<td>Large archives (staging / exfil)</td>
+<td>Q1</td>
+</tr>
+</tbody>
+</table>
+<p>On every hit: right-click → <strong>Add File Tag → Notable
+Item</strong> → comment = why + Q. <strong>Record</strong> in Hunt
+Notes.</p>
+<h2 id="step-4-q1-what-is-running-that-should-not-be-prove-it-on-dis">Step
+4 — Q1: What is running that should not be? Prove it on disk (15
+min)</h2>
+<p>For each process lead from memory/live triage:</p>
+<ol type="1">
+<li><strong>Data Sources</strong> tree → navigate to the path. File
+present? Bottom pane → <strong>File Metadata</strong>: size,
+MD5/SHA-256, times.</li>
+<li><strong>Hex</strong> tab: <code>MZ</code> = PE,
+<code>7F 45 4C 46</code> = ELF.</li>
+<li>Right-click → <strong>View File in Directory</strong>: neighbors
+dropped at the same time.</li>
+<li>Right-click → <strong>Extract File(s)</strong> → hash on the
+analysis box.</li>
+</ol>
+<p><strong>Gate G1</strong> → acquire and hash. Memory process + disk
+file = <strong>two sources</strong>, Confirmed for Q1.</p>
+<h2 id="step-5-q3-how-does-it-survive-a-reboot-15-min">Step 5 — Q3: How
+does it survive a reboot? (15 min)</h2>
+<ul>
+<li><strong>Data Artifacts → Run Programs / Installed Programs /
+Operating System Information.</strong> New software, odd service
+binaries.</li>
+<li>Data Sources → <code>Windows\System32\config\SOFTWARE</code> /
+<code>SYSTEM</code> / <code>Users\&lt;u&gt;\NTUSER.DAT</code> → select →
+<strong>Application</strong> tab shows the registry tree. Check
+Run/RunOnce, Services (<code>ImagePath</code>,
+<code>Parameters\ServiceDll</code>), Winlogon.</li>
+<li><code>Windows\System32\Tasks\</code> → task XML →
+<strong>Text</strong> tab → <code>&lt;Command&gt;</code>.</li>
+<li>Linux: <code>/etc/cron*</code>,
+<code>/var/spool/cron/crontabs/</code>,
+<code>/etc/systemd/system/*.wants/</code>,
+<code>/home/*/.ssh/authorized_keys</code>,
+<code>/etc/ld.so.preload</code>, <code>/var/www/</code>.</li>
+</ul>
+<p><strong>Gate G3:</strong> persistence pointing at the Q1 file =
+<strong>foothold confirmed</strong>. <strong>Record</strong> entry,
+target, last-write time (Q3).</p>
+<h2 id="step-6-q4-who-did-it-and-how-did-they-get-in-15-min">Step 6 —
+Q4: Who did it, and how did they get in? (15 min)</h2>
+<ul>
+<li><strong>Data Artifacts → Operating System User Account</strong>:
+accounts, created, last logon.</li>
+<li><strong>Data Artifacts → Web History / Web Downloads</strong>: how a
+payload arrived (browser download, URL).</li>
+<li><strong>Data Artifacts → Recent Documents · Shell Bags · USB Device
+Attached</strong>: user activity, removable media.</li>
+<li>Event logs: Data Sources →
+<code>Windows\System32\winevt\Logs\</code> → <strong>Extract</strong>
+Security/System/PowerShell/Sysmon <code>.evtx</code> → query on the
+analysis box (Execution Reference §1.7 queries with
+<code>-Path</code>).</li>
+<li>Linux: extract <code>/var/log/auth.log*</code>,
+<code>/var/log/apache2/access.log*</code>, <code>.bash_history</code> →
+Execution Reference §2.5 / §2.7 greps.</li>
+</ul>
+<p><strong>Gate G4:</strong> account + auth method = scope extends to
+other hosts. <strong>Record</strong> (Q4).</p>
+<h2 id="step-7-q5-when-did-it-start-20-min">Step 7 — Q5: When did it
+start? (20 min)</h2>
+<p>This is where Autopsy beats FTK.</p>
+<ol type="1">
+<li><strong>Data Artifacts → Run Programs</strong>: Prefetch-derived
+executions with run times and counts. Find the Q1 binary.</li>
+<li><strong>Amcache / UserAssist / BAM</strong>: Recent Activity parses
+these into Data Artifacts (Run Programs / Recent Activity nodes,
+depending on version). If not shown, extract <code>Amcache.hve</code> /
+<code>NTUSER.DAT</code> / <code>SYSTEM</code> and use the native reads
+in Execution Reference §1.8.</li>
+<li><strong>Timestomp check:</strong> select the file → <strong>File
+Metadata</strong> tab. It shows <code>$STANDARD_INFORMATION</code> and
+<code>$FILE_NAME</code> times. SI earlier than FN, or SI with zero
+sub-seconds = timestomped; trust FN and the execution artifacts.</li>
+<li><strong>Timeline:</strong> <code>Tools → Timeline</code> → zoom to
+the window around the earliest time from 1–3 → filter event types (file
+created/modified, program run, web). Read <strong>what happened just
+before</strong>: download, logon, web POST, archive extraction.</li>
+</ol>
+<p><strong>Gate G5:</strong> first-seen earlier than the alert =
+intrusion start. Two artifacts agreeing on first run = confirmed start.
+<strong>Record</strong> each anchor (Q5), citing the artifact.</p>
+<h2 id="step-8-optional-depth-only-if-time-remains">Step 8 — Optional
+depth (only if time remains)</h2>
+<ul>
+<li>Run <strong>PhotoRec Carver</strong> / <strong>Plaso</strong>
+ingest. Carved files have no path and no reliable time;
+corroborate.</li>
+<li><code>$Recycle.Bin\&lt;SID&gt;\</code> → <code>$I</code> (original
+path + delete time) / <code>$R</code> (content).</li>
+<li>Analysis Results → <strong>Encryption Detected</strong> (packed /
+encrypted payloads).</li>
+</ul>
+<h2 id="step-9-report-10-min">Step 9 — Report (10 min)</h2>
+<p><strong>Tags</strong> node → review every Notable Item.
+<code>Generate Report → HTML</code> (or Excel) → <strong>Tagged results
+only</strong>. Write each finding with the Execution Reference §9
+report-out: finding, host, first/last seen UTC, evidence, <strong>second
+independent source</strong>, ATT&amp;CK, mitigation.</p>
+<hr/>
+<h2 id="pitfalls">Pitfalls</h2>
+<ul>
+<li>Wrong time zone at Add Data Source. Every reported time is off by
+the offset.</li>
+<li>Waiting for ingest to finish. Browse triage nodes as they fill.</li>
+<li>Running every ingest module up front and losing an hour to
+carving/Plaso.</li>
+<li>Trusting <code>$SI</code> times without the File Metadata
+<code>$FN</code> check.</li>
+<li>Memory images: Autopsy's Volatility option is Vol2 and Windows-only.
+Do memory in Vol3 and add dumped files back as <strong>Logical
+Files</strong>.</li>
+</ul>
+</main>
+<aside id="rail" class="rail">
+  <h2>Five questions</h2>
+  <div class="q"><b>Q1 · What is running that should not be?</b><span>pslist vs psscan · pstree parentage · cmdline · malfind · unsigned or user-writable path</span></div>
+  <div class="q"><b>Q2 · What is talking that should not be?</b><span>netscan / sockstat · session vs the process's job · fixed-interval beacons · same IP on both hosts · DNS cache, hosts file</span></div>
+  <div class="q"><b>Q3 · How does it survive a reboot?</b><span>services, tasks, Run keys, WMI · cron, <i>enabled</i> systemd, rc, ld.so.preload, authorized_keys · target = the Q1 file</span></div>
+  <div class="q"><b>Q4 · Who did it, and how did they get in?</b><span>4624 type 3/10, 4648, 4672 · auth.log, last/lastb, UID 0 · a web request with no matching auth <i>is</i> the answer</span></div>
+  <div class="q"><b>Q5 · When did it start?</b><span>Prefetch, Amcache, UserAssist, BAM before file times · $SI vs $FN · fls + mactime vs access/auth logs</span></div>
+  <h2>Decision gates</h2>
+  <ol>
+    <li><b>G1</b> Unsigned / writable path / bad parent → acquire + hash the file</li>
+    <li><b>G2</b> External session, no business reason → bind to a process and a log</li>
+    <li><b>G3</b> Persistence targets that file → foothold confirmed</li>
+    <li><b>G4</b> Account + auth method found → extend scope to other hosts</li>
+    <li><b>G5</b> First-seen before the alert → intrusion start</li>
+  </ol>
+  <h2>Rules</h2>
+  <ul>
+    <li><b>Acquire before alter.</b> Memory first, hashed.</li>
+    <li><b>Two independent sources</b> or it is a lead, not a finding.</li>
+    <li><b>State the reasoning:</b> expected result before, what changed after.</li>
+    <li><b>Breadth first:</b> Q1–Q5 shallow on both hosts before depth.</li>
+  </ul>
+  <h2>Confidence</h2>
+  <ul>
+    <li><b>Possible</b>: one source, a lead</li>
+    <li><b>Probable</b>: consistent, partly corroborated</li>
+    <li><b>Confirmed</b>: two independent sources agree</li>
+  </ul>
+  <h2>Time</h2>
+  <ul><li>Record UTC. Volatility = UTC. PowerShell, Event Viewer, <code>ls</code>, syslog = host local. Apache carries its own offset.</li></ul>
+</aside></div>
+<script src="../assets/search-index.js"></script><script src="../assets/site.js"></script></body></html>

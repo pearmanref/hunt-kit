@@ -1,0 +1,29 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "file",
+  "name": "file",
+  "aliases": ["file type", "magic", "identify"],
+  "kind": "native",
+  "shells": [{ "id": "bash" }, { "id": "zsh" }],
+  "category": "file system",
+  "execSafe": true,
+  "summary": "Identifies a file's type from its contents, not its extension.",
+  "action": "identifies file types",
+  "description": "Reads magic bytes, so it spots an ELF or PE binary renamed to .jpg, or a script with the wrong extension. Common inside find -exec.",
+  "source": "https://man7.org/linux/man-pages/man1/file.1.html",
+  "requires": { "elevation": "none" },
+  "io": { "stdin": "text", "stdout": "text" },
+  "template": "{binary} {flags} {path}",
+  "params": [
+    { "id": "brief", "label": "No file name", "type": "bool", "flag": "-b", "common": true, "explain": "without printing the file name" },
+    { "id": "mime", "label": "MIME type", "type": "bool", "flag": "-i", "common": true, "explain": "as a MIME type" },
+    { "id": "keepGoing", "label": "All matches", "type": "bool", "flag": "-k", "explain": "not stopping at the first match" },
+    { "id": "deref", "label": "Follow symlinks", "type": "bool", "flag": "-L", "explain": "following symlinks" },
+    { "id": "separator", "label": "Separator", "type": "string", "flag": "-F", "placeholder": "|", "explain": "using {value} between name and type" },
+    { "id": "path", "label": "Files", "type": "path", "os": "linux", "slot": "path", "repeatable": true, "repeat": { "mode": "positional" }, "expand": true, "common": true, "explain": "of {value}" }
+  ],
+  "presets": [
+    { "id": "temp", "name": "Identify everything in temp", "values": { "path": ["/tmp/*", "/var/tmp/*", "/dev/shm/*"] }, "ttps": ["T1036.008"] }
+  ],
+  "ttps": []
+}

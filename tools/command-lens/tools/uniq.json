@@ -1,0 +1,23 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "uniq",
+  "name": "uniq",
+  "aliases": ["count", "dedupe"],
+  "kind": "native",
+  "shells": [{ "id": "bash" }, { "id": "zsh" }],
+  "category": "text",
+  "summary": "Collapses adjacent duplicate lines (sort first).",
+  "action": "collapses repeated lines",
+  "description": "Only adjacent duplicates are merged, so it almost always follows sort.",
+  "source": "https://www.gnu.org/software/coreutils/manual/html_node/uniq-invocation.html",
+  "requires": { "elevation": "none" },
+  "io": { "stdin": "text", "stdout": "text" },
+  "template": "{binary} {flags}",
+  "params": [
+    { "id": "count", "label": "Count", "type": "bool", "flag": "-c", "common": true, "explain": "prefixing each line with how often it occurred" },
+    { "id": "dupOnly", "label": "Duplicates only", "type": "bool", "flag": "-d", "explain": "only lines that repeat" },
+    { "id": "ignoreCase", "label": "Ignore case", "type": "bool", "flag": "-i", "explain": "ignoring case" }
+  ],
+  "presets": [],
+  "ttps": []
+}

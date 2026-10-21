@@ -1,0 +1,37 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "where-object-script",
+  "name": "Where-Object { }",
+  "aliases": ["?", "? { }", "where { }", "filter script", "script block", "conditional"],
+  "kind": "cmdlet",
+  "shells": [{ "id": "powershell" }],
+  "binary": "Where-Object",
+  "category": "pipeline",
+  "summary": "Keeps the objects for which a PowerShell condition is true ($_ is the current object).",
+  "action": "keeps objects where a condition holds",
+  "description": "Use this when the simple Where-Object form is not enough: several conditions joined with -and / -or, -not, a regex on a path, or a lookup of another object (for example the parent process). The condition is PowerShell code and is passed as written; Command Lens checks that brackets and quotes balance. ? is the short alias.",
+  "source": "https://learn.microsoft.com/powershell/module/microsoft.powershell.core/where-object",
+  "requires": { "elevation": "none" },
+  "io": { "stdin": "objects", "stdout": "objects" },
+  "template": "{binary} {flags}",
+  "params": [
+    { "id": "script", "label": "Condition", "type": "string", "flag": "-FilterScript", "encode": "ps-scriptblock", "rawCode": true, "required": true, "common": true,
+      "placeholder": "$_.Name -eq 'svchost.exe' -and $_.Path -notmatch '^C:\\\\Windows\\\\'",
+      "desc": "PowerShell condition; $_ is the object being tested. Join conditions with -and / -or; negate with -not.",
+      "explain": "condition {value}" }
+  ],
+  "presets": [
+    { "id": "outside-system-dirs", "name": "Executable path outside System32 / SysWOW64", "values": { "script": "$_.ExecutablePath -and $_.ExecutablePath -notmatch '^C:\\\\Windows\\\\(System32|SysWOW64)\\\\'" }, "ttps": ["T1036.005"] },
+    { "id": "system-name-wrong-path", "name": "System process name running from the wrong folder", "values": { "script": "$_.Name -in 'svchost.exe','lsass.exe','services.exe','csrss.exe','winlogon.exe','smss.exe','spoolsv.exe','taskhostw.exe','rundll32.exe','dllhost.exe' -and $_.ExecutablePath -notmatch '^C:\\\\Windows\\\\(System32|SysWOW64)\\\\'" }, "ttps": ["T1036.005"],
+      "opsec": "Pipe Get-CimInstance Win32_Process into this. ExecutablePath is empty for protected processes when not elevated." },
+    { "id": "svchost-bad-parent", "name": "svchost.exe not started by services.exe", "values": { "script": "$_.Name -eq 'svchost.exe' -and (Get-CimInstance -ClassName Win32_Process -Filter \"ProcessId = $($_.ParentProcessId)\").Name -ne 'services.exe'" }, "ttps": ["T1036"],
+      "opsec": "One CIM query per svchost; a parent that has already exited also shows up here." },
+    { "id": "web-server-child", "name": "Child of a web server process", "values": { "script": "(Get-CimInstance -ClassName Win32_Process -Filter \"ProcessId = $($_.ParentProcessId)\").Name -in 'w3wp.exe','php-cgi.exe','php.exe','httpd.exe','tomcat9.exe'" }, "ttps": ["T1505.003"] },
+    { "id": "not-signed", "name": "Signature not valid", "values": { "script": "$_.Status -ne 'Valid'" }, "ttps": ["T1553.002", "T1036"] },
+    { "id": "written-30d", "name": "Written in the last 30 days", "values": { "script": "$_.LastWriteTime -gt (Get-Date).AddDays(-30)" } },
+    { "id": "external-remote", "name": "Remote address is not private or loopback", "values": { "script": "$_.RemoteAddress -notmatch '^(10\\.|172\\.(1[6-9]|2\\d|3[01])\\.|192\\.168\\.|127\\.|169\\.254\\.|::1$|fe80:|0\\.0\\.0\\.0|::$)'" }, "ttps": ["T1048.001", "T1071"] },
+    { "id": "network-logon", "name": "Network or RDP logon, or explicit credentials", "values": { "script": "$_.Id -eq 4648 -or $_.Message -match 'Logon Type:\\s+(3|10)\\s'" }, "ttps": ["T1078"] },
+    { "id": "file-exists", "name": "Path string points to an existing file", "values": { "script": "$_ -and (Test-Path -LiteralPath $_ -PathType Leaf)" } }
+  ],
+  "ttps": []
+}

@@ -1,0 +1,232 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sysinternals Reference</title><link rel="stylesheet" href="../assets/site.css"></head><body data-base="../" class="doc">
+<header class="top"><a class="brand" href="../index.html">Hunt Kit</a><span class="crumb">Sysinternals Reference</span>
+<div class="search"><input id="q" type="search" placeholder="Search everything  ( / )" autocomplete="off"><div id="results" class="results" hidden></div></div>
+<a class="btn" href="../tools/hunt-notes.html" target="_blank">Hunt Notes</a><a class="btn" href="../pdf/sysinternals.pdf" title="Printable PDF">PDF</a>
+<button class="btn" id="tocBtn" title="Contents">☰</button><button class="btn" id="railBtn" title="Questions pane">Q</button><button class="btn" id="themeBtn" title="Theme">◐</button></header>
+<div class="layout"><nav id="toc" class="toc"><div class="toch">Contents</div><a class="l2" href="#q1-what-is-running-that-should-not-be">Q1 — What is running
+that should not be?</a><a class="l2" href="#q2-what-is-talking-that-should-not-be">Q2 — What is talking
+that should not be?</a><a class="l2" href="#q3-how-does-it-survive-a-reboot">Q3 — How does it survive a
+reboot?</a><a class="l2" href="#q4-who-did-it-and-how-did-they-get-in">Q4 — Who did it, and how
+did they get in?</a><a class="l2" href="#q5-when-did-it-start-hidden-content">Q5 — When did it start? /
+hidden content</a><a class="l2" href="#output-hunt-notes">Output → Hunt Notes</a></nav>
+<main class="content"><h1>Sysinternals Quick Reference</h1>
+<p><em>What to run, what in the output matters, and the native fallback,
+ordered by the five questions</em></p>
+<p>Use Sysinternals when it's on the bench. It sees more than the
+built-ins (signatures, hashes, every autostart location at once). Every
+tool has a native fallback in the Execution Reference, so nothing here
+is a single point of failure.</p>
+<p><strong>Footprint.</strong> First run of each tool writes an
+EULA-accepted key under <code>HKCU\Software\Sysinternals</code>. Pass
+<code>-accepteula</code> and note it in Hunt Notes ("ran autorunsc, EULA
+key written"). Run from your tools media, write output to your output
+path, never to the evidence volume. Everything below is read-only.
+<strong>Never</strong> run <code>sdelete</code>, <code>psexec</code>
+against other hosts, or <code>pskill</code> on evidence.</p>
+<p><strong>Run order on a live Windows host</strong> (after memory
+capture):</p>
+<pre><code>1 autorunsc  (Q3)   2 sigcheck (Q1)   3 tcpvcon (Q2)   4 pslist -t / Process Explorer (Q1)
+5 listdlls -u / handle on suspects (Q1)   6 logonsessions / psloggedon (Q4)   7 streams / strings on files (Q1/Q5)</code></pre>
+<hr/>
+<h2 id="q1-what-is-running-that-should-not-be">Q1 — What is running
+that should not be?</h2>
+<p><strong>Process Explorer</strong> (<code>procexp64.exe</code>,
+GUI)</p>
+<ul>
+<li><code>Options → Verify Image Signatures</code>. Add columns
+(<code>View → Select Columns</code>): <strong>Image Path, Command Line,
+Verified Signer, Company Name, Start Time</strong>.</li>
+<li>Tree view = parentage. Look for Office/browser →
+<code>cmd</code>/<code>powershell</code>, <code>svchost</code> not under
+<code>services.exe</code>, <code>lsass</code> not under
+<code>wininit</code>.</li>
+<li>Colors: <strong>purple</strong> = packed/compressed image,
+<strong>pink</strong> = service, <strong>light blue</strong> = same user
+as you.</li>
+<li>Suspect PID → lower pane (<code>Ctrl+L</code>): <strong>DLL
+view</strong> (unsigned or user-path DLLs) and <strong>Handle
+view</strong> (files, mutexes, keys).</li>
+<li>Properties → <strong>TCP/IP</strong> tab (its connections),
+<strong>Strings</strong> tab (Image vs Memory; memory strings reveal
+unpacked content).</li>
+<li>Fallback: Execution Reference §1.2.</li>
+</ul>
+<p><strong>PsList</strong> (CLI)</p>
+<pre><code>pslist -accepteula -t            # tree with parent/child
+pslist -accepteula -x &lt;PID&gt;      # threads + memory detail for one PID</code></pre>
+<p><strong>Sigcheck</strong>: unsigned executables in user-writable
+paths, with hashes:</p>
+<pre><code>sigcheck64 -accepteula -nobanner -e -u -s -h -c C:\Users C:\ProgramData C:\Windows\Temp &gt; sigcheck.csv</code></pre>
+<p><code>-e</code> executables only · <code>-u</code> unsigned only ·
+<code>-s</code> recurse · <code>-h</code> hashes · <code>-c</code> CSV.
+Look at Path + Publisher + SHA256. Anything unsigned in
+<code>AppData</code>, <code>Public</code>, <code>ProgramData</code>,
+<code>Temp</code> is a Q1 lead. Fallback: §1.2
+<code>Get-AuthenticodeSignature</code>.</p>
+<p><strong>ListDLLs</strong>: unsigned DLLs loaded anywhere (DLL hijack
+/ injection):</p>
+<pre><code>listdlls64 -accepteula -u                # unsigned DLLs, all processes
+listdlls64 -accepteula &lt;PID|name&gt;        # everything one process loaded</code></pre>
+<p>Fallback: Vol3 <code>windows.dlllist --pid</code> /
+<code>windows.ldrmodules</code>.</p>
+<p><strong>Handle</strong>: what a suspect has open:</p>
+<pre><code>handle64 -accepteula -nobanner -p &lt;PID&gt;          # all handles for the PID
+handle64 -accepteula -nobanner -a &lt;name-fragment&gt;  # who holds a file/mutex/key matching a string</code></pre>
+<p>Fallback: Vol3 <code>windows.handles --pid</code>.</p>
+<h2 id="q2-what-is-talking-that-should-not-be">Q2 — What is talking
+that should not be?</h2>
+<p><strong>TCPView</strong> (GUI) / <strong>tcpvcon</strong> (CLI):
+connection → process, with the owning image path:</p>
+<pre><code>tcpvcon64 -accepteula -a -c -n &gt; tcpvcon.csv     # all endpoints, CSV, no name resolution</code></pre>
+<p>Look for: established sessions owned by processes with no network
+role (<code>notepad</code>, <code>rundll32</code>, Office), listening
+ports above 1024 owned by user-path binaries, the same remote IP from
+two hosts. Fallback: §1.3 <code>Get-NetTCPConnection</code> /
+<code>netstat -anob</code>; memory: <code>windows.netscan</code>.</p>
+<h2 id="q3-how-does-it-survive-a-reboot">Q3 — How does it survive a
+reboot?</h2>
+<p><strong>Autoruns</strong> (GUI) / <strong>autorunsc</strong> (CLI):
+every autostart location in one pass. This is the highest-value
+Sysinternals tool for a hunt.</p>
+<pre><code>autorunsc64 -accepteula -nobanner -a * -c -h -s -m -t &gt; autoruns.csv</code></pre>
+<p><code>-a *</code> all categories · <code>-c</code> CSV ·
+<code>-h</code> hashes · <code>-s</code> verify signatures ·
+<code>-m</code> hide Microsoft-signed · <code>-t</code> timestamps in
+<strong>UTC</strong> (straight into Hunt Notes).</p>
+<p>Read the CSV for: <strong>Signer</strong> =
+<code>(Not verified)</code>, <strong>Image Path</strong> in
+user-writable dirs, <strong>Launch String</strong> with
+<code>powershell -enc</code>, <code>rundll32 &lt;odd&gt;.dll</code>,
+<code>mshta</code>, <code>wscript</code>, <code>cmd /c</code> + a script
+in ProgramData. Categories that matter: Logon (Run keys), Services,
+Scheduled Tasks, WMI, Winlogon, Image Hijacks (IFEO), AppInit, Known
+DLLs, Boot Execute.</p>
+<p>GUI: <code>Options → Hide Microsoft Entries</code> +
+<code>Verify Code Signatures</code>. <strong>Pink</strong> = no
+publisher / unsigned, <strong>yellow</strong> = entry exists but file is
+missing (deleted tooling: still a Q3/Q5 lead).
+<code>Entry → Jump to Entry</code> opens the key or task.</p>
+<p>Fallback: §1.4 (Run keys, services, ServiceDll, tasks, WMI, Winlogon,
+IFEO, BITS).</p>
+<p><strong>PsService</strong>: one service in detail:</p>
+<pre><code>psservice64 -accepteula config &lt;ServiceName&gt;</code></pre>
+<p><strong>AccessChk</strong>: weak permissions that let a low-priv user
+plant persistence or escalate:</p>
+<pre><code>accesschk64 -accepteula -nobanner -uwcqv "Authenticated Users" *     # services anyone can reconfigure
+accesschk64 -accepteula -nobanner -uwsq Users "C:\Program Files"      # writable program dirs</code></pre>
+<p>A writable service binary path or service config is a Q3/Q4 finding
+(and a hardening recommendation).</p>
+<h2 id="q4-who-did-it-and-how-did-they-get-in">Q4 — Who did it, and how
+did they get in?</h2>
+<pre><code>logonsessions64 -accepteula -nobanner -p     # every logon session + its processes (logon type, auth package)
+psloggedon64 -accepteula                     # local and resource-share logons
+psinfo64 -accepteula -s -h                   # OS build, install date, software, hotfixes</code></pre>
+<p><code>logonsessions -p</code> ties a process to the session that
+started it: a network (type 3) or RemoteInteractive (type 10) session
+owning the Q1 process means the operator reached in. Fallback: §1.5 +
+§1.7 (4624/4648/4672).</p>
+<h2 id="q5-when-did-it-start-hidden-content">Q5 — When did it start? /
+hidden content</h2>
+<p><strong>Streams</strong>: Alternate Data Streams (hidden payloads,
+<code>Zone.Identifier</code> download origin):</p>
+<pre><code>streams64 -accepteula -nobanner -s C:\Users\Public
+streams64 -accepteula -nobanner &lt;file&gt;</code></pre>
+<p><code>Zone.Identifier</code> with <code>ZoneId=3</code> +
+<code>HostUrl=</code> tells you where a file was downloaded from. Read
+it natively:
+<code>Get-Content &lt;file&gt; -Stream Zone.Identifier</code>.</p>
+<p><strong>Strings</strong>: quick static look at a suspect binary
+(export it first; don't run it):</p>
+<pre><code>strings64 -accepteula -nobanner -n 8 &lt;file&gt; | findstr /i "http :// .onion cmd powershell \\pipe\\ HKEY"</code></pre>
+<p><strong>Sigcheck</strong> for file metadata + hashes:
+<code>sigcheck64 -accepteula -nobanner -a -h &lt;file&gt;</code>
+(<code>-a</code> adds original/internal name and entropy; high entropy =
+packed).</p>
+<p><strong>Process Monitor</strong> (<code>procmon64.exe</code>): live
+behavior, <strong>only</strong> for a short, deliberate capture:</p>
+<ul>
+<li>Filter first (<code>Ctrl+L</code>):
+<code>Process Name is &lt;suspect&gt;</code> → Include. Or
+<code>Operation is Process Create</code>, <code>RegSetValue</code>,
+<code>WriteFile</code>.</li>
+<li><code>Tools → Process Tree</code> (lineage + start/end times for the
+capture), <code>Tools → File Summary</code> /
+<code>Registry Summary</code>.</li>
+<li>Footprint: loads a driver and generates heavy I/O. Capture a minute,
+save <code>.PML</code> to the output path, stop. Note start/stop UTC in
+Hunt Notes.</li>
+</ul>
+<p><strong>Sysmon</strong>: installing it changes the host. Do it only
+if authorized and noted. Reading an existing Sysmon log is in §1.7.</p>
+<hr/>
+<h2 id="output-hunt-notes">Output → Hunt Notes</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Tool output</th>
+<th>Hunt Notes entry</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>autorunsc row (unsigned, odd path)</td>
+<td>Q3, source <code>autorunsc</code>, time = its UTC timestamp, IOC =
+image path + SHA-256</td>
+</tr>
+<tr class="even">
+<td>sigcheck row</td>
+<td>Q1, source <code>sigcheck</code>, IOC = path + hash</td>
+</tr>
+<tr class="odd">
+<td>tcpvcon row</td>
+<td>Q2, source <code>tcpvcon</code>, IOC = remote IP:port, evidence =
+owning PID/image</td>
+</tr>
+<tr class="even">
+<td>logonsessions</td>
+<td>Q4, source <code>logonsessions</code>, IOC = account, evidence =
+logon type + session ID</td>
+</tr>
+<tr class="odd">
+<td>Zone.Identifier</td>
+<td>Q4/Q5, source <code>streams</code>, IOC = HostUrl</td>
+</tr>
+</tbody>
+</table>
+<p>A Sysinternals result plus a memory (Volatility) or disk
+(FTK/Autopsy) result for the same item = <strong>two independent
+sources</strong>.</p>
+</main>
+<aside id="rail" class="rail">
+  <h2>Five questions</h2>
+  <div class="q"><b>Q1 · What is running that should not be?</b><span>pslist vs psscan · pstree parentage · cmdline · malfind · unsigned or user-writable path</span></div>
+  <div class="q"><b>Q2 · What is talking that should not be?</b><span>netscan / sockstat · session vs the process's job · fixed-interval beacons · same IP on both hosts · DNS cache, hosts file</span></div>
+  <div class="q"><b>Q3 · How does it survive a reboot?</b><span>services, tasks, Run keys, WMI · cron, <i>enabled</i> systemd, rc, ld.so.preload, authorized_keys · target = the Q1 file</span></div>
+  <div class="q"><b>Q4 · Who did it, and how did they get in?</b><span>4624 type 3/10, 4648, 4672 · auth.log, last/lastb, UID 0 · a web request with no matching auth <i>is</i> the answer</span></div>
+  <div class="q"><b>Q5 · When did it start?</b><span>Prefetch, Amcache, UserAssist, BAM before file times · $SI vs $FN · fls + mactime vs access/auth logs</span></div>
+  <h2>Decision gates</h2>
+  <ol>
+    <li><b>G1</b> Unsigned / writable path / bad parent → acquire + hash the file</li>
+    <li><b>G2</b> External session, no business reason → bind to a process and a log</li>
+    <li><b>G3</b> Persistence targets that file → foothold confirmed</li>
+    <li><b>G4</b> Account + auth method found → extend scope to other hosts</li>
+    <li><b>G5</b> First-seen before the alert → intrusion start</li>
+  </ol>
+  <h2>Rules</h2>
+  <ul>
+    <li><b>Acquire before alter.</b> Memory first, hashed.</li>
+    <li><b>Two independent sources</b> or it is a lead, not a finding.</li>
+    <li><b>State the reasoning:</b> expected result before, what changed after.</li>
+    <li><b>Breadth first:</b> Q1–Q5 shallow on both hosts before depth.</li>
+  </ul>
+  <h2>Confidence</h2>
+  <ul>
+    <li><b>Possible</b>: one source, a lead</li>
+    <li><b>Probable</b>: consistent, partly corroborated</li>
+    <li><b>Confirmed</b>: two independent sources agree</li>
+  </ul>
+  <h2>Time</h2>
+  <ul><li>Record UTC. Volatility = UTC. PowerShell, Event Viewer, <code>ls</code>, syslog = host local. Apache carries its own offset.</li></ul>
+</aside></div>
+<script src="../assets/search-index.js"></script><script src="../assets/site.js"></script></body></html>

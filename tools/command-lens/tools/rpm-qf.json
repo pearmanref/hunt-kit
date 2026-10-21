@@ -1,0 +1,25 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "rpm-qf",
+  "name": "rpm -qf",
+  "aliases": ["package owner", "rpm", "which package"],
+  "kind": "native",
+  "shells": [{ "id": "bash" }, { "id": "zsh" }],
+  "binary": "rpm",
+  "category": "persistence",
+  "summary": "Shows which installed package owns a file (RHEL family).",
+  "action": "looks up the owning package",
+  "description": "Files no package owns print 'file … is not owned by any package'; grep for 'not owned' to list them.",
+  "source": "https://rpm-software-management.github.io/rpm/man/rpm.8.html",
+  "requires": { "elevation": "none", "os": "RHEL family" },
+  "io": { "stdin": "none", "stdout": "text" },
+  "template": "{binary} -qf {path}",
+  "fixedExplain": { "-qf": "query the package that owns each file" },
+  "params": [
+    { "id": "path", "label": "Files", "type": "path", "os": "linux", "slot": "path", "repeatable": true, "repeat": { "mode": "positional" }, "expand": true, "required": true, "common": true, "placeholder": "/etc/rc.d/init.d/*", "explain": "for {value}" }
+  ],
+  "presets": [
+    { "id": "init-d", "name": "Owners of init scripts", "values": { "path": "/etc/rc.d/init.d/*" }, "ttps": ["T1037.004"] }
+  ],
+  "ttps": []
+}

@@ -1,0 +1,1644 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Execution Reference</title><link rel="stylesheet" href="../assets/site.css"></head><body data-base="../" class="doc">
+<header class="top"><a class="brand" href="../index.html">Hunt Kit</a><span class="crumb">Execution Reference</span>
+<div class="search"><input id="q" type="search" placeholder="Search everything  ( / )" autocomplete="off"><div id="results" class="results" hidden></div></div>
+<a class="btn" href="../tools/hunt-notes.html" target="_blank">Hunt Notes</a><a class="btn" href="../pdf/execution-reference.pdf" title="Printable PDF">PDF</a>
+<button class="btn" id="tocBtn" title="Contents">☰</button><button class="btn" id="railBtn" title="Questions pane">Q</button><button class="btn" id="themeBtn" title="Theme">◐</button></header>
+<div class="layout"><nav id="toc" class="toc"><div class="toch">Contents</div><a class="l1" href="#0-drop-in-workflow">0. Drop-In Workflow</a><a class="l1" href="#1-win10-live-triage-powershell-admin">1. Win10 Live Triage
+(PowerShell, admin)</a><a class="l2" href="#1-1-context">1.1 Context</a><a class="l2" href="#1-2-processes-q1">1.2 Processes (Q1)</a><a class="l2" href="#1-3-network-q2">1.3 Network (Q2)</a><a class="l2" href="#1-4-persistence-q3">1.4 Persistence (Q3)</a><a class="l2" href="#1-5-accounts-q4">1.5 Accounts (Q4)</a><a class="l2" href="#1-6-files-q1-q5">1.6 Files (Q1 / Q5)</a><a class="l2" href="#1-7-event-logs-q4-q5">1.7 Event Logs (Q4 / Q5)</a><a class="l2" href="#1-8-execution-artifacts-native-q5">1.8 Execution Artifacts,
+Native (Q5)</a><a class="l1" href="#2-linux-live-triage-root">2. Linux Live Triage (root)</a><a class="l2" href="#2-1-context">2.1 Context</a><a class="l2" href="#2-2-processes-q1">2.2 Processes (Q1)</a><a class="l2" href="#2-3-network-q2">2.3 Network (Q2)</a><a class="l2" href="#2-4-persistence-q3">2.4 Persistence (Q3)</a><a class="l2" href="#2-5-accounts-q4">2.5 Accounts (Q4)</a><a class="l2" href="#2-6-files-q1-q5">2.6 Files (Q1 / Q5)</a><a class="l2" href="#2-7-web-tier-apache-php-q1-q4">2.7 Web Tier, Apache / PHP (Q1 /
+Q4)</a><a class="l2" href="#2-8-database-mysql-mariadb-q3-q4">2.8 Database, MySQL / MariaDB
+(Q3 / Q4)</a><a class="l2" href="#2-9-file-times-and-timeline-q5">2.9 File Times and Timeline
+(Q5)</a><a class="l1" href="#3-memory-capture-setup">3. Memory Capture (Setup)</a><a class="l1" href="#4-volatility-3-windows">4. Volatility 3 — Windows</a><a class="l1" href="#5-volatility-3-linux">5. Volatility 3 — Linux</a><a class="l1" href="#6-volatility-2-fallback">6. Volatility 2 Fallback</a><a class="l2" href="#6-1-windows">6.1 Windows</a><a class="l2" href="#6-2-linux">6.2 Linux</a><a class="l1" href="#7-ftk-imager">7. FTK Imager</a><a class="l2" href="#7a-setup-capture-load-verify">7A. Setup (capture, load,
+verify)</a><a class="l2" href="#7b-hunt-navigation">7B. Hunt Navigation</a><a class="l2" href="#7c-ftk-forensic-toolkit-setup">7C. FTK (Forensic Toolkit) —
+Setup</a><a class="l2" href="#7d-ftk-hunt-navigation">7D. FTK — Hunt Navigation</a><a class="l1" href="#8-autopsy">8. Autopsy</a><a class="l2" href="#8a-setup">8A. Setup</a><a class="l2" href="#8b-hunt-navigation">8B. Hunt Navigation</a><a class="l1" href="#9-findings-log-keep-while-you-work">9. Findings Log (keep while
+you work)</a><a class="l1" href="#10-detection-kql-host-hunts">10. Detection — KQL Host
+Hunts</a><a class="l1" href="#11-detection-kql-es-ql-network-hunts">11. Detection — KQL /
+ES|QL Network Hunts</a><a class="l1" href="#12-detection-suricata">12. Detection — Suricata</a><a class="l1" href="#13-detection-zeek">13. Detection — Zeek</a><a class="l1" href="#14-detection-elastic-defend">14. Detection — Elastic
+Defend</a></nav>
+<main class="content"><h1>Execution Reference</h1>
+<p><em>Host Triage · Memory · Forensic Tools · Detection
+Queries</em></p>
+<p>All runnable execution for a two-host investigation, organized by the
+five questions. Companion to the Analyst Methods Handbook and the
+Investigation Runbook.</p>
+<hr/>
+<p>Scenario assumed: one <strong>Windows 10</strong> workstation and one
+<strong>Linux LAMP</strong> server (Ubuntu likely). Tools:
+<strong>Vol3</strong> (Vol2 as fallback), <strong>FTK Imager</strong>,
+<strong>FTK</strong>, <strong>Autopsy</strong>. All live commands are
+read-only. Run as admin/root. Write output to external media or a path
+you note, never over evidence.</p>
+<p><strong>Section → question map.</strong> Every section answers one of
+the five questions. Tags like <code>(Q3)</code> in headings tell you
+which.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Q</th>
+<th>Question</th>
+<th>Windows</th>
+<th>Linux</th>
+<th>Memory</th>
+<th>Disk</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Q1</td>
+<td>What is running that should not be?</td>
+<td>§1.2</td>
+<td>§2.2</td>
+<td>§4, §5</td>
+<td>§7D, §8B</td>
+</tr>
+<tr class="even">
+<td>Q2</td>
+<td>What is talking that should not be?</td>
+<td>§1.3</td>
+<td>§2.3</td>
+<td>§4, §5</td>
+<td>logs</td>
+</tr>
+<tr class="odd">
+<td>Q3</td>
+<td>How does it survive a reboot?</td>
+<td>§1.4</td>
+<td>§2.4</td>
+<td>svcscan, printkey</td>
+<td>§7B paths</td>
+</tr>
+<tr class="even">
+<td>Q4</td>
+<td>Who did it, and how did they get in?</td>
+<td>§1.5, §1.7</td>
+<td>§2.5, §2.7</td>
+<td>getsids</td>
+<td>logs</td>
+</tr>
+<tr class="odd">
+<td>Q5</td>
+<td>When did it start?</td>
+<td>§1.6, §1.8</td>
+<td>§2.6, §2.9</td>
+<td>timeliner</td>
+<td>§7B, §8B Timeline</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Time rule: everything you record is UTC.</strong> Volatility
+prints UTC. PowerShell, Event Viewer, <code>ls</code>, Apache and syslog
+print the host's local time. Record each host's zone at orient (§1.1,
+§2.1) and convert in Hunt Notes or with the UTC forms below.</p>
+<hr/>
+<h1 id="0-drop-in-workflow">0. Drop-In Workflow</h1>
+<p>Order of operations. Memory first because every command you run
+changes it.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Phase</th>
+<th>Goal</th>
+<th>Time (3–4 hr window)</th>
+<th>Section</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0 Orient</td>
+<td>What's provided: live access, images, tool versions, where to write
+output, each host's time zone</td>
+<td>10–15 min</td>
+<td>§0</td>
+</tr>
+<tr class="even">
+<td>1 Capture</td>
+<td>Memory first (both hosts), then disk image if required</td>
+<td>20–30 min</td>
+<td>§3, §7A</td>
+</tr>
+<tr class="odd">
+<td>2 Live triage</td>
+<td>Q1 → Q5 shallow pass: procs → network → persistence → accounts →
+logs</td>
+<td>30 min/host</td>
+<td>§1, §2</td>
+</tr>
+<tr class="even">
+<td>3 Memory</td>
+<td>Confirm/expand live findings, find hidden activity</td>
+<td>40–45 min</td>
+<td>§4–§6</td>
+</tr>
+<tr class="odd">
+<td>4 Disk</td>
+<td>Prove it on disk: files, execution artifacts, timestamps, logs</td>
+<td>50–60 min</td>
+<td>§7 (Imager, FTK), §8 (Autopsy)</td>
+</tr>
+<tr class="even">
+<td>5 Report</td>
+<td>Findings with evidence + second source</td>
+<td>20 min</td>
+<td>§9</td>
+</tr>
+</tbody>
+</table>
+<p>Breadth before depth: clear Q1–Q5 shallow on <strong>both</strong>
+hosts before going deep on any one artifact. Record the lead, continue,
+come back.</p>
+<p><strong>Orient checklist</strong></p>
+<pre><code>[ ] Hostname / IP / OS build / system time zone recorded for each box
+[ ] Am I admin/root?  (whoami /groups | findstr High  /  id)
+[ ] Tool versions:  vol -h | head -1  ·  FTK Imager / FTK Help&gt;About  ·  Autopsy Help&gt;About
+[ ] FTK: database service up, login works
+[ ] Output location chosen and noted
+[ ] Hunt Notes open, hosts added with their time zones (§9)</code></pre>
+<p><strong>The pivot loop.</strong> Every lead runs the same circle
+until it closes (Q1 → Q2 → Q3 → Q4 → Q5):</p>
+<pre><code>suspicious PROCESS → PID / PPID / cmdline → NETWORK (who it talks to)
+  → FILE on disk (path, hash, timestamps) → PERSISTENCE (how it survives)
+  → ACCOUNT (who ran it, how they got in) → TIMELINE (first seen) → back to PROCESS</code></pre>
+<hr/>
+<h1 id="1-win10-live-triage-powershell-admin">1. Win10 Live Triage
+(PowerShell, admin)</h1>
+<h2 id="1-1-context">1.1 Context</h2>
+<pre class="powershell"><code>hostname; whoami /all; (Get-CimInstance Win32_OperatingSystem) |
+  Select Caption,Version,BuildNumber,LastBootUpTime</code></pre>
+<pre class="powershell"><code>Get-Date -Format o; Get-TimeZone; (Get-Date).ToUniversalTime().ToString('u')</code></pre>
+<p><code>Get-Date -Format o</code> shows the offset (e.g.
+<code>-10:00</code>). Put that zone on the host in Hunt Notes.</p>
+<h2 id="1-2-processes-q1">1.2 Processes (Q1)</h2>
+<pre class="powershell"><code>Get-CimInstance Win32_Process |
+  Select ProcessId,ParentProcessId,Name,@{n='CreatedUTC';e={$_.CreationDate.ToUniversalTime().ToString('u')}},ExecutablePath,CommandLine |
+  Sort CreatedUTC |
+  Format-Table -AutoSize -Wrap</code></pre>
+<p>Running from user-writable paths:</p>
+<pre class="powershell"><code>Get-CimInstance Win32_Process |
+  ? { $_.ExecutablePath -match '\\(Temp|AppData|Users\\Public|ProgramData|Downloads)\\' } |
+  Select ProcessId,ParentProcessId,Name,ExecutablePath,CommandLine</code></pre>
+<p>Unsigned running binaries:</p>
+<pre class="powershell"><code>Get-Process |
+  ? Path |
+  % { $s = Get-AuthenticodeSignature $_.Path; if ($s.Status -ne 'Valid') { [pscustomobject]@{PID=$_.Id;Name=$_.Name;Path=$_.Path;Sig=$s.Status} } }</code></pre>
+<p>Parent of a PID:</p>
+<pre class="powershell"><code>$p=&lt;PID&gt;; Get-CimInstance Win32_Process -Filter "ProcessId=$p" |
+  Select Name,ParentProcessId,CommandLine</code></pre>
+<p><strong>Red flags:</strong>
+<code>winword/excel/outlook → cmd/powershell</code>,
+<code>w3wp/httpd → cmd</code>, <code>powershell -enc</code>,
+<code>rundll32</code> with no DLL args, <code>svchost</code> not
+parented by <code>services.exe</code>, <code>lsass</code> with a parent
+other than <code>wininit</code>.</p>
+<h2 id="1-3-network-q2">1.3 Network (Q2)</h2>
+<pre class="powershell"><code>Get-NetTCPConnection -State Established,Listen |
+  Select LocalAddress,LocalPort,RemoteAddress,RemotePort,State,OwningProcess,@{n='Proc';e={(Get-Process -Id $_.OwningProcess -EA 0).Name}} |
+  Sort State,RemoteAddress |
+  Format-Table -AutoSize</code></pre>
+<pre class="powershell"><code>netstat -anob</code></pre>
+<pre class="powershell"><code>Get-DnsClientCache |
+  Select Entry,Data |
+  Sort Entry</code></pre>
+<pre class="powershell"><code>Get-Content C:\Windows\System32\drivers\etc\hosts |
+  ? { $_ -notmatch '^\s*#' -and $_.Trim() }</code></pre>
+<h2 id="1-4-persistence-q3">1.4 Persistence (Q3)</h2>
+<p>Run keys:</p>
+<pre class="powershell"><code>'HKLM:\Software\Microsoft\Windows\CurrentVersion\Run','HKLM:\Software\Microsoft\Windows\CurrentVersion\RunOnce','HKCU:\Software\Microsoft\Windows\CurrentVersion\Run','HKCU:\Software\Microsoft\Windows\CurrentVersion\RunOnce','HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Run' |
+  % { if (Test-Path $_) { "== $_"; Get-ItemProperty $_ | Select * -Exclude PS* | Format-List } }</code></pre>
+<p>Services outside normal paths:</p>
+<pre class="powershell"><code>Get-CimInstance Win32_Service |
+  ? { $_.PathName -notmatch 'System32|SysWOW64|Program Files' } |
+  Select Name,State,StartMode,StartName,PathName</code></pre>
+<p>Scheduled tasks (non-Microsoft):</p>
+<pre class="powershell"><code>Get-ScheduledTask |
+  ? TaskPath -notlike '\Microsoft\*' |
+  Select TaskName,TaskPath,State,@{n='Run';e={($_.Actions | % { "$($_.Execute) $($_.Arguments)" }) -join '; '}} |
+  Format-Table -AutoSize -Wrap</code></pre>
+<p>WMI event subscriptions:</p>
+<pre class="powershell"><code>Get-CimInstance -Namespace root\subscription -ClassName __EventFilter; Get-CimInstance -Namespace root\subscription -ClassName CommandLineEventConsumer; Get-CimInstance -Namespace root\subscription -ClassName __FilterToConsumerBinding</code></pre>
+<p>Startup folders:</p>
+<pre class="powershell"><code>Get-ChildItem "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp","C:\Users\*\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup" -Force -EA 0</code></pre>
+<p>Defender exclusions (attackers add these):</p>
+<pre class="powershell"><code>Get-MpPreference |
+  Select ExclusionPath,ExclusionProcess,ExclusionExtension</code></pre>
+<p>Service DLLs outside System32 (svchost-hosted services hide here; the
+path filter above misses them):</p>
+<pre class="powershell"><code>Get-ChildItem HKLM:\SYSTEM\CurrentControlSet\Services -EA 0 |
+  % { $d=(Get-ItemProperty "$($_.PSPath)\Parameters" -EA 0).ServiceDll; if ($d -and $d -notmatch '\\System32\\') { [pscustomobject]@{Service=$_.PSChildName;ServiceDll=$d} } }</code></pre>
+<p>Winlogon, IFEO debugger hijacks, BITS jobs:</p>
+<pre class="powershell"><code>Get-ItemProperty 'HKLM:\Software\Microsoft\Windows NT\CurrentVersion\Winlogon' | Select Shell,Userinit
+Get-ChildItem 'HKLM:\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options' -EA 0 |
+  % { $g=(Get-ItemProperty $_.PSPath -EA 0).Debugger; if ($g) { "$($_.PSChildName) -&gt; $g" } }
+Get-BitsTransfer -AllUsers -EA 0 | Select JobId,DisplayName,TransferType,JobState,@{n='Files';e={$_.FileList.RemoteName -join '; '}}</code></pre>
+<p>Expected: <code>Shell = explorer.exe</code>,
+<code>Userinit = C:\Windows\system32\userinit.exe,</code> (trailing
+comma is normal). Anything appended is persistence.</p>
+<h2 id="1-5-accounts-q4">1.5 Accounts (Q4)</h2>
+<pre class="powershell"><code>Get-LocalUser |
+  Select Name,Enabled,LastLogon,PasswordLastSet; Get-LocalGroupMember Administrators</code></pre>
+<pre class="powershell"><code>quser 2&gt;$null; Get-SmbShare; net session 2&gt;$null</code></pre>
+<h2 id="1-6-files-q1-q5">1.6 Files (Q1 / Q5)</h2>
+<p>Recently written files in common staging paths:</p>
+<pre class="powershell"><code>Get-ChildItem C:\Users\*\AppData,C:\Users\Public,C:\ProgramData,C:\Windows\Temp -Recurse -File -Force -EA 0 |
+  ? LastWriteTimeUtc -gt (Get-Date).ToUniversalTime().AddDays(-7) |
+  Sort LastWriteTimeUtc -Desc |
+  Select -First 50 LastWriteTimeUtc,Length,FullName</code></pre>
+<p>Prefetch (what ran recently; full method in §1.8):</p>
+<pre class="powershell"><code>Get-ChildItem C:\Windows\Prefetch -EA 0 |
+  Sort LastWriteTimeUtc -Desc |
+  Select -First 30 CreationTimeUtc,LastWriteTimeUtc,Name</code></pre>
+<p>PowerShell history (all users):</p>
+<pre class="powershell"><code>Get-ChildItem C:\Users\*\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt -EA 0 |
+  % { "== $($_.FullName)"; Get-Content $_ }</code></pre>
+<p>Hash a file:</p>
+<pre class="powershell"><code>Get-FileHash -Algorithm SHA256 '&lt;path&gt;'</code></pre>
+<h2 id="1-7-event-logs-q4-q5">1.7 Event Logs (Q4 / Q5)</h2>
+<p><code>TimeCreated</code> is local time. The queries below add a
+<code>UTC</code> column; use it.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Log</th>
+<th>ID</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Security</td>
+<td>4624 / 4625</td>
+<td>Logon success / fail (check LogonType: 2 interactive, 3 network, 10
+RDP)</td>
+</tr>
+<tr class="even">
+<td>Security</td>
+<td>4648</td>
+<td>Logon with explicit credentials (runas, lateral movement)</td>
+</tr>
+<tr class="odd">
+<td>Security</td>
+<td>4672</td>
+<td>Admin-equivalent logon</td>
+</tr>
+<tr class="even">
+<td>Security</td>
+<td>4688</td>
+<td>Process create (only if auditing is on)</td>
+</tr>
+<tr class="odd">
+<td>Security</td>
+<td>4720 / 4732</td>
+<td>User created / added to group</td>
+</tr>
+<tr class="even">
+<td>Security</td>
+<td>4697 / 4698 / 4702</td>
+<td>Service installed / scheduled task created / task updated</td>
+</tr>
+<tr class="odd">
+<td>Security</td>
+<td>1102</td>
+<td>Security log cleared</td>
+</tr>
+<tr class="even">
+<td>System</td>
+<td>7045</td>
+<td>Service installed</td>
+</tr>
+<tr class="odd">
+<td>System</td>
+<td>104</td>
+<td>Log cleared</td>
+</tr>
+<tr class="even">
+<td>PowerShell/Operational</td>
+<td>4104</td>
+<td>Script block</td>
+</tr>
+<tr class="odd">
+<td>Defender/Operational</td>
+<td>1116 / 1117</td>
+<td>Detection / action</td>
+</tr>
+<tr class="even">
+<td>Sysmon/Operational</td>
+<td>1, 3, 7, 8, 10, 11, 13, 22</td>
+<td>Proc, net, image load, remote thread, process access (LSASS), file
+create, reg set, DNS</td>
+</tr>
+</tbody>
+</table>
+<p>Logons with user, type and source IP:</p>
+<pre class="powershell"><code>Get-WinEvent -FilterHashtable @{LogName='Security';Id=4624} -MaxEvents 500 |
+  % { [pscustomobject]@{UTC=$_.TimeCreated.ToUniversalTime().ToString('u');User=$_.Properties[5].Value;Type=$_.Properties[8].Value;IP=$_.Properties[18].Value;Proc=$_.Properties[17].Value} } |
+  ? { $_.Type -in 3,10 } |
+  Format-Table -AutoSize</code></pre>
+<p>Failed logons by source:</p>
+<pre class="powershell"><code>Get-WinEvent -FilterHashtable @{LogName='Security';Id=4625} -EA 0 |
+  % { $_.Properties[19].Value } |
+  Group |
+  Sort Count -Desc |
+  Select Count,Name</code></pre>
+<p>Service installs, task creation, log clears:</p>
+<pre class="powershell"><code>Get-WinEvent -FilterHashtable @{LogName='System';Id=7045,104} -EA 0 |
+  Select @{n='UTC';e={$_.TimeCreated.ToUniversalTime().ToString('u')}},Id,Message |
+  Format-List
+Get-WinEvent -FilterHashtable @{LogName='Security';Id=4648,4697,4698,4720,4732,1102} -EA 0 |
+  Select @{n='UTC';e={$_.TimeCreated.ToUniversalTime().ToString('u')}},Id,Message |
+  Format-List</code></pre>
+<p>PowerShell script blocks with common bad terms:</p>
+<pre class="powershell"><code>Get-WinEvent -FilterHashtable @{LogName='Microsoft-Windows-PowerShell/Operational';Id=4104} -EA 0 |
+  ? { $_.Message -match 'FromBase64String|IEX|Invoke-Expression|DownloadString|Net.WebClient|-enc' } |
+  Select @{n='UTC';e={$_.TimeCreated.ToUniversalTime().ToString('u')}},@{n='Script';e={$_.Message.Substring(0,[Math]::Min(400,$_.Message.Length))}} |
+  Format-List</code></pre>
+<p>Sysmon (if installed):</p>
+<pre class="powershell"><code>Get-WinEvent -LogName 'Microsoft-Windows-Sysmon/Operational' -MaxEvents 300 -EA 0 |
+  ? Id -in 1,3,10,22 |
+  Select @{n='UTC';e={$_.TimeCreated.ToUniversalTime().ToString('u')}},Id,Message |
+  Format-List</code></pre>
+<h2 id="1-8-execution-artifacts-native-q5">1.8 Execution Artifacts,
+Native (Q5)</h2>
+<p>When did it first run? Anchor start time on execution artifacts
+<strong>before</strong> trusting file timestamps; file timestamps are
+the first thing an attacker alters. No Zimmerman tools needed. Every
+output below is already UTC, so it goes straight into Hunt Notes with
+zone <code>UTC</code>.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Artifact</th>
+<th>Proves</th>
+<th>Time it gives</th>
+<th>Native read</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Prefetch <code>C:\Windows\Prefetch\NAME-HASH.pf</code></td>
+<td>Program executed</td>
+<td><code>.pf</code> created ≈ first run · modified ≈ last run (last 8
+run times are inside the file, needs a parser)</td>
+<td>below</td>
+</tr>
+<tr class="even">
+<td>UserAssist (NTUSER)</td>
+<td>GUI launch by that user</td>
+<td>Last run + run count</td>
+<td>below (ROT13 decode)</td>
+</tr>
+<tr class="odd">
+<td>BAM/DAM (SYSTEM)</td>
+<td>Executed, per user SID (Win10 1709+)</td>
+<td>Last run</td>
+<td>below</td>
+</tr>
+<tr class="even">
+<td>Amcache <code>C:\Windows\appcompat\Programs\Amcache.hve</code></td>
+<td>Present / executed, with SHA-1</td>
+<td>Key last-write ≈ first seen</td>
+<td>locked live: export with FTK Imager, view in Registry Viewer or
+Autopsy</td>
+</tr>
+<tr class="odd">
+<td>Shimcache / AppCompatCache (SYSTEM)</td>
+<td>File existed (execution not guaranteed on Win10)</td>
+<td>File's own modified time</td>
+<td><code>vol windows.shimcachemem</code> (newer Vol3) or Vol2
+<code>shimcache</code></td>
+</tr>
+<tr class="even">
+<td><code>$MFT</code> SI vs FN times</td>
+<td>Timestomping</td>
+<td><code>$FILE_NAME</code> times are hard to fake</td>
+<td>Autopsy → File Metadata tab (istat shows both), FTK Imager
+export</td>
+</tr>
+</tbody>
+</table>
+<p>Prefetch, first and last run:</p>
+<pre class="powershell"><code>Get-ChildItem C:\Windows\Prefetch\*.pf -EA 0 |
+  Select Name,@{n='FirstRunUTC';e={$_.CreationTimeUtc.ToString('u')}},@{n='LastRunUTC';e={$_.LastWriteTimeUtc.ToString('u')}} |
+  Sort FirstRunUTC -Desc | Select -First 40</code></pre>
+<p>UserAssist, decoded (run per user; for another user's hive, export
+NTUSER.DAT and read offline):</p>
+<pre class="powershell"><code>Get-ChildItem 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\UserAssist\*\Count' -EA 0 | % {
+  $k=$_; $k.GetValueNames() | % {
+    $v=$_; $n=-join ($v.ToCharArray() | % { if ($_ -match '[A-Za-z]') { $b=if ([char]::IsUpper($_)) {65} else {97}; [char]((([int]$_ - $b + 13) % 26) + $b) } else { $_ } })
+    $d=$k.GetValue($v); if ($d.Length -ge 68) { [pscustomobject]@{Program=$n;Runs=[BitConverter]::ToInt32($d,4);LastRunUTC=[DateTime]::FromFileTimeUtc([BitConverter]::ToInt64($d,60)).ToString('u')} } } } |
+  ? Runs -gt 0 | Sort LastRunUTC -Desc</code></pre>
+<p>BAM, last run per user (Win10 1809+ path first, older path
+second):</p>
+<pre class="powershell"><code>'HKLM:\SYSTEM\CurrentControlSet\Services\bam\State\UserSettings','HKLM:\SYSTEM\CurrentControlSet\Services\bam\UserSettings' |
+  ? { Test-Path $_ } | % { Get-ChildItem $_ } | % {
+    $k=$_; $k.GetValueNames() | ? { $_ -like '\Device\*' } | % {
+      [pscustomobject]@{SID=$k.PSChildName;Path=$_;LastRunUTC=[DateTime]::FromFileTimeUtc([BitConverter]::ToInt64($k.GetValue($_),0)).ToString('u')} } } |
+  Sort LastRunUTC -Desc</code></pre>
+<p>Resolve a SID:
+<code>(New-Object System.Security.Principal.SecurityIdentifier '&lt;SID&gt;').Translate([System.Security.Principal.NTAccount])</code></p>
+<p><strong>Timestomp check (disk).</strong> In Autopsy, select the file
+→ <strong>File Metadata</strong> tab. Compare
+<code>$STANDARD_INFORMATION</code> against <code>$FILE_NAME</code>
+times. SI earlier than FN, or SI with <code>.0000000</code> sub-seconds,
+points to timestomping. Use the FN time and the execution artifacts as
+the start-time source.</p>
+<p><strong>To timeline.</strong> One line per artifact, with that
+artifact's time, source = the artifact (<code>prefetch</code>,
+<code>userassist</code>, <code>bam</code>, <code>amcache</code>,
+<code>$MFT FN</code>), Q5. Two artifacts that agree on first run = a
+confirmed start time.</p>
+<hr/>
+<h1 id="2-linux-live-triage-root">2. Linux Live Triage (root)</h1>
+<h2 id="2-1-context">2.1 Context</h2>
+<pre class="bash"><code>hostname; uname -a; cat /etc/os-release |
+  head -3; uptime; date; date -u; id
+timedatectl 2&gt;/dev/null | grep -i 'time zone' || cat /etc/timezone</code></pre>
+<p>Put that zone on the host in Hunt Notes. Apache logs carry their own
+offset; syslog/auth.log lines do not.</p>
+<pre class="bash"><code>who -a; last -Faiw |
+  head -30; lastb -Faiw 2&gt;/dev/null |
+  head -20</code></pre>
+<h2 id="2-2-processes-q1">2.2 Processes (Q1)</h2>
+<pre class="bash"><code>ps -eo pid,ppid,user,lstart,etime,cmd --forest</code></pre>
+<p>Binaries deleted from disk or running from temp:</p>
+<pre class="bash"><code>ls -l /proc/[0-9]*/exe 2&gt;/dev/null |
+  grep -E '\(deleted\)|/tmp/|/dev/shm/|/var/tmp/'</code></pre>
+<p>What is the web server spawning? (Shells under apache/www-data =
+webshell.)</p>
+<pre class="bash"><code>ps -u www-data -f; pstree -apl $(pgrep -o apache2 || pgrep -o httpd)</code></pre>
+<p>Deep-dive one PID:</p>
+<pre class="bash"><code>P=&lt;PID&gt;; ls -l /proc/$P/exe /proc/$P/cwd; tr '\0' ' ' &lt; /proc/$P/cmdline; echo; tr '\0' '\n' &lt; /proc/$P/environ |
+  head; ls -l /proc/$P/fd |
+  head -30</code></pre>
+<h2 id="2-3-network-q2">2.3 Network (Q2)</h2>
+<pre class="bash"><code>ss -tulpn; ss -tanp state established</code></pre>
+<pre class="bash"><code>lsof -i -nP 2&gt;/dev/null |
+  grep -v LISTEN</code></pre>
+<pre class="bash"><code>cat /etc/hosts; cat /etc/resolv.conf</code></pre>
+<h2 id="2-4-persistence-q3">2.4 Persistence (Q3)</h2>
+<p>Cron, all users and system:</p>
+<pre class="bash"><code>for u in $(cut -d: -f1 /etc/passwd); do crontab -l -u "$u" 2&gt;/dev/null |
+  grep -v '^#' |
+  sed "s/^/[$u] /"; done; ls -la /etc/cron* /var/spool/cron/crontabs 2&gt;/dev/null; cat /etc/crontab</code></pre>
+<p>systemd: <strong>enabled</strong> units (persistence that is stopped
+right now still survives reboot), then running, then timers:</p>
+<pre class="bash"><code>systemctl list-unit-files --state=enabled --no-pager
+systemctl list-units --type=service --state=running --no-pager; systemctl list-timers --all --no-pager</code></pre>
+<p>Recently modified unit files:</p>
+<pre class="bash"><code>find /etc/systemd /lib/systemd /usr/lib/systemd /home/*/.config/systemd /root/.config/systemd -name '*.service' -mtime -14 -ls 2&gt;/dev/null</code></pre>
+<p>SSH keys, shell rc files, preload (rootkit tell):</p>
+<pre class="bash"><code>find / -xdev -name authorized_keys -exec ls -la {} \; -exec cat {} \; 2&gt;/dev/null
+ls -la /etc/ld.so.preload 2&gt;/dev/null &amp;&amp;
+  cat /etc/ld.so.preload
+ls -la /etc/rc.local /etc/profile.d/ 2&gt;/dev/null; tail -5 /root/.bashrc /home/*/.bashrc</code></pre>
+<p>Other survivors: at jobs, SysV init, MOTD scripts, PAM hooks, file
+capabilities:</p>
+<pre class="bash"><code>atq 2&gt;/dev/null; ls -la /etc/init.d/ /etc/update-motd.d/ 2&gt;/dev/null
+grep -rnE 'pam_exec|pam_script' /etc/pam.d/ 2&gt;/dev/null
+getcap -r / 2&gt;/dev/null</code></pre>
+<h2 id="2-5-accounts-q4">2.5 Accounts (Q4)</h2>
+<pre class="bash"><code>awk -F: '$3==0 {print "UID0:",$1}' /etc/passwd; awk -F: '$7 !~ /(nologin|false)$/ {print $1,$3,$6,$7}' /etc/passwd</code></pre>
+<pre class="bash"><code>getent group sudo wheel; grep -vE '^\s*(#|$)' /etc/sudoers /etc/sudoers.d/* 2&gt;/dev/null; ls -la --time-style=full-iso /etc/passwd /etc/shadow /etc/group</code></pre>
+<p>Auth log (Ubuntu <code>auth.log</code>, RHEL
+<code>secure</code>):</p>
+<pre class="bash"><code>grep -hE 'Accepted|Failed password|Invalid user|sudo:.*COMMAND|useradd|usermod' /var/log/auth.log* /var/log/secure* 2&gt;/dev/null |
+  tail -100</code></pre>
+<pre class="bash"><code>grep -h 'Failed password' /var/log/auth.log* 2&gt;/dev/null |
+  grep -oE 'from [0-9.]+' |
+  sort |
+  uniq -c |
+  sort -rn |
+  head</code></pre>
+<p>No auth.log (journald-only systems). <code>--utc</code> prints
+UTC:</p>
+<pre class="bash"><code>journalctl --utc -o short-iso _COMM=sshd --no-pager | tail -100
+journalctl --utc -o short-iso _COMM=sudo --no-pager | tail -50</code></pre>
+<p>Shell history, all users:</p>
+<pre class="bash"><code>for h in /root/.*_history /home/*/.*_history; do [ -f "$h" ] &amp;&amp;
+  { echo "== $h"; cat "$h"; }; done</code></pre>
+<h2 id="2-6-files-q1-q5">2.6 Files (Q1 / Q5)</h2>
+<pre class="bash"><code>ls -la /tmp /var/tmp /dev/shm; find /tmp /var/tmp /dev/shm -type f -exec file {} \; 2&gt;/dev/null</code></pre>
+<p>Modified in the last 3 days (adjust):</p>
+<pre class="bash"><code>find / -xdev -type f -mtime -3 ! -path '/proc/*' ! -path '/sys/*' ! -path '/run/*' ! -path '/var/lib/*' 2&gt;/dev/null |
+  head -200</code></pre>
+<p>Between two times:</p>
+<pre class="bash"><code>find / -xdev -type f -newermt '2026-10-19 00:00' ! -newermt '2026-10-21 00:00' 2&gt;/dev/null |
+  head -200</code></pre>
+<p>SUID binaries (compare against a clean box):</p>
+<pre class="bash"><code>find / -xdev -perm -4000 -type f -exec ls -la {} \; 2&gt;/dev/null</code></pre>
+<p>Package integrity (changed system binaries):</p>
+<pre class="bash"><code>dpkg --verify 2&gt;/dev/null |
+  grep -v ' c ' |
+  head -50    # Debian/Ubuntu
+rpm -Va 2&gt;/dev/null |
+  grep -E '^..5' |
+  head -50          # RHEL</code></pre>
+<p>Kernel modules / taint:</p>
+<pre class="bash"><code>lsmod; cat /proc/sys/kernel/tainted; dmesg 2&gt;/dev/null |
+  grep -iE 'taint|module verification' |
+  tail</code></pre>
+<h2 id="2-7-web-tier-apache-php-q1-q4">2.7 Web Tier, Apache / PHP (Q1 /
+Q4)</h2>
+<p>Webroot location:</p>
+<pre class="bash"><code>grep -RhiE '^\s*DocumentRoot' /etc/apache2 /etc/httpd 2&gt;/dev/null</code></pre>
+<p>Recent PHP and webshell patterns:</p>
+<pre class="bash"><code>find /var/www -type f -name '*.php*' -mtime -30 -ls 2&gt;/dev/null
+grep -RnliE 'eval\(|base64_decode|gzinflate|str_rot13|shell_exec|passthru|system\(|proc_open|assert\(|\$_(GET|POST|REQUEST|COOKIE)\[' /var/www --include='*.php*' 2&gt;/dev/null</code></pre>
+<p>Files in webroot not owned by the expected user:</p>
+<pre class="bash"><code>find /var/www ! -user www-data ! -user root -ls 2&gt;/dev/null |
+  head</code></pre>
+<p>Access log (Ubuntu <code>/var/log/apache2/</code>, RHEL
+<code>/var/log/httpd/</code>):</p>
+<pre class="bash"><code>L=/var/log/apache2/access.log
+awk '{print $1}' $L |
+  sort |
+  uniq -c |
+  sort -rn |
+  head                     # top client IPs
+awk '$6 ~ /POST/ {print $7}' $L |
+  sort |
+  uniq -c |
+  sort -rn |
+  head         # POST targets
+grep -iE 'cmd=|exec=|c=|union.*select|\.\./|/etc/passwd|wget|curl|base64|%3Cscript' $L |
+  tail -50
+awk -F'"' '{print $6}' $L |
+  sort |
+  uniq -c |
+  sort -rn |
+  head               # user agents
+awk '{print $9}' $L |
+  sort |
+  uniq -c |
+  sort -rn                           # status codes</code></pre>
+<p>First and last hit for an attacker IP:</p>
+<pre class="bash"><code>grep -h '&lt;IP&gt;' /var/log/apache2/access.log.1 /var/log/apache2/access.log 2&gt;/dev/null |
+  sed -n '1p;$p'</code></pre>
+<p>PHP errors often show the upload or exploit:</p>
+<pre class="bash"><code>tail -100 /var/log/apache2/error.log</code></pre>
+<h2 id="2-8-database-mysql-mariadb-q3-q4">2.8 Database, MySQL / MariaDB
+(Q3 / Q4)</h2>
+<pre class="bash"><code>mysql -u root -p -e "SELECT user,host,plugin FROM mysql.user; SELECT * FROM mysql.func; SHOW VARIABLES LIKE 'secure_file_priv'; SHOW VARIABLES LIKE 'general_log%';"</code></pre>
+<p>Any row in <code>mysql.func</code> is a user-defined function. A UDF
+loaded from the plugin dir is a known way to get OS command execution
+from the DB.</p>
+<pre class="bash"><code>ls -la /var/log/mysql/; grep -iE 'into outfile|into dumpfile|load_file|grant all' /var/log/mysql/*.log 2&gt;/dev/null |
+  tail</code></pre>
+<h2 id="2-9-file-times-and-timeline-q5">2.9 File Times and Timeline
+(Q5)</h2>
+<p><code>ls</code>/<code>find</code> print local time. Use these forms
+for UTC and birth time:</p>
+<pre class="bash"><code>TZ=UTC stat -c '%n | birth %w | mod %y | change %z | access %x' &lt;file&gt;
+TZ=UTC find /var/www /tmp /var/tmp /dev/shm -type f -newermt '2026-10-19 00:00' -printf '%TY-%Tm-%Td %TT  %p\n' 2&gt;/dev/null | sort</code></pre>
+<p><code>birth -</code> means the kernel/coreutils can't report it. On
+ext4, read the inode's crtime (debugfs opens read-only by default):</p>
+<pre class="bash"><code>debugfs -R "stat &lt;$(stat -c %i &lt;file&gt;)&gt;" "$(df --output=source &lt;file&gt; | tail -1)" 2&gt;/dev/null | grep -E 'crtime|mtime|ctime'</code></pre>
+<p><code>ctime</code> newer than <code>mtime</code> means the mtime was
+set back (<code>touch -d</code>), which is the Linux timestomp tell.</p>
+<p>Filesystem timeline from an image (Sleuth Kit, on the analysis
+box):</p>
+<pre class="bash"><code>mmls image.dd                                   # find the partition offset (sectors)
+fls -r -m / -o &lt;OFFSET&gt; image.dd &gt; body.txt
+mactime -b body.txt -d -z UTC 2026-10-19..2026-10-22 &gt; fs-timeline.csv</code></pre>
+<p>Read <code>fs-timeline.csv</code> against <code>access.log</code> and
+<code>auth.log</code> around the first suspicious hit.</p>
+<hr/>
+<h1 id="3-memory-capture-setup">3. Memory Capture (Setup)</h1>
+<p><strong>Win10 — FTK Imager (run from USB):</strong>
+<code>File → Capture Memory</code> → destination on external/output path
+→ filename <code>HOST_mem.mem</code> → optional <strong>Include
+pagefile</strong> → Capture. Hash it after.</p>
+<p>Alternative if winpmem is provided:</p>
+<pre class="powershell"><code>.\winpmem_mini_x64.exe E:\HOST_mem.raw</code></pre>
+<p><strong>Linux — AVML (static binary, no build needed,
+preferred):</strong></p>
+<pre class="bash"><code>sudo ./avml /mnt/usb/HOST_mem.lime &amp;&amp;
+  sha256sum /mnt/usb/HOST_mem.lime</code></pre>
+<p><strong>Linux — LiME (module must match the running
+kernel):</strong></p>
+<pre class="bash"><code>sudo insmod lime-$(uname -r).ko "path=/mnt/usb/HOST_mem.lime format=lime"</code></pre>
+<p>Record the kernel. You need it for symbols:</p>
+<pre class="bash"><code>uname -r; cat /proc/version</code></pre>
+<hr/>
+<h1 id="4-volatility-3-windows">4. Volatility 3 — Windows</h1>
+<p>Invocation is <code>vol</code> (pip) or <code>python3 vol.py</code>
+(git). Add <code>-r csv &gt; out.csv</code> to save,
+<code>-o &lt;dir&gt;</code> for dumps. <strong>Volatility timestamps are
+UTC.</strong></p>
+<pre class="bash"><code>vol -f mem.raw windows.info</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th>Step</th>
+<th>Plugin</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Process list</td>
+<td><code>windows.pslist</code> · <code>windows.pstree</code></td>
+<td>Baseline and parentage</td>
+</tr>
+<tr class="even">
+<td>Hidden / exited</td>
+<td><code>windows.psscan</code></td>
+<td>In psscan but not pslist = hidden or terminated</td>
+</tr>
+<tr class="odd">
+<td>Command lines</td>
+<td><code>windows.cmdline</code> · <code>windows.cmdscan</code> ·
+<code>windows.consoles</code> (newer Vol3)</td>
+<td>Arguments, encoded PowerShell, typed console commands</td>
+</tr>
+<tr class="even">
+<td>Network</td>
+<td><code>windows.netscan</code></td>
+<td>Connections → PID</td>
+</tr>
+<tr class="odd">
+<td>Injection</td>
+<td><code>windows.malfind</code></td>
+<td>RWX private memory with PE/shellcode</td>
+</tr>
+<tr class="even">
+<td>Modules</td>
+<td><code>windows.dlllist --pid N</code> ·
+<code>windows.ldrmodules --pid N</code></td>
+<td>Odd paths; unlinked DLLs (False in lists)</td>
+</tr>
+<tr class="odd">
+<td>Services</td>
+<td><code>windows.svcscan</code></td>
+<td>Odd binaries / names</td>
+</tr>
+<tr class="even">
+<td>Handles</td>
+<td><code>windows.handles --pid N</code></td>
+<td>Files, mutexes, registry keys</td>
+</tr>
+<tr class="odd">
+<td>Persistence</td>
+<td><code>windows.registry.printkey --key "Software\Microsoft\Windows\CurrentVersion\Run"</code></td>
+<td>Run keys (needs hive offset for NTUSER)</td>
+</tr>
+<tr class="even">
+<td>Accounts</td>
+<td><code>windows.getsids --pid N</code> ·
+<code>windows.hashdump</code></td>
+<td>Who ran it</td>
+</tr>
+<tr class="odd">
+<td>Files</td>
+<td><code>windows.filescan</code></td>
+<td>Find file objects, then dump</td>
+</tr>
+<tr class="even">
+<td>Kernel / rootkit</td>
+<td><code>windows.ssdt</code> · <code>windows.callbacks</code> ·
+<code>windows.driverscan</code> · <code>windows.modscan</code></td>
+<td>Hooks, unknown drivers</td>
+</tr>
+<tr class="odd">
+<td>Execution history</td>
+<td><code>windows.shimcachemem</code> (newer Vol3)</td>
+<td>Shimcache entries from memory (Q5)</td>
+</tr>
+<tr class="even">
+<td>Timeline</td>
+<td><code>timeliner.Timeliner</code></td>
+<td>All timestamped artifacts</td>
+</tr>
+</tbody>
+</table>
+<p>Typical run:</p>
+<pre class="bash"><code>vol -f mem.raw windows.pstree
+vol -f mem.raw windows.psscan &gt; psscan.txt; vol -f mem.raw windows.pslist &gt; pslist.txt   # diff PIDs
+vol -f mem.raw windows.cmdline
+vol -f mem.raw windows.netscan
+vol -f mem.raw windows.malfind</code></pre>
+<p>Pivot on a PID:</p>
+<pre class="bash"><code>vol -f mem.raw windows.dlllist --pid &lt;PID&gt;
+vol -f mem.raw windows.handles --pid &lt;PID&gt;
+vol -f mem.raw -o dump/ windows.pslist --pid &lt;PID&gt; --dump
+vol -f mem.raw -o dump/ windows.malfind --pid &lt;PID&gt; --dump</code></pre>
+<p>Find and dump a file:</p>
+<pre class="bash"><code>vol -f mem.raw windows.filescan |
+  grep -i '&lt;name&gt;'
+vol -f mem.raw -o dump/ windows.dumpfiles --virtaddr &lt;OFFSET&gt;</code></pre>
+<p>Registry hives, then a key:</p>
+<pre class="bash"><code>vol -f mem.raw windows.registry.hivelist
+vol -f mem.raw windows.registry.printkey --offset &lt;HIVE_OFFSET&gt; --key "Software\Microsoft\Windows\CurrentVersion\Run"</code></pre>
+<p>List plugin names in this build (they shift between versions):</p>
+<pre class="bash"><code>vol -h |
+  grep -E '^\s+windows\.'</code></pre>
+<hr/>
+<h1 id="5-volatility-3-linux">5. Volatility 3 — Linux</h1>
+<p><strong>Symbols are the blocker.</strong> Vol3 Linux plugins need an
+ISF JSON that matches the exact kernel.</p>
+<ol type="1">
+<li>Get the banner:</li>
+</ol>
+<pre class="bash"><code>vol -f mem.lime banners.Banners</code></pre>
+<ol start="2" type="1">
+<li>Check whether the symbols are already present:</li>
+</ol>
+<pre class="bash"><code>vol isfinfo.IsfInfo 2&gt;/dev/null |
+  grep -i linux; ls volatility3/symbols/linux/ 2&gt;/dev/null</code></pre>
+<ol start="3" type="1">
+<li>If missing, build on a box with the matching kernel debug image
+(Ubuntu: <code>linux-image-$(uname -r)-dbgsym</code> from
+ddebs.ubuntu.com):</li>
+</ol>
+<pre class="bash"><code>./dwarf2json linux --elf /usr/lib/debug/boot/vmlinux-&lt;KVER&gt; --system-map /boot/System.map-&lt;KVER&gt; &gt; ubuntu-&lt;KVER&gt;.json
+cp ubuntu-&lt;KVER&gt;.json &lt;volatility3&gt;/volatility3/symbols/linux/</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th>Step</th>
+<th>Plugin</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Processes</td>
+<td><code>linux.pslist</code> · <code>linux.pstree</code> ·
+<code>linux.psaux</code></td>
+<td>List, tree, full args</td>
+</tr>
+<tr class="even">
+<td>Shell history</td>
+<td><code>linux.bash</code></td>
+<td>Commands typed, even if history file was wiped</td>
+</tr>
+<tr class="odd">
+<td>Network</td>
+<td><code>linux.sockstat</code> (older: <code>linux.netstat</code>)</td>
+<td>Sockets → PID</td>
+</tr>
+<tr class="even">
+<td>Open files</td>
+<td><code>linux.lsof --pid N</code></td>
+<td>Files, sockets per PID</td>
+</tr>
+<tr class="odd">
+<td>Injection</td>
+<td><code>linux.malfind</code></td>
+<td>RWX regions</td>
+</tr>
+<tr class="even">
+<td>Env</td>
+<td><code>linux.envars --pid N</code></td>
+<td>LD_PRELOAD, odd PATH</td>
+</tr>
+<tr class="odd">
+<td>Maps</td>
+<td><code>linux.proc.Maps --pid N</code></td>
+<td>Mapped libs, anonymous exec regions</td>
+</tr>
+<tr class="even">
+<td>Rootkit</td>
+<td><code>linux.check_syscall</code> · <code>linux.check_modules</code>
+· <code>linux.lsmod</code> · <code>linux.hidden_modules</code> ·
+<code>linux.tty_check</code> · <code>linux.check_afinfo</code></td>
+<td>Hooked syscalls, hidden LKMs</td>
+</tr>
+</tbody>
+</table>
+<pre class="bash"><code>vol -f mem.lime linux.pstree
+vol -f mem.lime linux.psaux
+vol -f mem.lime linux.bash
+vol -f mem.lime linux.sockstat
+vol -f mem.lime linux.malfind
+vol -f mem.lime linux.check_syscall; vol -f mem.lime linux.check_modules</code></pre>
+<p>Plugin names in this build:</p>
+<pre class="bash"><code>vol -h |
+  grep -E '^\s+linux\.'</code></pre>
+<hr/>
+<h1 id="6-volatility-2-fallback">6. Volatility 2 Fallback</h1>
+<p>Use when Vol3 errors on the image, symbols are missing and a Vol2
+profile is available, or you want a plugin your Vol3 build lacks
+(<code>psxview</code>, <code>mftparser</code>, <code>shimcache</code>;
+recent Vol3 releases added <code>cmdscan</code>/<code>consoles</code>.
+Check <code>vol -h</code>). Vol2 support stops around 2019–2020 Win10
+builds. A newer build may not have a profile; stay in Vol3 then.</p>
+<h2 id="6-1-windows">6.1 Windows</h2>
+<p>Profile:</p>
+<pre class="bash"><code>vol.py -f mem.raw imageinfo            # slow; or:
+vol.py -f mem.raw kdbgscan
+vol.py --info |
+  grep Win10             # pick closest Win10x64_&lt;build&gt;</code></pre>
+<p>Set the profile once:</p>
+<pre class="bash"><code>export VOLATILITY_PROFILE=Win10x64_&lt;BUILD&gt;; export VOLATILITY_LOCATION=file://$(pwd)/mem.raw</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th>Vol3</th>
+<th>Vol2 equivalent</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>windows.pslist / pstree / psscan</td>
+<td><code>pslist</code> · <code>pstree</code> · <code>psscan</code> ·
+<strong><code>psxview</code></strong> (cross-view hidden procs)</td>
+</tr>
+<tr class="even">
+<td>windows.cmdline</td>
+<td><code>cmdline</code> · <strong><code>cmdscan</code></strong> ·
+<strong><code>consoles</code></strong> (typed commands + output)</td>
+</tr>
+<tr class="odd">
+<td>windows.netscan</td>
+<td><code>netscan</code></td>
+</tr>
+<tr class="even">
+<td>windows.malfind</td>
+<td><code>malfind -D out/</code></td>
+</tr>
+<tr class="odd">
+<td>windows.dlllist / ldrmodules</td>
+<td><code>dlllist -p N</code> · <code>ldrmodules -p N</code></td>
+</tr>
+<tr class="even">
+<td>windows.handles</td>
+<td><code>handles -p N -t File,Mutant,Key</code></td>
+</tr>
+<tr class="odd">
+<td>windows.svcscan</td>
+<td><code>svcscan</code></td>
+</tr>
+<tr class="even">
+<td>registry.printkey</td>
+<td><code>printkey -K "Software\Microsoft\Windows\CurrentVersion\Run"</code></td>
+</tr>
+<tr class="odd">
+<td>windows.hashdump</td>
+<td><code>hashdump</code></td>
+</tr>
+<tr class="even">
+<td>windows.filescan / dumpfiles</td>
+<td><code>filescan</code> ·
+<code>dumpfiles -Q &lt;offset&gt; -D out/</code></td>
+</tr>
+<tr class="odd">
+<td>pslist --dump</td>
+<td><code>procdump -p N -D out/</code></td>
+</tr>
+<tr class="even">
+<td>ssdt / driverscan / modscan</td>
+<td><code>ssdt</code> · <code>driverirp</code> · <code>modscan</code> ·
+<code>apihooks</code></td>
+</tr>
+<tr class="odd">
+<td>timeliner</td>
+<td><code>timeliner</code> · <strong><code>mftparser</code></strong> ·
+<strong><code>shimcache</code></strong> · <code>userassist</code></td>
+</tr>
+</tbody>
+</table>
+<pre class="bash"><code>vol.py psxview; vol.py cmdscan; vol.py consoles; vol.py netscan; vol.py malfind -D out/</code></pre>
+<h2 id="6-2-linux">6.2 Linux</h2>
+<p>Needs a profile zip built against the target kernel:</p>
+<pre class="bash"><code>cd volatility/tools/linux &amp;&amp;
+  make &amp;&amp;
+  zip Ubuntu_&lt;KVER&gt;.zip module.dwarf /boot/System.map-&lt;KVER&gt;
+cp Ubuntu_&lt;KVER&gt;.zip ../../volatility/plugins/overlays/linux/
+vol.py --info |
+  grep Linux           # get profile name, e.g. LinuxUbuntu_&lt;KVER&gt;x64</code></pre>
+<pre class="bash"><code>vol.py --profile=&lt;P&gt; -f mem.lime linux_pstree
+vol.py --profile=&lt;P&gt; -f mem.lime linux_psaux
+vol.py --profile=&lt;P&gt; -f mem.lime linux_bash
+vol.py --profile=&lt;P&gt; -f mem.lime linux_netstat
+vol.py --profile=&lt;P&gt; -f mem.lime linux_lsof -p &lt;PID&gt;
+vol.py --profile=&lt;P&gt; -f mem.lime linux_malfind
+vol.py --profile=&lt;P&gt; -f mem.lime linux_check_syscall; vol.py --profile=&lt;P&gt; -f mem.lime linux_hidden_modules
+vol.py --profile=&lt;P&gt; -f mem.lime linux_enumerate_files |
+  grep -E '/tmp|/dev/shm'</code></pre>
+<hr/>
+<h1 id="7-ftk-imager">7. FTK Imager</h1>
+<p>FTK Imager is acquisition and preview. It is not an analysis suite.
+Use it to capture, browse, export and hash, then analyze in Autopsy,
+FTK, or Vol. Full <strong>FTK</strong> (Forensic Toolkit) is covered in
+§7C–§7D. Expect to use Imager to produce the image and FTK to analyze
+it.</p>
+<h2 id="7a-setup-capture-load-verify">7A. Setup (capture, load,
+verify)</h2>
+<p><strong>Capture memory (live Win10):</strong>
+<code>File → Capture Memory</code> → set destination and filename →
+Include pagefile (optional) → Capture Memory.</p>
+<p><strong>Image a disk:</strong></p>
+<ol type="1">
+<li><code>File → Create Disk Image</code></li>
+<li>Source: <strong>Physical Drive</strong> (whole disk),
+<strong>Logical Drive</strong> (one volume), <strong>Image File</strong>
+(convert), or <strong>Contents of a Folder</strong></li>
+<li>Add destination → type <strong>E01</strong> (compressed, carries
+hashes) or <strong>Raw (dd)</strong></li>
+<li>Fill evidence info (case, examiner, notes)</li>
+<li>Check <strong>Verify images after they are created</strong> →
+Start</li>
+<li>Keep the generated <code>.txt</code> log. It holds the
+MD5/SHA1.</li>
+</ol>
+<p><strong>Grab locked registry/system files from a live box:</strong>
+<code>File → Obtain Protected Files</code> → destination →
+<strong>Password recovery and all registry files</strong>.</p>
+<p><strong>Load evidence to browse:</strong>
+<code>File → Add Evidence Item</code> → Physical Drive / Logical Drive /
+Image File / Contents of a Folder → select.</p>
+<p><strong>Mount an image read-only (so other tools can read
+it):</strong> <code>File → Image Mounting</code> → image file → Mount
+Type <strong>Physical &amp; Logical</strong> → Mount Method
+<strong>Block Device / Read Only</strong> → Mount. It shows up as a
+drive letter.</p>
+<p><strong>Hash verify an existing image:</strong> right-click the
+evidence item → <strong>Verify Drive/Image</strong>.</p>
+<h2 id="7b-hunt-navigation">7B. Hunt Navigation</h2>
+<p><strong>Screen layout.</strong> Evidence Tree (top-left) → File List
+(top-right) → Viewer (bottom: Text / Hex / Auto). Properties pane on the
+left.</p>
+<ul>
+<li>Red <strong>X</strong> on an icon = deleted file (still recoverable
+if not overwritten)</li>
+<li>Click a column header in File List to sort. Sort <strong>Date
+Modified</strong> descending to see recent activity.</li>
+<li>Right-click → <strong>Export Files</strong> (copy out for hashing or
+other tools) or <strong>Export File Hash List</strong></li>
+<li><code>View → Hex</code> to inspect headers (<code>MZ</code> = PE
+executable, <code>7F 45 4C 46</code> = ELF)</li>
+</ul>
+<p><strong>Where to go — Windows image</strong> (<code>[root]</code>
+under the NTFS partition):</p>
+<table>
+<thead>
+<tr class="header">
+<th>Path</th>
+<th>What it tells you</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>$MFT</code> (root)</td>
+<td>Every file record. Export for MFTECmd/Autopsy</td>
+</tr>
+<tr class="even">
+<td><code>Windows\System32\config\</code></td>
+<td>SAM, SYSTEM, SOFTWARE, SECURITY hives</td>
+</tr>
+<tr class="odd">
+<td><code>Users\&lt;u&gt;\NTUSER.DAT</code> ·
+<code>AppData\Local\Microsoft\Windows\UsrClass.dat</code></td>
+<td>User hive: Run keys, RecentDocs, ShellBags</td>
+</tr>
+<tr class="even">
+<td><code>Windows\System32\winevt\Logs\</code></td>
+<td>EVTX: Security, System, PowerShell/Operational, Sysmon</td>
+</tr>
+<tr class="odd">
+<td><code>Windows\Prefetch\</code></td>
+<td>Execution evidence (<code>NAME-HASH.pf</code>)</td>
+</tr>
+<tr class="even">
+<td><code>Windows\System32\Tasks\</code></td>
+<td>Scheduled task XML</td>
+</tr>
+<tr class="odd">
+<td><code>ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\</code></td>
+<td>All-users startup</td>
+</tr>
+<tr class="even">
+<td><code>Users\&lt;u&gt;\AppData\Roaming\Microsoft\Windows\Recent\</code></td>
+<td>LNK files: what was opened</td>
+</tr>
+<tr class="odd">
+<td><code>Users\&lt;u&gt;\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\</code></td>
+<td>PS history</td>
+</tr>
+<tr class="even">
+<td><code>Users\&lt;u&gt;\Downloads</code>,
+<code>AppData\Local\Temp</code>, <code>Users\Public</code></td>
+<td>Staging locations</td>
+</tr>
+<tr class="odd">
+<td><code>$Recycle.Bin\&lt;SID&gt;\</code></td>
+<td><code>$I</code> (metadata) and <code>$R</code> (content) pairs</td>
+</tr>
+<tr class="even">
+<td><code>inetpub\logs\LogFiles\</code></td>
+<td>IIS logs, if present</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Where to go — Linux image</strong> (ext4 partition):</p>
+<table>
+<thead>
+<tr class="header">
+<th>Path</th>
+<th>What it tells you</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>/var/log/auth.log*</code> · <code>syslog*</code> ·
+<code>apache2/</code> · <code>mysql/</code></td>
+<td>Logons, sudo, web hits, DB</td>
+</tr>
+<tr class="even">
+<td><code>/var/www/</code></td>
+<td>Webroot: webshells, modified PHP</td>
+</tr>
+<tr class="odd">
+<td><code>/etc/passwd</code> · <code>shadow</code> · <code>group</code>
+· <code>sudoers.d/</code></td>
+<td>Accounts and privilege</td>
+</tr>
+<tr class="even">
+<td><code>/etc/cron*</code> ·
+<code>/var/spool/cron/crontabs/</code></td>
+<td>Cron persistence</td>
+</tr>
+<tr class="odd">
+<td><code>/etc/systemd/system/</code> ·
+<code>/lib/systemd/system/</code></td>
+<td>Service persistence</td>
+</tr>
+<tr class="even">
+<td><code>/root/</code> · <code>/home/*/</code> →
+<code>.bash_history</code>, <code>.ssh/authorized_keys</code>,
+<code>.bashrc</code></td>
+<td>User activity and backdoors</td>
+</tr>
+<tr class="odd">
+<td><code>/tmp/</code> · <code>/var/tmp/</code> · <code>/dev/shm/</code>
+(if captured)</td>
+<td>Dropped tools</td>
+</tr>
+<tr class="even">
+<td><code>/etc/ld.so.preload</code></td>
+<td>Userland rootkit</td>
+</tr>
+</tbody>
+</table>
+<h2 id="7c-ftk-forensic-toolkit-setup">7C. FTK (Forensic Toolkit) —
+Setup</h2>
+<p>FTK is a case-based suite backed by a database. Processing (hashing,
+indexing, carving) runs up front, then you search and filter. Menu names
+shift between FTK 7 and 8; the flow below holds.</p>
+<p><strong>Before anything:</strong> confirm the database service is
+running and you can log in. FTK will not open a case without it.
+Credentials are usually set by whoever built the box. Ask, don't
+guess.</p>
+<p><strong>New case:</strong></p>
+<ol type="1">
+<li><code>File → New Case</code> (or <strong>Case Manager →
+New</strong>)</li>
+<li>Case name <code>CASE_&lt;host&gt;</code>, description, case folder
+on the output drive</li>
+<li><strong>Processing profile:</strong> pick <strong>Forensics</strong>
+or a custom profile. Avoid <strong>Field Mode</strong>, which skips the
+indexing you'll search on.</li>
+<li>Click <strong>Customize</strong> on the profile and set:</li>
+</ol>
+<table>
+<thead>
+<tr class="header">
+<th>Turn on</th>
+<th>Turn off (time sinks)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>MD5 + SHA-1 hashes</td>
+<td>Explicit Image Detection</td>
+</tr>
+<tr class="even">
+<td>Flag Bad Extensions</td>
+<td>Optical Character Recognition</td>
+</tr>
+<tr class="odd">
+<td>Expand Compound Files</td>
+<td>Data Carving (run later if needed)</td>
+</tr>
+<tr class="even">
+<td>dtSearch Text Index</td>
+<td>Thumbnails for videos</td>
+</tr>
+<tr class="odd">
+<td>KFF (Known File Filter), if a KFF library is configured</td>
+<td>Cerberus malware triage, unless you want it and time allows</td>
+</tr>
+<tr class="even">
+<td>Registry Reports</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>Create Thumbnails for Graphics (optional)</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<ol start="5" type="1">
+<li>OK → <strong>Add Evidence</strong> dialog opens</li>
+</ol>
+<p><strong>Add evidence</strong> (<code>Evidence → Add/Remove</code>
+later):</p>
+<ul>
+<li><strong>Acquired Image of Drive</strong> — E01 / raw from FTK Imager
+(most common)</li>
+<li><strong>All Images in Directory</strong> — multiple images at
+once</li>
+<li><strong>Contents of a Folder</strong> / <strong>Individual
+File</strong> — exported artifacts, memory-dump outputs</li>
+<li><strong>Physical Drive</strong> / <strong>Logical Drive</strong> —
+attached media</li>
+<li>Set <strong>time zone = the target's</strong>. Wrong time zone
+corrupts every timestamp you report. Convert what you record to UTC
+(Hunt Notes, zone = that host).</li>
+</ul>
+<p><strong>Processing:</strong> watch the <strong>Progress</strong>
+window. You can start browsing as categories populate, but Index Search
+results are incomplete until indexing finishes.</p>
+<p><strong>Memory images:</strong> some FTK builds accept a memory dump
+as evidence and parse processes and sockets. Don't rely on it. Do memory
+in Vol3/Vol2 (§4–§6) and add dumped files back as <strong>Individual
+File</strong> evidence.</p>
+<p><strong>Add more processing later:</strong>
+<code>Evidence → Additional Analysis</code> (carving, more hashing, KFF)
+without rebuilding the case.</p>
+<h2 id="7d-ftk-hunt-navigation">7D. FTK — Hunt Navigation</h2>
+<p><strong>Tabs across the top.</strong> Work them in this order.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Tab</th>
+<th>Use it for</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Overview</strong></td>
+<td>Start here. Counts by <strong>File Status</strong> (Bad Extension,
+Deleted, Encrypted, <strong>KFF Alert</strong>, KFF Ignorable) and
+<strong>File Category</strong> (Executable, Documents, Archives)</td>
+</tr>
+<tr class="even">
+<td><strong>Explore</strong></td>
+<td>File-system tree, same as FTK Imager. Use for the path tables in
+§7B</td>
+</tr>
+<tr class="odd">
+<td><strong>Index Search</strong></td>
+<td>Fast keyword search over the dtSearch index (IP, filename,
+<code>eval(</code>, <code>base64_decode</code>)</td>
+</tr>
+<tr class="even">
+<td><strong>Live Search</strong></td>
+<td>Hex/text pattern search (slower, no index needed). Use for hex
+signatures</td>
+</tr>
+<tr class="odd">
+<td><strong>Bookmarks</strong></td>
+<td>Your marked evidence. Feeds the report</td>
+</tr>
+<tr class="even">
+<td><strong>Graphics</strong> · <strong>Email</strong></td>
+<td>Only if relevant</td>
+</tr>
+</tbody>
+</table>
+<p><strong>First moves:</strong></p>
+<ol type="1">
+<li><strong>Overview → KFF Alert.</strong> Known-bad hash hits. Fastest
+win if a KFF library is loaded.</li>
+<li><strong>Overview → Bad Extension.</strong> Renamed executables
+(<code>.jpg</code> that's a PE).</li>
+<li><strong>Overview → File Category → Executable.</strong> Sort by
+Created/Modified. Look at anything in user, Temp, or ProgramData
+paths.</li>
+<li><strong>Overview → Deleted Files.</strong> Tools removed after
+use.</li>
+<li><strong>Index Search</strong> for indicators from live triage and
+Vol (IPs, filenames, PIDs' image names).</li>
+<li><strong>Explore</strong> the §7B paths for persistence and
+logs.</li>
+</ol>
+<p><strong>File List controls:</strong></p>
+<ul>
+<li><strong>Filter</strong> dropdown (toolbar). Start with
+<strong>Unfiltered</strong>, then try built-ins like <strong>Actual
+Files</strong> to drop slack and free space. Make your own via
+<strong>Filter Manager</strong> (e.g. Modified &gt; date AND Category =
+Executable).</li>
+<li><strong>Column settings</strong> (right-click header). Add Created /
+Modified / Accessed, Path, MD5, Bad Extension.</li>
+<li><strong>KFF Ignorable</strong> filter hides known-good OS files. It
+shrinks the list dramatically.</li>
+</ul>
+<p><strong>On any hit:</strong></p>
+<ol type="1">
+<li>Bottom viewer: <strong>Natural / Text / Hex / Filtered</strong></li>
+<li>Right-click → <strong>Create Bookmark</strong> (name it after the
+finding, add a comment)</li>
+<li>Right-click → <strong>Export</strong> to hash elsewhere or feed to
+Vol / strings</li>
+<li>Registry hives: right-click → <strong>View in Registry
+Viewer</strong> (separate tool) for Run keys, UserAssist, ShellBags</li>
+<li>Pivot on the timestamp: sort the Explore list for that directory by
+Modified</li>
+</ol>
+<p><strong>Report:</strong> <code>File → Report</code> → include
+<strong>Bookmarks</strong> only, plus hashes and file paths → HTML or
+PDF.</p>
+<hr/>
+<h1 id="8-autopsy">8. Autopsy</h1>
+<h2 id="8a-setup">8A. Setup</h2>
+<p><strong>New case:</strong></p>
+<ol type="1">
+<li><code>Case → New Case</code> → name <code>CASE_&lt;host&gt;</code> →
+base directory on output drive → Next → examiner info → Finish</li>
+<li><strong>Add Data Source</strong> wizard opens. Host: Generate new
+host name based on data source name → Next.</li>
+<li>Data source type:
+<ul>
+<li><strong>Disk Image or VM File</strong> — E01, raw/dd, VMDK, VHD
+(most common)</li>
+<li><strong>Local Disk</strong> — a mounted or attached drive
+(FTK-mounted image works here)</li>
+<li><strong>Logical Files</strong> — a folder of exported artifacts</li>
+</ul></li>
+<li>Pick the file → time zone = <strong>the target's</strong> time zone
+→ Next. To display times in UTC: <code>Tools → Options → View</code> →
+time zone → <strong>GMT/UTC</strong>.</li>
+<li><strong>Ingest modules.</strong> Fast set first, slow ones
+later.</li>
+</ol>
+<table>
+<thead>
+<tr class="header">
+<th>Run first (fast)</th>
+<th>Run later if time (slow)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Recent Activity</td>
+<td>Keyword Search (full index)</td>
+</tr>
+<tr class="even">
+<td>File Type Identification</td>
+<td>PhotoRec Carver</td>
+</tr>
+<tr class="odd">
+<td>Hash Lookup (+ NSRL if loaded)</td>
+<td>Plaso (full timeline)</td>
+</tr>
+<tr class="even">
+<td>Extension Mismatch Detector</td>
+<td>Embedded File Extractor</td>
+</tr>
+<tr class="odd">
+<td>Interesting Files Identifier</td>
+<td>Encryption Detection</td>
+</tr>
+<tr class="even">
+<td>Data Source Integrity</td>
+<td>YARA Analyzer (if present)</td>
+</tr>
+</tbody>
+</table>
+<ol start="6" type="1">
+<li>Finish. Ingest runs in the background. Watch the progress bar
+bottom-right. Results appear as they finish, so start browsing
+immediately.</li>
+</ol>
+<p><strong>Add a quick keyword list:</strong>
+<code>Tools → Options → Keyword Search → New List</code> → add terms
+(attacker IP, filename, <code>base64</code>, <code>eval(</code>) → run
+<strong>Keyword Search</strong> ingest against the data source.</p>
+<p><strong>Memory images:</strong> if Add Data Source offers a
+memory/Volatility option, it runs embedded Vol2 plugins on Windows
+images only. Otherwise do memory in Vol3 (§4–§5) and bring dumped files
+back as <strong>Logical Files</strong>.</p>
+<p><strong>Run ingest again later:</strong> right-click data source →
+<strong>Run Ingest Modules</strong>.</p>
+<h2 id="8b-hunt-navigation">8B. Hunt Navigation</h2>
+<p><strong>Tree layout (left).</strong> Work it top-down. Autopsy 4.19+
+labels these <strong>Data Artifacts / Analysis Results</strong>; older
+builds put them all under <strong>Results → Extracted
+Content</strong>.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Node</th>
+<th>Use it for</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Data Sources</strong></td>
+<td>Raw file system browse (same as FTK tree)</td>
+</tr>
+<tr class="even">
+<td><strong>File Views → File Types → By Extension / MIME</strong></td>
+<td>All <code>executable</code>, <code>.ps1</code>, <code>.bat</code>,
+<code>.php</code>, <code>.sh</code> at once</td>
+</tr>
+<tr class="odd">
+<td><strong>File Views → Deleted Files</strong></td>
+<td>Recently deleted tooling</td>
+</tr>
+<tr class="even">
+<td><strong>File Views → File Size</strong></td>
+<td>Large archives (staging / exfil)</td>
+</tr>
+<tr class="odd">
+<td><strong>Data Artifacts → Run Programs</strong></td>
+<td>Prefetch-based execution</td>
+</tr>
+<tr class="even">
+<td><strong>Data Artifacts → Recent Documents</strong> · <strong>Shell
+Bags</strong></td>
+<td>What a user opened / browsed</td>
+</tr>
+<tr class="odd">
+<td><strong>Data Artifacts → Installed Programs</strong> · <strong>USB
+Device Attached</strong></td>
+<td>New software, removable media</td>
+</tr>
+<tr class="even">
+<td><strong>Data Artifacts → Web History / Downloads</strong></td>
+<td>How a payload arrived</td>
+</tr>
+<tr class="odd">
+<td><strong>Data Artifacts → Operating System User Account</strong></td>
+<td>Accounts, last logon</td>
+</tr>
+<tr class="even">
+<td><strong>Analysis Results → Extension Mismatch</strong></td>
+<td><code>.jpg</code> that's really a PE</td>
+</tr>
+<tr class="odd">
+<td><strong>Analysis Results → Interesting Items</strong> ·
+<strong>Hashset Hits</strong></td>
+<td>Rule and hash matches</td>
+</tr>
+<tr class="even">
+<td><strong>Analysis Results → Keyword Hits</strong></td>
+<td>Your keyword lists</td>
+</tr>
+<tr class="odd">
+<td><strong>Tags</strong></td>
+<td>Your bookmarked evidence (feeds the report)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Timeline:</strong> <code>Tools → Timeline</code>. Set the
+zoom to the window around a known-bad time. Filter by event type (file
+modified, program run, web). Look for clusters around the suspicious
+timestamp. This is the fastest way to "what happened right before and
+after."</p>
+<p><strong>Workflow on any hit:</strong></p>
+<ol type="1">
+<li>Select the item → bottom pane: <strong>Hex / Text / File Metadata /
+Analysis Results</strong></li>
+<li>Right-click → <strong>Add File Tag → Notable Item</strong> (comment
+why)</li>
+<li>Right-click → <strong>View File in Directory</strong> to see its
+neighbors</li>
+<li>Right-click → <strong>Extract File(s)</strong> to hash or feed to
+other tools</li>
+<li>Note the timestamp → jump to Timeline</li>
+</ol>
+<p><strong>Report:</strong> <code>Generate Report → HTML</code> (or
+Excel). Choose <strong>Tagged results only</strong> for a clean findings
+export.</p>
+<hr/>
+<h1 id="9-findings-log-keep-while-you-work">9. Findings Log (keep while
+you work)</h1>
+<p>Keep it in <strong>Hunt Notes</strong>
+(<code>tools/hunt-notes.html</code>): paste the time as shown, pick the
+source zone, it stores UTC and builds the timeline, IOC list and
+coverage grid. Its Output tab prints this same format. Paper fallback,
+one line per observation:</p>
+<pre class="powershell"><code>TIME (UTC)           | HOST   | SOURCE          | Q  | CONF     | OBSERVATION                              | EVIDENCE / CMD                | NEXT
+---------------------+--------+-----------------+----+----------+------------------------------------------+-------------------------------+--------------
+2026-10-21 14:05:12Z | WIN-01 | live:Win32_Proc | Q1 | Possible | powershell -enc child of winword (4412)  | Get-CimInstance Win32_Process | netscan 4412
+2026-10-21 14:05:40Z | WIN-01 | vol3:netscan    | Q2 | Probable | 4412 -&gt; 203.0.113.7:443 ESTABLISHED      | windows.netscan               | dump 4412
+2026-10-21 03:58:02Z | LNX-01 | access.log      | Q4 | Possible | POST /uploads/x.php from 198.51.100.4    | access.log L8812              | find x.php</code></pre>
+<p>Report-out per finding:</p>
+<pre><code>FINDING:     &lt;one sentence&gt;
+HOST:        &lt;name / IP&gt;
+WHEN:        &lt;first seen UTC&gt; → &lt;last seen UTC&gt;
+EVIDENCE:    &lt;artifact + tool + location&gt;
+VALIDATION:  &lt;second, independent source that confirms it&gt;
+ATT&amp;CK:      &lt;tactic / technique ID&gt;
+MITIGATION:  &lt;contain / remove / harden&gt;</code></pre>
+<h1 id="10-detection-kql-host-hunts">10. Detection — KQL Host
+Hunts</h1>
+<p>Run in Kibana Discover, as saved searches, or as the basis for
+detection rules. KQL unless marked ES|QL.</p>
+<pre class="kql"><code># Office / email spawning a shell  (T1566 / T1059)
+process.parent.name:("winword.exe" or "excel.exe" or "powerpnt.exe" or "outlook.exe")
+  and process.name:("cmd.exe" or "powershell.exe" or "wscript.exe" or "cscript.exe" or "mshta.exe")
+
+# Encoded / download-cradle PowerShell  (T1059.001 / T1105)
+process.name:"powershell.exe" and process.command_line:
+  (*-enc* or *-EncodedCommand* or *FromBase64String* or *IEX* or *Invoke-Expression*
+   or *DownloadString* or *Net.WebClient* or *-nop* or *-w hidden*)
+
+# LOLBins with suspicious args  (T1218)
+process.name:("rundll32.exe" or "regsvr32.exe" or "mshta.exe" or "certutil.exe"
+   or "bitsadmin.exe" or "msiexec.exe")
+  and process.command_line:(*http* or *\\temp\\* or *-urlcache* or *javascript:* or *.dll,*)
+
+# LSASS access — credential dumping  (T1003.001)  Sysmon 10 / Defend
+event.code:"10" and winlog.event_data.TargetImage:*lsass.exe*
+  and not winlog.event_data.SourceImage:("*\\MsMpEng.exe" or "*\\wininit.exe")
+
+# New service / scheduled task persistence  (T1543.003 / T1053.005)
+event.code:("7045" or "4697" or "4698" or "4702")
+
+# Lateral movement via explicit creds  (T1021 / T1078)   then pivot one user.name -&gt; many host.name
+event.code:"4648"
+
+# Failed-logon spray / bruteforce  (T1110)   aggregate by source.ip / user.name, threshold on count
+event.code:"4625"
+
+# Linux: suspicious execution from web/temp dirs  (T1505.003 webshell / T1059.004)
+host.os.type:"linux" and process.executable:("/tmp/*" or "/dev/shm/*" or "/var/www/*")
+  and process.parent.name:("apache2" or "httpd" or "nginx" or "php-fpm")</code></pre>
+<h1 id="11-detection-kql-es-ql-network-hunts">11. Detection — KQL /
+ES|QL Network Hunts</h1>
+<pre class="kql"><code># Beaconing candidates — fixed-interval small conns to one external dst  (T1071)   ES|QL:
+FROM logs-zeek.*
+| WHERE network.direction == "outbound"
+| STATS conns = COUNT(*), bytes = SUM(network.bytes), uniq_dur = COUNT_DISTINCT(zeek.conn.duration)
+    BY source.ip, destination.ip, destination.port
+| WHERE conns &gt; 20 AND bytes &lt; 500000
+| SORT conns DESC
+
+# Rare external destinations (first-seen)
+destination.ip:* and not destination.ip:(&lt;internal ranges&gt;) and not destination.ip:(&lt;baseline externals&gt;)
+
+# DNS tunneling / DGA markers  (T1071.004 / T1568)
+zeek.dns.query:* and (dns_qlen &gt; 50 or dns_entropy &gt; 4)
+zeek.dns.qtype_name:"TXT"
+dns.response_code:"NXDOMAIN"
+
+# Self-signed / odd TLS  (T1573 / C2 over TLS)
+tls.server.x509.issuer.distinguished_name : tls.server.x509.subject.distinguished_name
+  or tls.client.ja3:(&lt;known-bad JA3&gt;)
+  or (tls.client.server_name:* and not destination.ip:&lt;expected for that SNI&gt;)
+
+# Long-lived external sessions
+zeek.conn.duration &gt; 3600 and network.direction:"outbound"</code></pre>
+<h1 id="12-detection-suricata">12. Detection — Suricata</h1>
+<p>Rule anatomy:</p>
+<pre><code>action proto src_ip src_port -&gt; dst_ip dst_port (msg:"..."; flow:...; content:"..."; \
+   pcre:"..."; classtype:...; sid:1000001; rev:1; metadata:...;)</code></pre>
+<p>Custom examples (defensive, terrain-specific):</p>
+<pre><code># Outbound cleartext to a known-bad / unexpected external on a monitored egress
+alert tcp $HOME_NET any -&gt; $EXTERNAL_NET any (msg:"CUSTOM Egress to flagged host"; \
+   flow:established,to_server; ip_dst &lt;flagged-ip&gt;; classtype:trojan-activity; sid:9000001; rev:1;)
+
+# Self-signed TLS to external (metadata)
+alert tls $HOME_NET any -&gt; $EXTERNAL_NET any (msg:"CUSTOM Self-signed cert outbound"; \
+   tls.cert_issuer; content:!"CN="; classtype:protocol-command-decode; sid:9000002; rev:1;)
+
+# SMB lateral indicator (admin share from a workstation subnet)
+alert smb $WKSTN_NET any -&gt; $SERVER_NET 445 (msg:"CUSTOM Wkstn-&gt;Server admin share"; \
+   flow:to_server; classtype:policy-violation; sid:9000004; rev:1;)</code></pre>
+<p>Baseline suppression (threshold.config) — every suppress cites its
+BL-ID:</p>
+<pre><code># Suppress a sig entirely from the range NAT/jump source  (BL-003 [RANGE])
+suppress gen_id 1, sig_id 2000419, track by_src, ip &lt;range-nat-ip&gt;
+
+# Rate-limit a noisy-but-real sig to one alert per 5 min per host
+threshold gen_id 1, sig_id 9000003, type threshold, track by_src, count 1, seconds 300</code></pre>
+<h1 id="13-detection-zeek">13. Detection — Zeek</h1>
+<table>
+<thead>
+<tr class="header">
+<th>Log</th>
+<th>What it gives</th>
+<th>Hunt use</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>conn.log</code></td>
+<td>every flow: duration, bytes, state, history</td>
+<td>beaconing, long conns, top talkers, exfil ratios</td>
+</tr>
+<tr class="even">
+<td><code>dns.log</code></td>
+<td>queries, responses, rcodes, types</td>
+<td>DGA, tunneling, NXDOMAIN spikes, TXT volume</td>
+</tr>
+<tr class="odd">
+<td><code>http.log</code></td>
+<td>method, host, URI, UA, status</td>
+<td>webshell URIs, rare UAs, suspicious downloads</td>
+</tr>
+<tr class="even">
+<td><code>ssl.log</code> + <code>x509.log</code></td>
+<td>SNI, versions, cert subject/issuer, JA3/JA3S</td>
+<td>self-signed, rare JA3, SNI/IP mismatch</td>
+</tr>
+<tr class="odd">
+<td><code>files.log</code></td>
+<td>files seen, MIME, hashes</td>
+<td>malware delivery, carving</td>
+</tr>
+<tr class="even">
+<td><code>notice.log</code> / <code>weird.log</code></td>
+<td>Zeek detections / protocol anomalies</td>
+<td>pre-built notices, tunneling, evasion</td>
+</tr>
+</tbody>
+</table>
+<p>Notice framework — turn a hunt into a standing detection:</p>
+<pre><code># long-conns.zeek  — notice on outbound sessions over 1h
+@load base/frameworks/notice
+redef enum Notice::Type += { Long_Outbound_Conn };
+event connection_state_remove(c: connection) {
+    if ( c$duration &gt; 1hr &amp;&amp; Site::is_local_addr(c$id$orig_h)
+         &amp;&amp; ! Site::is_local_addr(c$id$resp_h) )
+        NOTICE([$note=Long_Outbound_Conn, $conn=c,
+                $msg=fmt("Long outbound conn %s -&gt; %s (%s)", c$id$orig_h, c$id$resp_h, c$duration)]);
+}</code></pre>
+<p>Baseline exclusion — suppress the ism in the notice policy, keep the
+log, cite the register ID:</p>
+<pre><code>hook Notice::policy(n: Notice::Info) {
+    if ( n$note == Long_Outbound_Conn &amp;&amp; n$conn$id$resp_h == &lt;backup-server&gt; )
+        break;   # BL-014 [BOTH] confirmed: nightly backup, not a finding
+}</code></pre>
+<h1 id="14-detection-elastic-defend">14. Detection — Elastic
+Defend</h1>
+<table>
+<thead>
+<tr class="header">
+<th>Mechanism</th>
+<th>What it does</th>
+<th>Use for</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Event filter</td>
+<td>Stops matching events being written/ingested at the agent</td>
+<td>High-volume known-good (range orchestration, traffic-generator
+noise). Cheapest, earliest.</td>
+</tr>
+<tr class="even">
+<td>Rule exception</td>
+<td>Stops one rule alerting on a match, event still ingested</td>
+<td>Known-good that trips one rule but the raw event still has hunt
+value.</td>
+</tr>
+<tr class="odd">
+<td>Trusted application</td>
+<td>Excludes a binary/path/signer from protections</td>
+<td>A sanctioned tool the malware/behavior engine flags.</td>
+</tr>
+</tbody>
+</table>
+<pre class="kql"><code># Event filter  (BL-007 [RANGE] traffic generator)
+event.category : "process" and process.parent.name : "&lt;traffic-gen&gt;.exe"
+
+# Rule exception on "Certutil URL download"  (BL-022 [CLIENT] confirmed admin host)
+host.name : "ADM-TOOLS-01" and user.name : "svc-patch"</code></pre>
+</main>
+<aside id="rail" class="rail">
+  <h2>Five questions</h2>
+  <div class="q"><b>Q1 · What is running that should not be?</b><span>pslist vs psscan · pstree parentage · cmdline · malfind · unsigned or user-writable path</span></div>
+  <div class="q"><b>Q2 · What is talking that should not be?</b><span>netscan / sockstat · session vs the process's job · fixed-interval beacons · same IP on both hosts · DNS cache, hosts file</span></div>
+  <div class="q"><b>Q3 · How does it survive a reboot?</b><span>services, tasks, Run keys, WMI · cron, <i>enabled</i> systemd, rc, ld.so.preload, authorized_keys · target = the Q1 file</span></div>
+  <div class="q"><b>Q4 · Who did it, and how did they get in?</b><span>4624 type 3/10, 4648, 4672 · auth.log, last/lastb, UID 0 · a web request with no matching auth <i>is</i> the answer</span></div>
+  <div class="q"><b>Q5 · When did it start?</b><span>Prefetch, Amcache, UserAssist, BAM before file times · $SI vs $FN · fls + mactime vs access/auth logs</span></div>
+  <h2>Decision gates</h2>
+  <ol>
+    <li><b>G1</b> Unsigned / writable path / bad parent → acquire + hash the file</li>
+    <li><b>G2</b> External session, no business reason → bind to a process and a log</li>
+    <li><b>G3</b> Persistence targets that file → foothold confirmed</li>
+    <li><b>G4</b> Account + auth method found → extend scope to other hosts</li>
+    <li><b>G5</b> First-seen before the alert → intrusion start</li>
+  </ol>
+  <h2>Rules</h2>
+  <ul>
+    <li><b>Acquire before alter.</b> Memory first, hashed.</li>
+    <li><b>Two independent sources</b> or it is a lead, not a finding.</li>
+    <li><b>State the reasoning:</b> expected result before, what changed after.</li>
+    <li><b>Breadth first:</b> Q1–Q5 shallow on both hosts before depth.</li>
+  </ul>
+  <h2>Confidence</h2>
+  <ul>
+    <li><b>Possible</b>: one source, a lead</li>
+    <li><b>Probable</b>: consistent, partly corroborated</li>
+    <li><b>Confirmed</b>: two independent sources agree</li>
+  </ul>
+  <h2>Time</h2>
+  <ul><li>Record UTC. Volatility = UTC. PowerShell, Event Viewer, <code>ls</code>, syslog = host local. Apache carries its own offset.</li></ul>
+</aside></div>
+<script src="../assets/search-index.js"></script><script src="../assets/site.js"></script></body></html>

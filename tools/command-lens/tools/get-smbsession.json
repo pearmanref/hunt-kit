@@ -1,0 +1,25 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "get-smbsession",
+  "name": "Get-SmbSession",
+  "aliases": ["smb sessions", "net session", "who is connected"],
+  "kind": "cmdlet",
+  "shells": [{ "id": "powershell" }],
+  "category": "network",
+  "summary": "Lists SMB client sessions connected to this host (run on the server side).",
+  "action": "lists inbound SMB sessions",
+  "description": "SmbShare module, elevated. On a host used as a staging point this shows who is connected and from where.",
+  "source": "https://learn.microsoft.com/powershell/module/smbshare/get-smbsession",
+  "requires": { "elevation": "admin", "module": "SmbShare" },
+  "io": { "stdin": "none", "stdout": "objects" },
+  "template": "{binary} {flags}",
+  "params": [
+    { "id": "clientUser", "label": "Client user", "type": "string", "flag": "-ClientUserName", "common": true, "ioc": ["user"], "placeholder": "DOMAIN\\user", "explain": "for user {value}" },
+    { "id": "clientComputer", "label": "Client computer", "type": "string", "flag": "-ClientComputerName", "common": true, "ioc": ["ipv4", "ipv6", "domain"], "explain": "from {value}" }
+  ],
+  "presets": [
+    { "id": "all", "name": "Every inbound SMB session", "values": {}, "ttps": ["T1021.002", "T1074.002"] }
+  ],
+  "properties": { "ClientComputerName": {}, "ClientUserName": {}, "NumOpens": {}, "SecondsExists": {}, "Dialect": {} },
+  "ttps": ["T1049"]
+}

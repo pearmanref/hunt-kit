@@ -1,0 +1,36 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "lsof",
+  "name": "lsof",
+  "aliases": ["open files"],
+  "kind": "native",
+  "shells": [{ "id": "bash" }, { "id": "zsh" }],
+  "category": "process",
+  "summary": "Lists files, sockets and pipes held open by processes.",
+  "action": "lists open files",
+  "description": "Selections are ORed by default; add -a to AND them. +L1 finds files with a link count below 1: deleted from disk but still open, a common sign of a binary that removed itself after starting.",
+  "source": "https://man7.org/linux/man-pages/man8/lsof.8.html",
+  "requires": { "elevation": "root", "note": "without root only your own processes are shown" },
+  "io": { "stdin": "none", "stdout": "text" },
+  "template": "{binary} {flags} {path}",
+  "params": [
+    { "id": "and", "label": "AND selections", "type": "bool", "flag": "-a", "explain": "all selections must match (AND)" },
+    { "id": "inet", "label": "Network files", "type": "bool", "flag": "-i", "common": true, "conflicts": ["remote", "port"], "explain": "network sockets" },
+    { "id": "remote", "label": "Address", "type": "string", "flag": "-i", "valuePrefix": "@", "repeatable": true, "repeat": { "mode": "flag", "flag": "-i" }, "conflicts": ["inet"], "ioc": ["ipv4", "ipv6", "domain"],
+      "bulk": { "multi": {} }, "placeholder": "198.51.100.23", "desc": "Connections to or from this host (sent to lsof as -i @host).", "explain": "connections involving {value}" },
+    { "id": "port", "label": "Port", "type": "int", "flag": "-i", "valuePrefix": ":", "repeatable": true, "repeat": { "mode": "flag", "flag": "-i" }, "conflicts": ["inet"], "explain": "port {value}" },
+    { "id": "numeric", "label": "No DNS", "type": "bool", "flag": "-n", "common": true, "explain": "numeric hosts" },
+    { "id": "numericPort", "label": "No port names", "type": "bool", "flag": "-P", "common": true, "explain": "numeric ports" },
+    { "id": "deleted", "label": "Deleted but open", "type": "bool", "flag": "+L1", "common": true, "explain": "files deleted from disk but still open" },
+    { "id": "pid", "label": "PID", "type": "int", "flag": "-p", "repeatable": true, "repeat": { "mode": "join", "sep": "," }, "explain": "process {value}" },
+    { "id": "user", "label": "User", "type": "string", "flag": "-u", "ioc": ["user"], "explain": "user {value}" },
+    { "id": "command", "label": "Command starts with", "type": "string", "flag": "-c", "ioc": ["process"], "explain": "commands starting with {value}" },
+    { "id": "path", "label": "File", "type": "path", "os": "linux", "slot": "path", "repeatable": true, "repeat": { "mode": "positional" }, "expand": true, "explain": "holding {value} open" }
+  ],
+  "presets": [
+    { "id": "deleted", "name": "Deleted files still open", "values": { "deleted": true }, "ttps": ["T1070.004"] },
+    { "id": "net", "name": "All network sockets, numeric", "values": { "inet": true, "numeric": true, "numericPort": true }, "ttps": ["T1049"] },
+    { "id": "ioc", "name": "Processes talking to an IOC host", "values": { "remote": "198.51.100.23", "numeric": true, "numericPort": true }, "ttps": ["T1071"] }
+  ],
+  "ttps": ["T1057", "T1049"]
+}

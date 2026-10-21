@@ -1,0 +1,89 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "sha256sum",
+  "name": "sha256sum",
+  "aliases": [
+    "hash",
+    "sha256"
+  ],
+  "kind": "native",
+  "shells": [
+    {
+      "id": "bash"
+    },
+    {
+      "id": "zsh"
+    }
+  ],
+  "category": "hashing",
+  "summary": "Computes or checks SHA-256 hashes.",
+  "action": "hashes files",
+  "description": "Prints hash and name per file. Pipe to grep -F with IOC hashes to find known-bad files.",
+  "source": "https://www.gnu.org/software/coreutils/manual/html_node/sha2-utilities.html",
+  "requires": {
+    "elevation": "recommended"
+  },
+  "io": {
+    "stdin": "text",
+    "stdout": "text"
+  },
+  "template": "{binary} {flags} {path}",
+  "params": [
+    {
+      "id": "check",
+      "label": "Check list",
+      "type": "path",
+      "os": "linux",
+      "flag": "-c",
+      "conflicts": [
+        "path",
+        "tag"
+      ],
+      "placeholder": "hashes.sha256",
+      "explain": "verifying hashes listed in {value}"
+    },
+    {
+      "id": "tag",
+      "label": "BSD format",
+      "type": "bool",
+      "flag": "--tag",
+      "explain": "BSD-style output"
+    },
+    {
+      "id": "path",
+      "label": "Files",
+      "type": "path",
+      "os": "linux",
+      "slot": "path",
+      "repeatable": true,
+      "repeat": {
+        "mode": "positional"
+      },
+      "expand": true,
+      "common": true,
+      "conflicts": [
+        "check"
+      ],
+      "explain": "of {value}"
+    }
+  ],
+  "presets": [
+    {
+      "id": "tmp",
+      "name": "Hash files in temp and shm",
+      "values": {
+        "path": [
+          "/tmp/*",
+          "/var/tmp/*",
+          "/dev/shm/*"
+        ]
+      },
+      "ttps": [
+        "T1105"
+      ],
+      "opsec": "Globs skip hidden files; add /tmp/.* for those."
+    }
+  ],
+  "ttps": [],
+  "execSafe": true
+}

@@ -1,0 +1,33 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "get-nettcpconnection",
+  "name": "Get-NetTCPConnection",
+  "aliases": ["netstat", "connections", "sockets"],
+  "kind": "cmdlet",
+  "shells": [{ "id": "powershell" }],
+  "category": "network",
+  "summary": "Lists TCP connections as objects, with the owning PID.",
+  "action": "lists TCP connections",
+  "description": "NetTCPIP module (Windows 8 / Server 2012 and later). Pair OwningProcess with Get-Process -Id to name the process.",
+  "source": "https://learn.microsoft.com/powershell/module/nettcpip/get-nettcpconnection",
+  "requires": { "elevation": "none", "module": "NetTCPIP" },
+  "io": { "stdin": "none", "stdout": "objects" },
+  "template": "{binary} {flags}",
+  "params": [
+    { "id": "state", "label": "State", "type": "enum", "flag": "-State", "common": true, "repeatable": true, "repeat": { "mode": "join", "sep": "," },
+      "enum": ["Established", "Listen", "SynSent", "SynReceived", "TimeWait", "CloseWait", "Closed", "Bound"], "explain": "in state {value}" },
+    { "id": "remoteAddress", "label": "Remote address", "type": "string", "flag": "-RemoteAddress", "common": true, "repeatable": true, "repeat": { "mode": "join", "sep": "," }, "ioc": ["ipv4", "ipv6"],
+      "validate": "^[0-9A-Fa-f:.]+$", "validateMsg": "an IP address", "bulk": { "multi": {} }, "placeholder": "198.51.100.23", "explain": "to {value}" },
+    { "id": "remotePort", "label": "Remote port", "type": "int", "flag": "-RemotePort", "repeatable": true, "repeat": { "mode": "join", "sep": "," }, "explain": "remote port {value}" },
+    { "id": "localPort", "label": "Local port", "type": "int", "flag": "-LocalPort", "repeatable": true, "repeat": { "mode": "join", "sep": "," }, "explain": "local port {value}" },
+    { "id": "owningProcess", "label": "PID", "type": "int", "flag": "-OwningProcess", "repeatable": true, "repeat": { "mode": "join", "sep": "," }, "explain": "owned by PID {value}" },
+    { "id": "errorAction", "label": "On error", "type": "enum", "flag": "-ErrorAction", "enum": ["SilentlyContinue", "Stop", "Continue"], "explain": "on error: {value}" }
+  ],
+  "presets": [
+    { "id": "established", "name": "Established connections", "values": { "state": "Established" }, "ttps": ["T1049", "T1071"] },
+    { "id": "listening", "name": "Listening ports", "values": { "state": "Listen" }, "ttps": ["T1049", "T1571"] },
+    { "id": "to-ioc", "name": "Connections to an IOC address", "values": { "remoteAddress": "198.51.100.23", "errorAction": "SilentlyContinue" }, "ttps": ["T1071"] }
+  ],
+  "properties": { "LocalAddress": {}, "LocalPort": {}, "RemoteAddress": {}, "RemotePort": {}, "State": {}, "OwningProcess": {}, "CreationTime": {} },
+  "ttps": ["T1049"]
+}

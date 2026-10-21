@@ -1,0 +1,116 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "xargs",
+  "name": "xargs",
+  "aliases": [
+    "for each",
+    "batch",
+    "pipe to command"
+  ],
+  "kind": "native",
+  "shells": [
+    {
+      "id": "bash"
+    },
+    {
+      "id": "zsh"
+    }
+  ],
+  "category": "pipeline",
+  "summary": "Builds and runs a command from items read on standard input.",
+  "action": "runs a command per batch of input",
+  "description": "Pairs with find -print0 or a list on stdin. -0 splits on NUL so names with spaces are safe; -I{} puts each item at a chosen spot. Only read-only commands are offered here.",
+  "source": "https://www.gnu.org/software/findutils/manual/html_mono/find.html#xargs-options",
+  "requires": {
+    "elevation": "none"
+  },
+  "io": {
+    "stdin": "text",
+    "stdout": "text"
+  },
+  "template": "{binary} {flags} {cmd}",
+  "params": [
+    {
+      "id": "null",
+      "label": "NUL-separated input",
+      "type": "bool",
+      "flag": "-0",
+      "common": true,
+      "explain": "reading NUL-separated items (pair with find -print0)"
+    },
+    {
+      "id": "replace",
+      "label": "Placeholder",
+      "type": "string",
+      "flag": "-I",
+      "flagStyle": "attached",
+      "common": true,
+      "placeholder": "{}",
+      "desc": "Replace this token with each item; implies one run per item.",
+      "explain": "putting each item where {value} appears"
+    },
+    {
+      "id": "maxArgs",
+      "label": "Items per run",
+      "type": "int",
+      "min": 1,
+      "flag": "-n",
+      "explain": "at most {value} items per run"
+    },
+    {
+      "id": "maxProcs",
+      "label": "Parallel runs",
+      "type": "int",
+      "min": 1,
+      "flag": "-P",
+      "explain": "up to {value} runs in parallel"
+    },
+    {
+      "id": "verbose",
+      "label": "Print each command",
+      "type": "bool",
+      "flag": "-t",
+      "explain": "printing each command before running it"
+    },
+    {
+      "id": "noRunEmpty",
+      "label": "Skip if no input",
+      "type": "bool",
+      "flag": "-r",
+      "common": true,
+      "explain": "not running at all when the input is empty"
+    },
+    {
+      "id": "cmd",
+      "label": "Command to run",
+      "type": "command",
+      "slot": "cmd",
+      "required": true,
+      "common": true,
+      "nest": {
+        "kind": "prefix",
+        "toolFilter": "exec-safe"
+      },
+      "desc": "The read-only command each batch of input is handed to.",
+      "explain": "running {value}"
+    }
+  ],
+  "presets": [
+    {
+      "id": "hash",
+      "name": "Hash a NUL-separated file list",
+      "values": {
+        "null": true,
+        "noRunEmpty": true,
+        "cmd": {
+          "tool": "sha256sum",
+          "values": {}
+        }
+      },
+      "ttps": [
+        "T1105"
+      ]
+    }
+  ],
+  "ttps": []
+}

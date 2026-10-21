@@ -1,0 +1,36 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "journalctl",
+  "name": "journalctl",
+  "aliases": ["systemd journal", "logs"],
+  "kind": "native",
+  "shells": [{ "id": "bash" }, { "id": "zsh" }],
+  "category": "logs",
+  "summary": "Queries the systemd journal.",
+  "action": "reads the systemd journal",
+  "description": "Filters by unit, syslog identifier, priority and time; --no-pager makes the output safe to pipe or redirect.",
+  "source": "https://www.freedesktop.org/software/systemd/man/latest/journalctl.html",
+  "requires": { "elevation": "recommended", "note": "full system journal needs root or the systemd-journal / adm group" },
+  "io": { "stdin": "none", "stdout": "text" },
+  "template": "{binary} {flags}",
+  "params": [
+    { "id": "unit", "label": "Unit", "type": "string", "flag": "-u", "repeatable": true, "repeat": { "mode": "flag", "flag": "-u" }, "common": true, "placeholder": "ssh.service", "explain": "from unit {value}" },
+    { "id": "ident", "label": "Identifier", "type": "string", "flag": "-t", "repeatable": true, "repeat": { "mode": "flag", "flag": "-t" }, "common": true, "placeholder": "sudo", "desc": "Syslog identifier (program name): sudo, sshd, CRON.", "explain": "from {value}" },
+    { "id": "since", "label": "Since", "type": "datetime", "flag": "--since", "encode": "systemd-time", "common": true, "placeholder": "24h", "explain": "{value}" },
+    { "id": "until", "label": "Until", "type": "datetime", "flag": "--until", "encode": "systemd-time", "placeholder": "2026-10-02", "explain": "until {value}" },
+    { "id": "priority", "label": "Priority", "type": "enum", "flag": "-p", "enum": ["emerg", "alert", "crit", "err", "warning", "notice", "info", "debug"], "explain": "priority {value} or worse" },
+    { "id": "grep", "label": "Message matches", "type": "regex", "regexDialect": "ere", "flag": "-g", "ioc": "*", "desc": "PCRE2 match on the message (systemd 237+).", "explain": "message matching {value}" },
+    { "id": "kernel", "label": "Kernel only", "type": "bool", "flag": "-k", "explain": "kernel messages" },
+    { "id": "boot", "label": "This boot", "type": "bool", "flag": "-b", "explain": "since the last boot" },
+    { "id": "output", "label": "Format", "type": "enum", "flag": "-o", "common": true, "enum": ["short-iso", "short-full", "json", "cat", "verbose"], "explain": "as {value}" },
+    { "id": "lines", "label": "Last N", "type": "int", "min": 1, "flag": "-n", "explain": "last {value} entries" },
+    { "id": "reverse", "label": "Newest first", "type": "bool", "flag": "-r", "explain": "newest first" },
+    { "id": "noPager", "label": "No pager", "type": "bool", "flag": "--no-pager", "common": true, "default": true, "explain": "without the pager" }
+  ],
+  "presets": [
+    { "id": "sudo-24h", "name": "sudo use in the last 24h", "values": { "ident": "sudo", "since": "24h", "output": "short-iso", "noPager": true }, "ttps": ["T1548.003"] },
+    { "id": "ssh-24h", "name": "SSH service log, last 24h", "values": { "unit": ["ssh.service", "sshd.service"], "since": "24h", "output": "short-iso", "noPager": true }, "ttps": ["T1021.004", "T1110"] },
+    { "id": "new-services", "name": "Units started this boot", "values": { "boot": true, "grep": "Started |Created slice", "output": "short-iso", "noPager": true }, "ttps": ["T1543.002", "T1053.006"] }
+  ],
+  "ttps": []
+}

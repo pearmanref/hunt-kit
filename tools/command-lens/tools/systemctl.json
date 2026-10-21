@@ -1,0 +1,35 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "systemctl",
+  "name": "systemctl",
+  "aliases": ["services", "units", "systemd", "init.d", "timers"],
+  "kind": "native",
+  "shells": [{ "id": "bash" }, { "id": "zsh" }],
+  "category": "persistence",
+  "summary": "Lists and shows systemd units (read-only subcommands only).",
+  "action": "queries systemd",
+  "description": "list-unit-files --state=generated shows units systemd built from /etc/init.d scripts (SysV), which is where init-script persistence surfaces on systemd hosts. cat prints a unit with its drop-ins, the place to check ExecStart. Start/stop/enable are deliberately not offered.",
+  "source": "https://www.freedesktop.org/software/systemd/man/latest/systemctl.html",
+  "requires": { "elevation": "none" },
+  "io": { "stdin": "none", "stdout": "text" },
+  "template": "{binary} {command} {flags} {unit}",
+  "params": [
+    { "id": "command", "label": "Subcommand", "type": "enum", "slot": "command", "required": true, "common": true, "default": "list-unit-files",
+      "enum": [{ "value": "list-unit-files", "label": "list-unit-files (installed units)" }, { "value": "list-units", "label": "list-units (loaded units)" }, { "value": "list-timers", "label": "list-timers" }, { "value": "status", "label": "status" }, { "value": "cat", "label": "cat (unit file + drop-ins)" }],
+      "explain": "{value}" },
+    { "id": "type", "label": "Type", "type": "enum", "flag": "--type", "flagStyle": "equals", "common": true, "enum": ["service", "timer", "socket", "path", "mount", "target"], "explain": "{value} units" },
+    { "id": "state", "label": "State", "type": "enum", "flag": "--state", "flagStyle": "equals", "common": true, "enum": ["enabled", "disabled", "generated", "static", "masked", "running", "failed", "active", "inactive"], "explain": "in state {value}" },
+    { "id": "all", "label": "All", "type": "bool", "flag": "--all", "explain": "including inactive units" },
+    { "id": "full", "label": "Untruncated", "type": "bool", "flag": "--full", "explain": "without truncating names" },
+    { "id": "noPager", "label": "No pager", "type": "bool", "flag": "--no-pager", "common": true, "default": true, "explain": "without the pager" },
+    { "id": "noLegend", "label": "No legend", "type": "bool", "flag": "--no-legend", "explain": "without header and footer" },
+    { "id": "unit", "label": "Unit", "type": "string", "slot": "unit", "repeatable": true, "repeat": { "mode": "positional" }, "placeholder": "ssh.service", "explain": "{value}" }
+  ],
+  "presets": [
+    { "id": "generated", "name": "Units generated from /etc/init.d scripts", "values": { "command": "list-unit-files", "state": "generated", "noPager": true }, "ttps": ["T1037.004"] },
+    { "id": "enabled-services", "name": "Enabled services", "values": { "command": "list-unit-files", "type": "service", "state": "enabled", "noPager": true }, "ttps": ["T1543.002"] },
+    { "id": "running-services", "name": "Running services", "values": { "command": "list-units", "type": "service", "state": "running", "full": true, "noPager": true }, "ttps": ["T1543.002", "T1007"] },
+    { "id": "timers", "name": "All timers", "values": { "command": "list-timers", "all": true, "noPager": true }, "ttps": ["T1053.006"] }
+  ],
+  "ttps": ["T1007"]
+}

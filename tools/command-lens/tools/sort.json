@@ -1,0 +1,26 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "sort",
+  "name": "sort",
+  "aliases": ["order"],
+  "kind": "native",
+  "shells": [{ "id": "bash" }, { "id": "zsh" }],
+  "category": "text",
+  "summary": "Sorts lines.",
+  "action": "sorts the lines",
+  "description": "Pipeline glue. sort | uniq -c | sort -rn is the classic frequency count.",
+  "source": "https://www.gnu.org/software/coreutils/manual/html_node/sort-invocation.html",
+  "requires": { "elevation": "none" },
+  "io": { "stdin": "text", "stdout": "text" },
+  "template": "{binary} {flags} {path}",
+  "params": [
+    { "id": "numeric", "label": "Numeric", "type": "bool", "flag": "-n", "common": true, "explain": "numerically" },
+    { "id": "reverse", "label": "Reverse", "type": "bool", "flag": "-r", "common": true, "explain": "largest first" },
+    { "id": "unique", "label": "Unique", "type": "bool", "flag": "-u", "common": true, "explain": "dropping duplicates" },
+    { "id": "key", "label": "Key", "type": "string", "flag": "-k", "validate": "^\\d+(\\.\\d+)?[bdfgiMhnRrV]*(,\\d+(\\.\\d+)?[bdfgiMhnRrV]*)?$", "validateMsg": "e.g. 2 or 2,2 or 3n", "explain": "by field {value}" },
+    { "id": "sep", "label": "Field separator", "type": "string", "flag": "-t", "validate": "^.$", "validateMsg": "one character", "explain": "fields split on {value}" },
+    { "id": "path", "label": "Files", "type": "path", "os": "linux", "slot": "path", "repeatable": true, "repeat": { "mode": "positional" }, "expand": true, "explain": "reading {value}" }
+  ],
+  "presets": [],
+  "ttps": []
+}

@@ -1,0 +1,685 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "grep",
+  "name": "grep",
+  "aliases": [
+    "egrep",
+    "fgrep",
+    "search text"
+  ],
+  "kind": "native",
+  "shells": [
+    {
+      "id": "bash"
+    },
+    {
+      "id": "zsh"
+    }
+  ],
+  "category": "search",
+  "summary": "Prints the lines of files or input that match a pattern.",
+  "action": "keeps lines that match",
+  "description": "Line-oriented text search. Reads the named files (or standard input in a pipeline) and prints matching lines. Fixed-string mode (-F) is the safe choice for IOCs, because in a regex a dot matches any character.",
+  "source": "https://www.gnu.org/software/grep/manual/grep.html",
+  "requires": {
+    "elevation": "none",
+    "note": "reading most of /var/log needs root or the adm group"
+  },
+  "io": {
+    "stdin": "text",
+    "stdout": "text"
+  },
+  "template": "{binary} {flags} {pattern} {path}",
+  "endOfOptions": "--",
+  "params": [
+    {
+      "id": "pattern",
+      "label": "Pattern",
+      "type": "regex",
+      "regexDialect": "ere",
+      "slot": "pattern",
+      "required": true,
+      "common": true,
+      "repeatable": true,
+      "repeat": {
+        "mode": "flag",
+        "flag": "-e"
+      },
+      "ioc": "*",
+      "bulk": {
+        "multi": {
+          "set": {
+            "fixed": true,
+            "extended": false
+          }
+        },
+        "alternation": {
+          "dialect": "ere",
+          "set": {
+            "extended": true,
+            "fixed": false
+          }
+        },
+        "loop": {
+          "set": {
+            "fixed": true,
+            "extended": false
+          }
+        },
+        "lines": {
+          "set": {
+            "fixed": true,
+            "extended": false
+          }
+        }
+      },
+      "desc": "Text or regular expression to find. Several values are matched as alternatives.",
+      "explain": "matching {value}",
+      "requiredUnless": [
+        "patternFile"
+      ]
+    },
+    {
+      "id": "fixed",
+      "label": "Fixed strings",
+      "type": "bool",
+      "flag": {
+        "short": "-F",
+        "long": "--fixed-strings"
+      },
+      "common": true,
+      "conflicts": [
+        "extended",
+        "perl",
+        "basic"
+      ],
+      "desc": "Treat the pattern as plain text, not a regex.",
+      "explain": "pattern is plain text"
+    },
+    {
+      "id": "extended",
+      "label": "Extended regex",
+      "type": "bool",
+      "flag": {
+        "short": "-E",
+        "long": "--extended-regexp"
+      },
+      "common": true,
+      "conflicts": [
+        "fixed",
+        "perl",
+        "basic"
+      ],
+      "desc": "Use extended regular expressions (| + ? ( ) without backslashes).",
+      "explain": "pattern is an extended regex"
+    },
+    {
+      "id": "ignoreCase",
+      "label": "Ignore case",
+      "type": "bool",
+      "flag": {
+        "short": "-i",
+        "long": "--ignore-case"
+      },
+      "common": true,
+      "explain": "ignoring case"
+    },
+    {
+      "id": "invert",
+      "label": "Invert match",
+      "type": "bool",
+      "flag": {
+        "short": "-v",
+        "long": "--invert-match"
+      },
+      "common": true,
+      "explain": "keeping only lines that do NOT match"
+    },
+    {
+      "id": "recursive",
+      "label": "Recursive",
+      "type": "bool",
+      "flag": {
+        "short": "-r",
+        "long": "--recursive"
+      },
+      "common": true,
+      "conflicts": [
+        "recursiveFollow"
+      ],
+      "explain": "searching every file under the path"
+    },
+    {
+      "id": "recursiveFollow",
+      "label": "Recursive, follow symlinks",
+      "type": "bool",
+      "flag": {
+        "short": "-R",
+        "long": "--dereference-recursive"
+      },
+      "conflicts": [
+        "recursive"
+      ],
+      "explain": "searching recursively and following symlinks"
+    },
+    {
+      "id": "lineNumber",
+      "label": "Line numbers",
+      "type": "bool",
+      "flag": {
+        "short": "-n",
+        "long": "--line-number"
+      },
+      "common": true,
+      "explain": "with line numbers"
+    },
+    {
+      "id": "withFilename",
+      "label": "Show file name",
+      "type": "bool",
+      "flag": {
+        "short": "-H",
+        "long": "--with-filename"
+      },
+      "explain": "with the file name on each line"
+    },
+    {
+      "id": "filesOnly",
+      "label": "File names only",
+      "type": "bool",
+      "flag": {
+        "short": "-l",
+        "long": "--files-with-matches"
+      },
+      "conflicts": [
+        "count"
+      ],
+      "explain": "printing only names of files that match"
+    },
+    {
+      "id": "count",
+      "label": "Count",
+      "type": "bool",
+      "flag": {
+        "short": "-c",
+        "long": "--count"
+      },
+      "conflicts": [
+        "filesOnly"
+      ],
+      "explain": "printing a match count per file"
+    },
+    {
+      "id": "onlyMatching",
+      "label": "Only the match",
+      "type": "bool",
+      "flag": {
+        "short": "-o",
+        "long": "--only-matching"
+      },
+      "explain": "printing only the matched part"
+    },
+    {
+      "id": "word",
+      "label": "Whole words",
+      "type": "bool",
+      "flag": {
+        "short": "-w",
+        "long": "--word-regexp"
+      },
+      "explain": "whole words only"
+    },
+    {
+      "id": "text",
+      "label": "Binary as text",
+      "type": "bool",
+      "flag": {
+        "short": "-a",
+        "long": "--text"
+      },
+      "explain": "reading binary files as text"
+    },
+    {
+      "id": "noMessages",
+      "label": "Hide file errors",
+      "type": "bool",
+      "flag": {
+        "short": "-s",
+        "long": "--no-messages"
+      },
+      "explain": "hiding unreadable-file errors"
+    },
+    {
+      "id": "include",
+      "label": "Only files named",
+      "type": "string",
+      "flag": {
+        "short": "--include",
+        "long": "--include"
+      },
+      "flagStyle": "equals",
+      "repeatable": true,
+      "repeat": {
+        "mode": "flag",
+        "flag": "--include"
+      },
+      "placeholder": "*.log",
+      "desc": "Glob for file names to search when recursive.",
+      "explain": "only in files named {value}",
+      "choices": [
+        {
+          "label": "*.php",
+          "value": "*.php"
+        },
+        {
+          "label": "*.log",
+          "value": "*.log"
+        },
+        {
+          "label": "*.conf",
+          "value": "*.conf"
+        },
+        {
+          "label": "*.sh",
+          "value": "*.sh"
+        },
+        {
+          "label": "*.py",
+          "value": "*.py"
+        }
+      ]
+    },
+    {
+      "id": "maxCount",
+      "label": "Stop after N matches",
+      "type": "int",
+      "min": 1,
+      "flag": {
+        "short": "-m",
+        "long": "--max-count"
+      },
+      "explain": "stopping after {value} matches per file"
+    },
+    {
+      "id": "after",
+      "label": "Lines after",
+      "type": "int",
+      "min": 0,
+      "flag": {
+        "short": "-A",
+        "long": "--after-context"
+      },
+      "explain": "plus {value} lines after each match"
+    },
+    {
+      "id": "before",
+      "label": "Lines before",
+      "type": "int",
+      "min": 0,
+      "flag": {
+        "short": "-B",
+        "long": "--before-context"
+      },
+      "explain": "plus {value} lines before each match"
+    },
+    {
+      "id": "context",
+      "label": "Lines around",
+      "type": "int",
+      "min": 0,
+      "flag": {
+        "short": "-C",
+        "long": "--context"
+      },
+      "explain": "plus {value} lines around each match"
+    },
+    {
+      "id": "perl",
+      "label": "Perl regex (PCRE)",
+      "type": "bool",
+      "flag": {
+        "short": "-P",
+        "long": "--perl-regexp"
+      },
+      "conflicts": [
+        "fixed",
+        "extended",
+        "basic"
+      ],
+      "explain": "pattern is a Perl-compatible regex (\\\\d, \\\\b, lookaround)"
+    },
+    {
+      "id": "basic",
+      "label": "Basic regex",
+      "type": "bool",
+      "flag": {
+        "short": "-G",
+        "long": "--basic-regexp"
+      },
+      "conflicts": [
+        "fixed",
+        "extended",
+        "perl"
+      ],
+      "explain": "pattern is a basic regex (+ ? | need backslashes)"
+    },
+    {
+      "id": "lineRegexp",
+      "label": "Whole line",
+      "type": "bool",
+      "flag": {
+        "short": "-x",
+        "long": "--line-regexp"
+      },
+      "explain": "only when the whole line matches"
+    },
+    {
+      "id": "filesWithout",
+      "label": "Files WITHOUT a match",
+      "type": "bool",
+      "flag": {
+        "short": "-L",
+        "long": "--files-without-match"
+      },
+      "conflicts": [
+        "filesOnly",
+        "count"
+      ],
+      "explain": "printing names of files with no match"
+    },
+    {
+      "id": "noFilename",
+      "label": "Hide file name",
+      "type": "bool",
+      "flag": {
+        "short": "-h",
+        "long": "--no-filename"
+      },
+      "conflicts": [
+        "withFilename"
+      ],
+      "explain": "without the file name prefix"
+    },
+    {
+      "id": "quiet",
+      "label": "Quiet (exit status only)",
+      "type": "bool",
+      "flag": {
+        "short": "-q",
+        "long": "--quiet"
+      },
+      "explain": "printing nothing; useful in && / ||"
+    },
+    {
+      "id": "byteOffset",
+      "label": "Byte offset",
+      "type": "bool",
+      "flag": {
+        "short": "-b",
+        "long": "--byte-offset"
+      },
+      "explain": "with each match’s byte offset"
+    },
+    {
+      "id": "nullData",
+      "label": "NUL-separated input",
+      "type": "bool",
+      "flag": {
+        "short": "-z",
+        "long": "--null-data"
+      },
+      "explain": "treating input as NUL-separated records, not lines"
+    },
+    {
+      "id": "nullName",
+      "label": "NUL after file name",
+      "type": "bool",
+      "flag": {
+        "short": "-Z",
+        "long": "--null"
+      },
+      "explain": "a NUL after each file name (pair with xargs -0)"
+    },
+    {
+      "id": "skipBinary",
+      "label": "Skip binary files",
+      "type": "bool",
+      "flag": {
+        "short": "-I"
+      },
+      "explain": "not searching binary files"
+    },
+    {
+      "id": "excludeDir",
+      "label": "Skip directories",
+      "type": "string",
+      "flag": {
+        "short": "--exclude-dir",
+        "long": "--exclude-dir"
+      },
+      "flagStyle": "equals",
+      "repeatable": true,
+      "repeat": {
+        "mode": "flag",
+        "flag": "--exclude-dir"
+      },
+      "placeholder": ".git",
+      "explain": "skipping directories named {value}"
+    },
+    {
+      "id": "exclude",
+      "label": "Skip files named",
+      "type": "string",
+      "flag": {
+        "short": "--exclude",
+        "long": "--exclude"
+      },
+      "flagStyle": "equals",
+      "repeatable": true,
+      "repeat": {
+        "mode": "flag",
+        "flag": "--exclude"
+      },
+      "placeholder": "*.min.js",
+      "explain": "skipping files named {value}"
+    },
+    {
+      "id": "patternFile",
+      "label": "Patterns from file",
+      "type": "path",
+      "os": "linux",
+      "flag": {
+        "short": "-f",
+        "long": "--file"
+      },
+      "conflicts": [
+        "pattern"
+      ],
+      "placeholder": "iocs.txt",
+      "explain": "reading patterns from {value}"
+    },
+    {
+      "id": "color",
+      "label": "Highlight matches",
+      "type": "enum",
+      "flag": {
+        "short": "--color",
+        "long": "--color"
+      },
+      "flagStyle": "equals",
+      "enum": [
+        "always",
+        "never",
+        "auto"
+      ],
+      "explain": "colouring matches: {value}"
+    },
+    {
+      "id": "path",
+      "label": "Files / folders",
+      "type": "path",
+      "os": "linux",
+      "slot": "path",
+      "repeatable": true,
+      "repeat": {
+        "mode": "positional"
+      },
+      "expand": true,
+      "common": true,
+      "placeholder": "/var/log/auth.log",
+      "desc": "Files or folders to search. Leave empty when reading from a pipe.",
+      "explain": "in {value}"
+    }
+  ],
+  "presets": [
+    {
+      "id": "ssh-accepted",
+      "name": "Accepted SSH logins (auth.log)",
+      "values": {
+        "pattern": "Accepted (password|publickey)",
+        "extended": true,
+        "path": "/var/log/auth.log"
+      },
+      "ttps": [
+        "T1021.004",
+        "T1078"
+      ],
+      "opsec": "Read-only. On RHEL-family hosts the file is /var/log/secure; rotated files are auth.log.1 and *.gz (use zgrep)."
+    },
+    {
+      "id": "ssh-failed",
+      "name": "Failed SSH passwords (auth.log)",
+      "values": {
+        "pattern": "Failed password",
+        "fixed": true,
+        "path": "/var/log/auth.log"
+      },
+      "ttps": [
+        "T1110.001"
+      ]
+    },
+    {
+      "id": "ioc-in-logs",
+      "name": "IOC anywhere under /var/log",
+      "values": {
+        "pattern": "198.51.100.23",
+        "fixed": true,
+        "recursive": true,
+        "noMessages": true,
+        "path": "/var/log"
+      },
+      "ttps": [
+        "T1071"
+      ],
+      "opsec": "Recursive read of /var/log; can be slow on busy servers."
+    },
+    {
+      "id": "history-downloads",
+      "name": "Download commands in shell history",
+      "values": {
+        "pattern": "(curl|wget|scp|tftp) ",
+        "extended": true,
+        "withFilename": true,
+        "noMessages": true,
+        "path": [
+          "/root/.bash_history",
+          "/home/*/.bash_history"
+        ]
+      },
+      "ttps": [
+        "T1105",
+        "T1552.003"
+      ]
+    },
+    {
+      "id": "authorized-keys",
+      "name": "Keys in authorized_keys files",
+      "values": {
+        "pattern": "ssh-",
+        "fixed": true,
+        "withFilename": true,
+        "noMessages": true,
+        "path": [
+          "/root/.ssh/authorized_keys",
+          "/home/*/.ssh/authorized_keys"
+        ]
+      },
+      "ttps": [
+        "T1098.004"
+      ]
+    },
+    {
+      "id": "webshell-markers",
+      "name": "Web shell markers in PHP files",
+      "values": {
+        "pattern": "eval\\(|base64_decode|gzinflate|str_rot13|shell_exec|passthru|system\\(|assert\\(|proc_open|popen\\(",
+        "extended": true,
+        "ignoreCase": true,
+        "recursive": true,
+        "filesOnly": true,
+        "include": [
+          "*.php",
+          "*.phtml",
+          "*.php5"
+        ],
+        "path": "/var/www"
+      },
+      "ttps": [
+        "T1505.003"
+      ],
+      "opsec": "Legitimate frameworks use some of these; review hits by modification time and location."
+    },
+    {
+      "id": "creds-in-web",
+      "name": "Passwords in web app and config files",
+      "values": {
+        "pattern": "password|passwd|DB_PASS|secret",
+        "extended": true,
+        "ignoreCase": true,
+        "recursive": true,
+        "filesOnly": true,
+        "include": [
+          "*.php",
+          "*.env",
+          "*.conf",
+          "*.ini",
+          "*.yml"
+        ],
+        "path": "/var/www"
+      },
+      "ttps": [
+        "T1552.001"
+      ]
+    },
+    {
+      "id": "php-posts",
+      "name": "POST requests to .php in the access log",
+      "values": {
+        "pattern": "\"POST [^\"]*\\.php",
+        "extended": true,
+        "path": "/var/log/apache2/access.log"
+      },
+      "ttps": [
+        "T1505.003"
+      ]
+    },
+    {
+      "id": "unowned-packages",
+      "name": "Unowned files (after dpkg -S … 2>&1)",
+      "values": {
+        "pattern": "no path found",
+        "fixed": true
+      },
+      "ttps": [
+        "T1037.004"
+      ]
+    }
+  ],
+  "ttps": [
+    "T1083"
+  ],
+  "opsec": {
+    "writesDisk": false
+  },
+  "execSafe": true
+}

@@ -1,0 +1,246 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "select-string",
+  "name": "Select-String",
+  "aliases": [
+    "grep",
+    "sls",
+    "findstr",
+    "search text"
+  ],
+  "kind": "cmdlet",
+  "shells": [
+    {
+      "id": "powershell"
+    }
+  ],
+  "category": "search",
+  "summary": "Finds text in files or piped strings (PowerShell's grep).",
+  "action": "keeps lines that match",
+  "description": "Several -Pattern values are alternatives. -SimpleMatch turns off regex, the safe choice for IOCs. Piped objects are converted with ToString(), which for most objects is just the type name, so put Out-String -Stream in front of it.",
+  "source": "https://learn.microsoft.com/powershell/module/microsoft.powershell.utility/select-string",
+  "requires": {
+    "elevation": "none"
+  },
+  "io": {
+    "stdin": "text",
+    "stdout": "objects",
+    "accepts": [
+      "files"
+    ]
+  },
+  "template": "{binary} {flags}",
+  "params": [
+    {
+      "id": "pattern",
+      "label": "Pattern",
+      "type": "regex",
+      "regexDialect": "dotnet",
+      "flag": "-Pattern",
+      "required": true,
+      "common": true,
+      "repeatable": true,
+      "repeat": {
+        "mode": "join",
+        "sep": ","
+      },
+      "ioc": "*",
+      "bulk": {
+        "multi": {
+          "set": {
+            "simple": true
+          }
+        },
+        "alternation": {
+          "dialect": "dotnet",
+          "set": {
+            "simple": false
+          }
+        },
+        "loop": {
+          "set": {
+            "simple": true
+          }
+        },
+        "lines": {
+          "set": {
+            "simple": true
+          }
+        }
+      },
+      "explain": "matching {value}"
+    },
+    {
+      "id": "path",
+      "label": "Path",
+      "type": "path",
+      "os": "windows",
+      "flag": "-Path",
+      "literalFlag": "-LiteralPath",
+      "expand": true,
+      "common": true,
+      "repeatable": true,
+      "repeat": {
+        "mode": "join",
+        "sep": ","
+      },
+      "placeholder": "C:\\Windows\\System32\\LogFiles\\*.log",
+      "explain": "in {value}"
+    },
+    {
+      "id": "simple",
+      "label": "Plain text",
+      "type": "bool",
+      "flag": "-SimpleMatch",
+      "common": true,
+      "explain": "pattern is plain text"
+    },
+    {
+      "id": "caseSensitive",
+      "label": "Case-sensitive",
+      "type": "bool",
+      "flag": "-CaseSensitive",
+      "explain": "case-sensitive"
+    },
+    {
+      "id": "notMatch",
+      "label": "Invert",
+      "type": "bool",
+      "flag": "-NotMatch",
+      "common": true,
+      "explain": "keeping lines that do NOT match"
+    },
+    {
+      "id": "context",
+      "label": "Context lines",
+      "type": "string",
+      "flag": "-Context",
+      "validate": "^\\d+(,\\d+)?$",
+      "validateMsg": "N or before,after",
+      "explain": "with {value} lines of context"
+    },
+    {
+      "id": "list",
+      "label": "First match per file",
+      "type": "bool",
+      "flag": "-List",
+      "explain": "first match per file only"
+    },
+    {
+      "id": "allMatches",
+      "label": "All matches per line",
+      "type": "bool",
+      "flag": "-AllMatches",
+      "explain": "every match on each line"
+    },
+    {
+      "id": "raw",
+      "label": "Raw strings",
+      "type": "bool",
+      "flag": "-Raw",
+      "minVersion": "7",
+      "explain": "returning plain strings instead of MatchInfo objects"
+    }
+  ],
+  "presets": [
+    {
+      "id": "ps-history",
+      "name": "Download/exec in PSReadLine history",
+      "values": {
+        "pattern": [
+          "DownloadString",
+          "DownloadFile",
+          "Invoke-WebRequest",
+          "IEX",
+          "-enc"
+        ],
+        "simple": true,
+        "path": "%APPDATA%\\Microsoft\\Windows\\PowerShell\\PSReadLine\\ConsoleHost_history.txt"
+      },
+      "ttps": [
+        "T1059.001",
+        "T1105",
+        "T1552.003"
+      ]
+    },
+    {
+      "id": "ioc-logs",
+      "name": "IOC in IIS / HTTP logs",
+      "values": {
+        "pattern": "198.51.100.23",
+        "simple": true,
+        "path": "C:\\inetpub\\logs\\LogFiles\\*\\*.log"
+      },
+      "ttps": [
+        "T1071.001",
+        "T1505.003"
+      ]
+    },
+    {
+      "id": "webshell-markers",
+      "name": "Web shell markers (first hit per file)",
+      "values": {
+        "pattern": [
+          "eval(",
+          "base64_decode",
+          "gzinflate",
+          "str_rot13",
+          "shell_exec",
+          "passthru",
+          "system(",
+          "assert(",
+          "proc_open",
+          "popen("
+        ],
+        "simple": true,
+        "list": true,
+        "path": [
+          "C:\\inetpub\\wwwroot\\*.php",
+          "C:\\inetpub\\wwwroot\\*.aspx"
+        ]
+      },
+      "ttps": [
+        "T1505.003"
+      ],
+      "opsec": "Pipe Get-ChildItem -Recurse into it for whole trees (leave Path empty)."
+    },
+    {
+      "id": "password-strings",
+      "name": "Password strings (first hit per file)",
+      "values": {
+        "pattern": [
+          "password=",
+          "password:",
+          "pwd=",
+          "connectionString",
+          "DB_PASSWORD"
+        ],
+        "simple": true,
+        "list": true
+      },
+      "ttps": [
+        "T1552.001"
+      ],
+      "opsec": "Pipe Get-ChildItem (config-files preset) into it."
+    },
+    {
+      "id": "php-posts",
+      "name": "POST requests to .php in IIS logs",
+      "values": {
+        "pattern": " POST /[^ ]*\\.php",
+        "path": "C:\\inetpub\\logs\\LogFiles\\*\\*.log"
+      },
+      "ttps": [
+        "T1505.003"
+      ]
+    }
+  ],
+  "properties": {
+    "Line": {},
+    "Path": {},
+    "LineNumber": {},
+    "Filename": {},
+    "Matches": {}
+  },
+  "ttps": []
+}

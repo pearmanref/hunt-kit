@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pearmanref.github.io/command-lens/schema/workspace.schema.json",
+  "title": "Command Lens workspace export",
+  "description": "Everything the app keeps in the browser, in one file. schemaVersion drives migrations in js/state.js.",
+  "type": "object",
+  "required": ["app", "schemaVersion"],
+  "properties": {
+    "app": { "enum": ["command-lens"] },
+    "schemaVersion": { "type": "number", "minimum": 1 },
+    "exported": { "type": "string" },
+    "settings": { "type": "object" },
+    "history": { "type": "array", "items": { "type": "object", "required": ["id", "ts", "state", "text"] } },
+    "recipes": { "type": "array", "items": { "type": "object", "required": ["id", "name", "state", "vars"] } },
+    "iocSets": { "type": "array", "items": { "type": "object", "required": ["id", "name", "items"] } },
+    "userPaths": { "type": "array", "items": { "type": "object" } },
+    "userTools": { "type": "array", "items": { "type": "object" } },
+    "userShells": { "type": "array", "items": { "type": "object" } }
+  }
+}

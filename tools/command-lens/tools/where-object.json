@@ -1,0 +1,45 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "where-object",
+  "name": "Where-Object",
+  "aliases": ["where", "filter"],
+  "kind": "cmdlet",
+  "shells": [{ "id": "powershell" }],
+  "category": "pipeline",
+  "summary": "Keeps the objects whose property passes a comparison.",
+  "action": "keeps objects",
+  "description": "Uses the simplified syntax (-Property Name -Like -Value 'x'), which needs no script block and so no nested quoting. -In tests membership in a list, which is how a whole IOC set is matched.",
+  "source": "https://learn.microsoft.com/powershell/module/microsoft.powershell.core/where-object",
+  "requires": { "elevation": "none" },
+  "io": { "stdin": "objects", "stdout": "objects" },
+  "template": "{binary} {flags}",
+  "params": [
+    { "id": "property", "label": "Property", "type": "string", "flag": "-Property", "required": true, "common": true, "validate": "^[A-Za-z_][A-Za-z0-9_]*$", "validateMsg": "a property name", "placeholder": "Message", "explain": "where {value}" },
+    { "id": "op", "label": "Comparison", "type": "enum", "asFlag": true, "required": true, "common": true, "default": "-Like",
+      "enum": [
+        { "value": "-EQ", "label": "equals" }, { "value": "-NE", "label": "does not equal" },
+        { "value": "-Like", "label": "is like (wildcards)" }, { "value": "-NotLike", "label": "is not like" },
+        { "value": "-Match", "label": "matches regex" }, { "value": "-NotMatch", "label": "does not match regex" },
+        { "value": "-In", "label": "is one of" }, { "value": "-NotIn", "label": "is none of" },
+        { "value": "-Contains", "label": "contains item" },
+        { "value": "-GT", "label": "is greater than" }, { "value": "-GE", "label": "is at least" },
+        { "value": "-LT", "label": "is less than" }, { "value": "-LE", "label": "is at most" }
+      ],
+      "explain": "{value}" },
+    { "id": "value", "label": "Value", "type": "string", "flag": "-Value", "common": true, "conflicts": ["valueTime"], "repeatable": true, "repeat": { "mode": "join", "sep": "," }, "ioc": "*",
+      "bulk": {
+        "multi": { "set": { "op": "-In" } },
+        "alternation": { "dialect": "dotnet", "set": { "op": "-Match" } },
+        "loop": { "set": { "op": "-EQ" } },
+        "lines": { "set": { "op": "-EQ" } }
+      },
+      "explain": "{value}" },
+    { "id": "valueTime", "label": "Value (time)", "type": "datetime", "flag": "-Value", "encode": "ps-date", "conflicts": ["value"], "placeholder": "24h", "explain": "the time {value}" }
+  ],
+  "presets": [
+    { "id": "msg-ioc", "name": "Message contains an IOC (regex)", "values": { "property": "Message", "op": "-Match", "value": "198\\.51\\.100\\.23" } },
+    { "id": "recent", "name": "Written in the last 24h", "values": { "property": "LastWriteTime", "op": "-GT", "valueTime": "24h" } },
+    { "id": "not-ms-task", "name": "Task path outside \\Microsoft\\", "values": { "property": "TaskPath", "op": "-NotLike", "value": "\\Microsoft\\*" }, "ttps": ["T1053.005"] }
+  ],
+  "ttps": []
+}

@@ -1,0 +1,51 @@
+{
+  "$schema": "../schema/shell.schema.json",
+  "id": "powershell",
+  "order": 3,
+  "name": "PowerShell",
+  "os": "windows",
+  "versions": ["5.1", "7"],
+  "prompt": "PS>",
+  "highlight": "powershell",
+  "quoting": { "strategy": "powershell" },
+  "comment": { "token": "#", "interactive": true },
+  "continuation": "`",
+  "nullDevice": "$null",
+  "operators": [
+    { "id": "pipe", "symbol": "|", "kind": "pipe", "desc": "Pipe: objects from the left side become input to the right side." },
+    { "id": "seq", "symbol": ";", "kind": "seq", "desc": "Sequence: run the right side after the left, whatever the result." },
+    { "id": "and", "symbol": "&&", "kind": "and", "minVersion": "7", "fallback": "{left}; if ($?) { {right} }", "desc": "AND: run the right side only if the left side succeeded." },
+    { "id": "or", "symbol": "||", "kind": "or", "minVersion": "7", "fallback": "{left}; if (-not $?) { {right} }", "desc": "OR: run the right side only if the left side failed." }
+  ],
+  "redirections": [
+    { "id": "out", "symbol": ">", "target": "path", "desc": "Write output to a file, replacing it (5.1 writes UTF-16; use Out-File -Encoding for UTF-8)" },
+    { "id": "append", "symbol": ">>", "target": "path", "desc": "Append output to a file" },
+    { "id": "errout", "symbol": "2>&1", "target": null, "desc": "Merge errors into the output stream" },
+    { "id": "errnull", "symbol": "2>$null", "target": null, "desc": "Discard errors" },
+    { "id": "all", "symbol": "*>", "target": "path", "desc": "Write every stream (output, errors, warnings, verbose) to a file" }
+  ],
+  "loop": {
+    "template": "foreach ($ioc in @({items})) { {body} }",
+    "ref": "$ioc",
+    "refInString": "${ioc}",
+    "refExpr": "$ioc"
+  },
+  "groups": { "subexpression": ["$(", ")"], "scriptblock": ["& {", "}"] },
+  "aliasShadows": {
+    "ps": "Get-Process",
+    "gps": "Get-Process",
+    "ls": "Get-ChildItem",
+    "dir": "Get-ChildItem",
+    "gci": "Get-ChildItem",
+    "cat": "Get-Content",
+    "grep": "Select-String",
+    "sls": "Select-String",
+    "where": "Where-Object",
+    "select": "Select-Object",
+    "sort": "Sort-Object",
+    "netstat": { "is": "Get-NetTCPConnection", "note": "netstat.exe also runs here; Get-NetTCPConnection returns objects" },
+    "curl": { "is": "Invoke-WebRequest", "maxVersion": "5.1" },
+    "wget": { "is": "Invoke-WebRequest", "maxVersion": "5.1" },
+    "sc": { "is": "Set-Content", "maxVersion": "5.1" }
+  }
+}

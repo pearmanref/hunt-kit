@@ -1,0 +1,381 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "get-winevent",
+  "name": "Get-WinEvent",
+  "aliases": [
+    "event log",
+    "evtx",
+    "windows events"
+  ],
+  "kind": "cmdlet",
+  "shells": [
+    {
+      "id": "powershell"
+    }
+  ],
+  "category": "logs",
+  "summary": "Reads Windows event logs and .evtx files.",
+  "action": "reads Windows events",
+  "description": "Uses -FilterHashtable so filtering happens in the event log service, not in PowerShell: much faster than piping everything to Where-Object. A query that matches nothing raises an error; set ErrorAction to SilentlyContinue to keep a chain going.",
+  "source": "https://learn.microsoft.com/powershell/module/microsoft.powershell.diagnostics/get-winevent",
+  "requires": {
+    "elevation": "admin",
+    "note": "the Security log needs an elevated session"
+  },
+  "io": {
+    "stdin": "none",
+    "stdout": "objects"
+  },
+  "template": "{binary} {flags}",
+  "composites": [
+    {
+      "id": "filter",
+      "flag": "-FilterHashtable",
+      "wrap": [
+        "@{",
+        "}"
+      ],
+      "join": "; ",
+      "quote": "none",
+      "explain": "filter"
+    }
+  ],
+  "params": [
+    {
+      "id": "logName",
+      "label": "Log",
+      "type": "string",
+      "composite": "filter",
+      "fragment": "LogName={v}",
+      "encode": "ps-string",
+      "listJoin": ",",
+      "repeatable": true,
+      "common": true,
+      "conflicts": [
+        "path"
+      ],
+      "suggest": [
+        "Security",
+        "System",
+        "Application",
+        "Microsoft-Windows-Sysmon/Operational",
+        "Microsoft-Windows-PowerShell/Operational",
+        "Microsoft-Windows-TaskScheduler/Operational",
+        "Microsoft-Windows-TerminalServices-LocalSessionManager/Operational",
+        "Microsoft-Windows-Windows Defender/Operational"
+      ],
+      "explain": "log {value}"
+    },
+    {
+      "id": "path",
+      "label": ".evtx file",
+      "type": "path",
+      "os": "windows",
+      "composite": "filter",
+      "fragment": "Path={v}",
+      "encode": "ps-string",
+      "listJoin": ",",
+      "repeatable": true,
+      "conflicts": [
+        "logName"
+      ],
+      "placeholder": "C:\\Cases\\Security.evtx",
+      "explain": "from file {value}"
+    },
+    {
+      "id": "id",
+      "label": "Event ID",
+      "type": "int",
+      "composite": "filter",
+      "fragment": "Id={v}",
+      "listJoin": ",",
+      "repeatable": true,
+      "common": true,
+      "explain": "event ID {value}"
+    },
+    {
+      "id": "provider",
+      "label": "Provider",
+      "type": "string",
+      "composite": "filter",
+      "fragment": "ProviderName={v}",
+      "encode": "ps-string",
+      "listJoin": ",",
+      "repeatable": true,
+      "explain": "provider {value}"
+    },
+    {
+      "id": "start",
+      "label": "Start time",
+      "type": "datetime",
+      "composite": "filter",
+      "fragment": "StartTime={v}",
+      "encode": "ps-date",
+      "common": true,
+      "placeholder": "24h",
+      "explain": "{value}"
+    },
+    {
+      "id": "end",
+      "label": "End time",
+      "type": "datetime",
+      "composite": "filter",
+      "fragment": "EndTime={v}",
+      "encode": "ps-date",
+      "placeholder": "2026-10-02",
+      "explain": "until {value}"
+    },
+    {
+      "id": "level",
+      "label": "Level",
+      "type": "enum",
+      "composite": "filter",
+      "fragment": "Level={v}",
+      "enum": [
+        {
+          "value": "1",
+          "label": "Critical"
+        },
+        {
+          "value": "2",
+          "label": "Error"
+        },
+        {
+          "value": "3",
+          "label": "Warning"
+        },
+        {
+          "value": "4",
+          "label": "Information"
+        }
+      ],
+      "explain": "level {value}"
+    },
+    {
+      "id": "maxEvents",
+      "label": "Max events",
+      "type": "int",
+      "min": 1,
+      "flag": "-MaxEvents",
+      "common": true,
+      "explain": "at most {value} events"
+    },
+    {
+      "id": "oldest",
+      "label": "Oldest first",
+      "type": "bool",
+      "flag": "-Oldest",
+      "explain": "oldest first"
+    },
+    {
+      "id": "errorAction",
+      "label": "On error",
+      "type": "enum",
+      "flag": "-ErrorAction",
+      "enum": [
+        "SilentlyContinue",
+        "Stop",
+        "Continue"
+      ],
+      "explain": "on error: {value}"
+    }
+  ],
+  "presets": [
+    {
+      "id": "logons",
+      "name": "Logons and failures (4624/4625), last 24h",
+      "values": {
+        "logName": "Security",
+        "id": [
+          "4624",
+          "4625"
+        ],
+        "start": "24h"
+      },
+      "ttps": [
+        "T1078",
+        "T1110"
+      ]
+    },
+    {
+      "id": "new-service",
+      "name": "Service installed (7045)",
+      "values": {
+        "logName": "System",
+        "id": "7045",
+        "start": "7d"
+      },
+      "ttps": [
+        "T1543.003",
+        "T1569.002"
+      ]
+    },
+    {
+      "id": "task-created",
+      "name": "Scheduled task created or updated (4698/4702)",
+      "values": {
+        "logName": "Security",
+        "id": [
+          "4698",
+          "4702"
+        ],
+        "start": "7d"
+      },
+      "ttps": [
+        "T1053.005"
+      ]
+    },
+    {
+      "id": "proc-create",
+      "name": "Process creation (4688)",
+      "values": {
+        "logName": "Security",
+        "id": "4688",
+        "start": "24h"
+      },
+      "ttps": [
+        "T1059"
+      ],
+      "opsec": "4688 only has command lines when 'Include command line in process creation events' is enabled."
+    },
+    {
+      "id": "scriptblock",
+      "name": "PowerShell script blocks (4104)",
+      "values": {
+        "logName": "Microsoft-Windows-PowerShell/Operational",
+        "id": "4104",
+        "start": "24h"
+      },
+      "ttps": [
+        "T1059.001",
+        "T1027"
+      ]
+    },
+    {
+      "id": "log-cleared",
+      "name": "Security log cleared (1102)",
+      "values": {
+        "logName": "Security",
+        "id": "1102"
+      },
+      "ttps": [
+        "T1685.005"
+      ]
+    },
+    {
+      "id": "sysmon-proc",
+      "name": "Sysmon process create (1)",
+      "values": {
+        "logName": "Microsoft-Windows-Sysmon/Operational",
+        "id": "1",
+        "start": "24h"
+      },
+      "ttps": [
+        "T1059"
+      ]
+    },
+    {
+      "id": "sysmon-net",
+      "name": "Sysmon network connection (3)",
+      "values": {
+        "logName": "Microsoft-Windows-Sysmon/Operational",
+        "id": "3",
+        "start": "24h"
+      },
+      "ttps": [
+        "T1071"
+      ]
+    },
+    {
+      "id": "rdp",
+      "name": "RDP session logons (21/25)",
+      "values": {
+        "logName": "Microsoft-Windows-TerminalServices-LocalSessionManager/Operational",
+        "id": [
+          "21",
+          "25"
+        ],
+        "start": "7d"
+      },
+      "ttps": [
+        "T1021.001"
+      ]
+    },
+    {
+      "id": "task-scheduler-op",
+      "name": "Task Scheduler: registered, launched, ran (106/140/200/201)",
+      "values": {
+        "logName": "Microsoft-Windows-TaskScheduler/Operational",
+        "id": [
+          "106",
+          "140",
+          "200",
+          "201"
+        ],
+        "start": "30d"
+      },
+      "ttps": [
+        "T1053.005"
+      ]
+    },
+    {
+      "id": "service-installed-sec",
+      "name": "Service installed (Security 4697)",
+      "values": {
+        "logName": "Security",
+        "id": "4697",
+        "start": "30d"
+      },
+      "ttps": [
+        "T1543.003"
+      ],
+      "opsec": "Needs 'Audit Security System Extension'."
+    },
+    {
+      "id": "share-access",
+      "name": "Share access (5140/5145)",
+      "values": {
+        "logName": "Security",
+        "id": [
+          "5140",
+          "5145"
+        ],
+        "start": "7d"
+      },
+      "ttps": [
+        "T1021.002",
+        "T1074.002"
+      ],
+      "opsec": "Needs file share auditing; 5145 is very noisy."
+    },
+    {
+      "id": "logons-explicit",
+      "name": "Logons and explicit-credential logons (4624/4648)",
+      "values": {
+        "logName": "Security",
+        "id": [
+          "4624",
+          "4648"
+        ],
+        "start": "7d"
+      },
+      "ttps": [
+        "T1078"
+      ]
+    }
+  ],
+  "properties": {
+    "TimeCreated": {},
+    "Id": {},
+    "ProviderName": {},
+    "Message": {},
+    "MachineName": {},
+    "RecordId": {},
+    "LevelDisplayName": {},
+    "UserId": {}
+  },
+  "ttps": [],
+  "opsec": {
+    "note": "read-only; reading the Security log is itself not logged by default"
+  }
+}

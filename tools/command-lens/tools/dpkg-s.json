@@ -1,0 +1,26 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "dpkg-s",
+  "name": "dpkg -S",
+  "aliases": ["package owner", "dpkg", "which package"],
+  "kind": "native",
+  "shells": [{ "id": "bash" }, { "id": "zsh" }],
+  "binary": "dpkg",
+  "category": "persistence",
+  "summary": "Shows which installed package owns a file (Debian/Ubuntu).",
+  "action": "looks up the owning package",
+  "description": "Files no package owns print 'no path found matching pattern' on stderr. Redirect 2>&1 and grep for that to list unowned init scripts, cron files or binaries.",
+  "source": "https://man7.org/linux/man-pages/man1/dpkg.1.html",
+  "requires": { "elevation": "none", "os": "Debian family" },
+  "io": { "stdin": "none", "stdout": "text" },
+  "template": "{binary} -S {path}",
+  "fixedExplain": { "-S": "search installed packages for the files" },
+  "params": [
+    { "id": "path", "label": "Files", "type": "path", "os": "linux", "slot": "path", "repeatable": true, "repeat": { "mode": "positional" }, "expand": true, "required": true, "common": true, "placeholder": "/etc/init.d/*", "explain": "for {value}" }
+  ],
+  "presets": [
+    { "id": "init-d", "name": "Owners of /etc/init.d scripts", "values": { "path": "/etc/init.d/*" }, "ttps": ["T1037.004"] },
+    { "id": "cron", "name": "Owners of system cron files", "values": { "path": ["/etc/cron.d/*", "/etc/cron.daily/*", "/etc/cron.hourly/*"] }, "ttps": ["T1053.003"] }
+  ],
+  "ttps": []
+}

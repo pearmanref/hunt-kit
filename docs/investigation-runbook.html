@@ -1,0 +1,313 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Two-Host Investigation Runbook</title><link rel="stylesheet" href="../assets/site.css"></head><body data-base="../" class="doc">
+<header class="top"><a class="brand" href="../index.html">Hunt Kit</a><span class="crumb">Two-Host Investigation Runbook</span>
+<div class="search"><input id="q" type="search" placeholder="Search everything  ( / )" autocomplete="off"><div id="results" class="results" hidden></div></div>
+<a class="btn" href="../tools/hunt-notes.html" target="_blank">Hunt Notes</a><a class="btn" href="../pdf/investigation-runbook.pdf" title="Printable PDF">PDF</a>
+<button class="btn" id="tocBtn" title="Contents">☰</button><button class="btn" id="railBtn" title="Questions pane">Q</button><button class="btn" id="themeBtn" title="Theme">◐</button></header>
+<div class="layout"><nav id="toc" class="toc"><div class="toch">Contents</div><a class="l2" href="#part-1-the-method">Part 1 — The method</a><a class="l3" href="#the-three-rules">The three rules</a><a class="l3" href="#the-five-questions">The five questions</a><a class="l3" href="#phase-0-orient">Phase 0 — Orient</a><a class="l3" href="#phase-1-acquire">Phase 1 — Acquire</a><a class="l3" href="#phase-2-work-the-five-questions">Phase 2 — Work the five
+questions</a><a class="l3" href="#decision-gates">Decision gates</a><a class="l3" href="#negative-findings">Negative findings</a><a class="l3" href="#reporting">Reporting</a><a class="l3" href="#time-budget">Time budget</a><a class="l2" href="#part-2-the-operating-sequence">Part 2 — The operating
+sequence</a><a class="l3" href="#pre-flight-before-the-clock-starts">Pre-flight — before the
+clock starts</a><a class="l3" href="#windows-10-sequence">Windows 10 sequence</a><a class="l3" href="#linux-lamp-sequence">Linux (LAMP) sequence</a><a class="l3" href="#time-discipline">Time discipline</a><a class="l2" href="#tear-off">Tear-off</a></nav>
+<main class="content"><h1>Two-Host Investigation
+Runbook</h1>
+<p><em>Method, decision gates and the operating sequence for a live
+Windows + Linux host investigation</em></p>
+<p>Commands are in the <strong>Execution Reference</strong>. Disk tool
+walkthroughs are in the <strong>FTK Runbook</strong> and <strong>Autopsy
+Runbook</strong>. Record everything in <strong>Hunt Notes</strong>. The
+theory behind collection, baselining and intel-driven hunting is in the
+<strong>Analyst Methods Handbook</strong>.</p>
+<p><strong>Scenario assumed:</strong> one Windows 10 workstation and one
+Linux LAMP server, live access, Volatility / FTK / Autopsy on the bench,
+findings due at the end.</p>
+<hr/>
+<h2 id="part-1-the-method">Part 1 — The method</h2>
+<p>Methodology for live host analysis across a Windows workstation and a
+Linux server using Volatility, FTK, and Autopsy. The procedure is a
+fixed order of investigation; tools exist only to answer it.</p>
+<h3 id="the-three-rules">The three rules</h3>
+<p><strong>Acquire before alter.</strong> Memory is captured from both
+hosts and hashed before any disk is touched. Every executed command
+modifies the state being examined, and volatile memory holds the
+evidence most likely to carry an active intrusion — running code, open
+sessions, injected regions, decrypted material. Disk-first handling
+destroys that evidence before it is read.</p>
+<p><strong>Two independent sources or it is not confirmed.</strong> A
+single indicator is a lead. A finding requires two sources that agree
+and do not derive from each other: a process and its on-disk file, an
+event record and a matching artifact, a connection in memory and the
+same connection in a log. The term <em>confirmed</em> applies only when
+both are present. Everything else remains a lead until corroborated or
+discarded.</p>
+<p><strong>State the reasoning.</strong> Each action is prefaced with
+the expected result and followed by what the output changed in the
+working picture. The method is the deliverable; output volume is
+not.</p>
+<h3 id="the-five-questions">The five questions</h3>
+<p>Host analysis answers five questions in fixed order. The order
+reflects evidence volatility: the first three are answered in memory,
+then proven on disk; the last two are answered on disk. The questions
+are platform-independent. Only the commands differ between Windows and
+Linux.</p>
+<pre><code>Q1  What is running that should not be?
+Q2  What is talking that should not be?
+Q3  How does it survive a reboot?
+Q4  Who did it, and how did they get in?
+Q5  When did it start?</code></pre>
+<p>The questions chain. A process identified in Q1 holds a connection in
+Q2, writes a file, registers persistence in Q3, executed under an
+account in Q4, and first appeared at a point in time in Q5. Each answer
+supplies the pivot for the next, and the chain reconstructs the
+intrusion end to end rather than producing isolated indicators.</p>
+<p>Memory answers Q1 through Q3 with higher fidelity than a live host,
+because a process cannot conceal its own memory pages from the kernel
+structures Volatility parses, whereas a tool running on the live host
+can be subverted by code already resident on it. Disk answers Q4 and Q5
+and corroborates Q1 through Q3. Analysis proceeds from most volatile to
+least volatile.</p>
+<h3 id="phase-0-orient">Phase 0 — Orient</h3>
+<p>Record before collecting: hostname, IP, OS build, and privilege level
+on each host. Confirm what was provided — live shell, memory capture,
+disk image — and the tool versions on the bench. Identify the authorized
+output location; evidence media is never written to. Set the clock
+reference to UTC and open a findings log before the first command.</p>
+<p>State the plan: memory from both hosts, five questions on each, disk
+proof, no confirmation without a second source. This fixes the method
+before any result exists.</p>
+<h3 id="phase-1-acquire">Phase 1 — Acquire</h3>
+<p>Windows memory: winpmem or FTK Imager memory capture, hashed on
+output. Linux memory: AVML or LiME, hashed on output. If no Volatility
+symbol profile exists for the running Linux kernel, build an ISF from
+the kernel banner with dwarf2json so the image is parsable. Disk
+follows: acquire and hash-verify with FTK Imager, or mount read-only.
+All analysis runs against copies; originals are preserved and the
+acquisition hash is the integrity reference.</p>
+<h3 id="phase-2-work-the-five-questions">Phase 2 — Work the five
+questions</h3>
+<h4 id="q1-what-is-running-that-should-not-be">Q1 — What is running
+that should not be</h4>
+<p>Enumerate processes by two methods and compare.
+<code>windows.pslist</code> walks the active process list;
+<code>windows.psscan</code> scans pool memory for process objects. A
+process present in <code>psscan</code> but absent from
+<code>pslist</code> was unlinked from the active list and is a primary
+lead. Examine process lineage with <code>windows.pstree</code> and
+<code>windows.cmdline</code>; parentage identifies anomalies faster than
+process names. High-signal lineage: Office or a browser spawning a
+command interpreter, a web service process spawning a shell,
+<code>svchost.exe</code> whose parent is not <code>services.exe</code>,
+<code>lsass.exe</code> whose parent is not <code>wininit.exe</code>. Run
+<code>windows.malfind</code> to locate private, committed, executable
+memory regions — the signature of injected or hollowed code. On the live
+host, flag binaries executing from user-writable paths and binaries with
+invalid or absent Authenticode signatures. An unexpected parent process
+is weighted above an unexpected process name.</p>
+<p>Linux memory equivalents: <code>linux.pslist</code>,
+<code>linux.pstree</code>, <code>linux.malfind</code>, and
+<code>linux.check_modules</code> for hidden kernel modules. On the live
+host, resolve each suspect PID to its backing file through
+<code>/proc/&lt;PID&gt;/exe</code> and read
+<code>/proc/&lt;PID&gt;/cmdline</code>.</p>
+<h4 id="q2-what-is-talking-that-should-not-be">Q2 — What is talking
+that should not be</h4>
+<p>Pull network state from the memory image with
+<code>windows.netscan</code> and <code>linux.sockstat</code>, not only
+from the live host, because live-host network utilities report only what
+the host is willing to disclose. Target two conditions: a process
+holding a session inconsistent with its function, and traffic at a fixed
+interval. Beaconing presents as a repeating small exchange at a regular
+period; normal client traffic is irregular. Every external address is
+carried forward — a single actor across two hosts commonly reuses
+infrastructure, so an address seen on the workstation is checked against
+the server. The DNS client cache and the hosts file expose pinned or
+injected name resolution.</p>
+<h4 id="q3-how-does-it-survive-a-reboot">Q3 — How does it survive a
+reboot</h4>
+<p>Persistence establishes intent. Execution alone can be incidental; a
+persistence mechanism is deliberate. Windows locations, highest yield
+first: services with image paths outside <code>System32</code>,
+<code>SysWOW64</code>, and <code>Program Files</code>; scheduled tasks
+outside the <code>\Microsoft\</code> tree; the <code>Run</code> and
+<code>RunOnce</code> keys under HKLM and HKCU; WMI
+<code>__FilterToConsumerBinding</code> subscriptions. The common pattern
+is an innocuous administrative name whose action points to a script in a
+data directory. Corroborate against <code>windows.svcscan</code> in
+memory. Linux locations: cron directories and user crontabs, enabled
+systemd unit files, shell profile scripts,
+<code>/etc/ld.so.preload</code>, and
+<code>~/.ssh/authorized_keys</code>. A persistence entry whose target is
+the file identified in Q1 confirms the foothold.</p>
+<h4 id="q4-who-did-it-and-how-did-they-get-in">Q4 — Who did it, and how
+did they get in</h4>
+<p>Shift from host to account. Windows logon events in the Security log
+distinguish local compromise from reach-in: type 2 interactive, type 3
+network, type 10 remote interactive, event 4648 logon with explicit
+credentials, event 4672 assignment of administrative privileges. A
+network or explicit-credential logon from another host, or an account
+active outside its normal hours, indicates the workstation is not the
+origin and scope must extend outward. Enumerate local accounts and
+administrators group membership. Linux: <code>/var/log/auth.log</code>
+for accepted, failed, sudo, and session events; <code>last</code> and
+<code>lastb</code> for login records; any UID 0 account other than root.
+Where the entry vector was a web request rather than a credential, the
+auth records show no corresponding authentication, which is itself the
+finding.</p>
+<h4 id="q5-when-did-it-start">Q5 — When did it start</h4>
+<p>The first-appearance time is anchored in execution artifacts before
+any file timestamp is trusted, because file timestamps are the first
+thing altered. Windows: Prefetch write times, Amcache first-execution
+records, Shimcache, UserAssist, and BAM/DAM, cross-checked against
+<code>$MFT</code> and the USN journal. When standard-information
+timestamps appear uniform or implausible, compare them to the
+filename-attribute timestamps in the MFT record; disagreement indicates
+timestomping, and the execution artifact becomes the authoritative time
+source. Linux: build a filesystem timeline with <code>fls</code> and
+<code>mactime</code> and read it against the web and auth logs. The
+target time is the one preceding the alert that initiated the
+investigation; that interval is the portion of the intrusion not yet
+documented elsewhere.</p>
+<h3 id="decision-gates">Decision gates</h3>
+<p>A lead is promoted to a finding at a defined condition.</p>
+<pre><code>G1  Process unsigned, in a writable path, or with an invalid parent  -&gt; acquire and hash the file
+G2  External session with no business justification                  -&gt; bind it to a process and a log entry
+G3  Persistence entry targeting that same file or script             -&gt; foothold confirmed
+G4  The executing account and its authentication method              -&gt; extend scope to other hosts
+G5  A first-seen timestamp preceding the alert                       -&gt; intrusion start identified</code></pre>
+<p>Any gate that fires advances the chain to the next question. Breadth
+precedes depth: all five questions are cleared at a shallow level on
+both hosts before any single artifact is examined in depth, so the time
+budget is not consumed by one line of inquiry while the second host is
+unexamined.</p>
+<h3 id="negative-findings">Negative findings</h3>
+<p>Leads that fail to corroborate are documented, not discarded
+silently. A binary that appears suspicious but holds no connection,
+registers no persistence, and falls outside the established time window
+is recorded as unresolved after a bounded effort. An uncorroborated
+indicator is stated as uncorroborated. The distinction between a lead
+and a finding is the measured control.</p>
+<h3 id="reporting">Reporting</h3>
+<p>Each finding: plain text, UTC, hashed.</p>
+<pre><code>FINDING:   single line — what, where, first seen
+SCOPE:     hosts - accounts - persistence and artifact locations - first/last seen UTC
+EVIDENCE:  item - SHA-256 - source - collector and collection time
+           corroborating source, independent of the first
+SCOPE BASIS:  checks performed, and what evidence would change the conclusion</code></pre>
+<p>No finding is reported as confirmed on a single source. Scope — which
+hosts, which accounts — is established before remediation is
+discussed.</p>
+<h3 id="time-budget">Time budget</h3>
+<p>Scaled to a 3–4 hour window, both hosts:</p>
+<pre><code>Orient and acquire (both hosts)       30 min    ~15%
+Five questions, memory and live       80 min    ~40%
+Disk proof and timeline               60 min    ~30%
+Report and defend                     30 min    ~15%</code></pre>
+<p>Record the lead, continue, return. No single artifact justifies
+consuming the budget at the cost of coverage.</p>
+<hr/>
+<h2 id="part-2-the-operating-sequence">Part 2 — The operating
+sequence</h2>
+<p><strong>The organizing idea.</strong> Under time pressure the failure
+mode is flailing between tools. A fixed sequence removes the "what
+next?" decision. You are only ever running the next step and stating
+why. Run the same order on both hosts:</p>
+<pre><code>   VOLATILE  -&gt;  LIVE           -&gt;  DEAD
+   memory        running state      image + artifacts
+   (acquire)     (triage)           (Autopsy/FTK, timeline)
+         |            |                    |
+         +---- record + hash as you go, corroborate ----+
+                          |
+                     finding record</code></pre>
+<h3 id="pre-flight-before-the-clock-starts">Pre-flight — before the
+clock starts</h3>
+<p>Prove every tool works now, not when you are live on a box. A tool
+that fails under the clock is the most common avoidable loss.</p>
+<pre><code>[ ] Volatility 3: `vol -h` runs; `vol -f &lt;img&gt; windows.info` works on a test image
+[ ] Vol2 fallback staged (version/profile mismatch is the usual reason you need it)
+[ ] Linux memory symbols: dwarf2json present; plan to build the ISF from the
+    kernel banner (`banners.Banners`) if no profile is on hand
+[ ] FTK Imager launches (portable), can acquire + VERIFY
+[ ] Full FTK: database up, case opens (if provided)
+[ ] Autopsy opens; ingest modules present (Hash Lookup, Keyword, Recent Activity, Extension Mismatch)
+[ ] Memory acquisition ready:  Windows -&gt; winpmem or FTK Imager Capture Memory
+                               Linux   -&gt; AVML or LiME
+[ ] Case folder + evidence naming set; sha256 ready
+[ ] Hunt Notes open; both hosts added with their system time zones
+[ ] Execution Reference open</code></pre>
+<p>State the method at the start:</p>
+<blockquote>
+<p>"Volatile first, then live triage, then disk. I keep the footprint
+small, record and hash as I go, and I confirm every finding with a
+second independent source before I call it."</p>
+</blockquote>
+<h3 id="windows-10-sequence">Windows 10 sequence</h3>
+<pre><code>MEMORY   acquire: winpmem | FTK Imager -&gt; Capture Memory          (Exec Ref §3)
+         vol3: windows.info, pslist/psscan/pstree, cmdline, netscan,
+               malfind, svcscan, dlllist, handles, filescan, cmdscan/consoles   (§4)
+         hunt: unlinked procs (pslist vs psscan), odd parents, injected regions,
+               rogue services, C2 in netscan
+LIVE     Q1 procs §1.2 -&gt; Q2 net §1.3 -&gt; Q3 persistence §1.4 -&gt; Q4 accounts §1.5
+         -&gt; logs §1.7 -&gt; Q5 execution artifacts §1.8
+DISK     FTK Imager acquire + VERIFY | mount read-only
+         FTK Runbook or Autopsy Runbook, Q1 -&gt; Q5
+         Q5 anchors: Prefetch, Amcache, UserAssist, BAM, $SI vs $FN</code></pre>
+<h3 id="linux-lamp-sequence">Linux (LAMP) sequence</h3>
+<pre><code>MEMORY   acquire: AVML | LiME                                       (Exec Ref §3)
+         vol3 + ISF: linux.pslist/pstree/psaux, bash, sockstat,
+               malfind, check_modules/check_syscall, lsof         (§5)
+LIVE     Q1 procs §2.2 (www-data children!) -&gt; Q2 net §2.3 -&gt; Q3 persistence §2.4
+         -&gt; Q4 accounts/auth §2.5 + web tier §2.7 + DB §2.8 -&gt; Q5 file times §2.9
+DISK     image + Autopsy; fls + mactime timeline (§2.9) read against
+         access.log and auth.log; .bash_history, package logs, /etc changes</code></pre>
+<p>Each confirmed item = <strong>event + on-disk artifact</strong> (two
+independent sources), then a finding record.</p>
+<h3 id="time-discipline">Time discipline</h3>
+<pre><code>[ ] Timebox each phase; check the clock at each host switch
+[ ] Note a lead, move on, come back. Never rabbit-hole live
+[ ] Record findings as you go. Do NOT leave reporting to the end
+[ ] Breadth across both hosts before depth on one artifact</code></pre>
+<hr/>
+<h2 id="tear-off">Tear-off</h2>
+<pre><code>PRE-FLIGHT  Vol3(+Vol2), dwarf2json, FTK Imager, FTK db, Autopsy, mem-acquire; sha256; Hunt Notes hosts+TZ
+APPROACH    state method aloud; volatile -&gt; live -&gt; dead, same order on both hosts
+QUESTIONS   Q1 running · Q2 talking · Q3 survives reboot · Q4 who/how in · Q5 when started
+GATES       G1 hash it · G2 bind session to proc+log · G3 foothold · G4 extend scope · G5 start found
+WINDOWS     mem(vol3) -&gt; proc/net/persist/accounts/logs/exec-artifacts -&gt; image + FTK/Autopsy -&gt; timeline
+LINUX       mem(ISF) -&gt; proc/net/cron/systemd/auth/web/db -&gt; image + Autopsy + fls/mactime
+REPORT      finding / scope / evidence + 2nd source / scope basis. UTC, SHA-256</code></pre>
+<blockquote>
+<p>Defensive, authorized analysis on provided systems under rules of
+engagement. Acquire and hash before you alter.</p>
+</blockquote>
+</main>
+<aside id="rail" class="rail">
+  <h2>Five questions</h2>
+  <div class="q"><b>Q1 · What is running that should not be?</b><span>pslist vs psscan · pstree parentage · cmdline · malfind · unsigned or user-writable path</span></div>
+  <div class="q"><b>Q2 · What is talking that should not be?</b><span>netscan / sockstat · session vs the process's job · fixed-interval beacons · same IP on both hosts · DNS cache, hosts file</span></div>
+  <div class="q"><b>Q3 · How does it survive a reboot?</b><span>services, tasks, Run keys, WMI · cron, <i>enabled</i> systemd, rc, ld.so.preload, authorized_keys · target = the Q1 file</span></div>
+  <div class="q"><b>Q4 · Who did it, and how did they get in?</b><span>4624 type 3/10, 4648, 4672 · auth.log, last/lastb, UID 0 · a web request with no matching auth <i>is</i> the answer</span></div>
+  <div class="q"><b>Q5 · When did it start?</b><span>Prefetch, Amcache, UserAssist, BAM before file times · $SI vs $FN · fls + mactime vs access/auth logs</span></div>
+  <h2>Decision gates</h2>
+  <ol>
+    <li><b>G1</b> Unsigned / writable path / bad parent → acquire + hash the file</li>
+    <li><b>G2</b> External session, no business reason → bind to a process and a log</li>
+    <li><b>G3</b> Persistence targets that file → foothold confirmed</li>
+    <li><b>G4</b> Account + auth method found → extend scope to other hosts</li>
+    <li><b>G5</b> First-seen before the alert → intrusion start</li>
+  </ol>
+  <h2>Rules</h2>
+  <ul>
+    <li><b>Acquire before alter.</b> Memory first, hashed.</li>
+    <li><b>Two independent sources</b> or it is a lead, not a finding.</li>
+    <li><b>State the reasoning:</b> expected result before, what changed after.</li>
+    <li><b>Breadth first:</b> Q1–Q5 shallow on both hosts before depth.</li>
+  </ul>
+  <h2>Confidence</h2>
+  <ul>
+    <li><b>Possible</b>: one source, a lead</li>
+    <li><b>Probable</b>: consistent, partly corroborated</li>
+    <li><b>Confirmed</b>: two independent sources agree</li>
+  </ul>
+  <h2>Time</h2>
+  <ul><li>Record UTC. Volatility = UTC. PowerShell, Event Viewer, <code>ls</code>, syslog = host local. Apache carries its own offset.</li></ul>
+</aside></div>
+<script src="../assets/search-index.js"></script><script src="../assets/site.js"></script></body></html>

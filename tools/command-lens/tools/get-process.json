@@ -1,0 +1,33 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "get-process",
+  "name": "Get-Process",
+  "aliases": ["ps", "gps", "processes"],
+  "kind": "cmdlet",
+  "shells": [{ "id": "powershell" }],
+  "category": "process",
+  "summary": "Lists running processes as objects.",
+  "action": "lists processes",
+  "description": "The CommandLine property exists only in PowerShell 7; on 5.1 use Get-CimInstance Win32_Process for command lines and parent PIDs. -Name takes the name without .exe (the tool strips it).",
+  "source": "https://learn.microsoft.com/powershell/module/microsoft.powershell.management/get-process",
+  "requires": { "elevation": "none", "note": "-IncludeUserName and other users' paths need an elevated session" },
+  "io": { "stdin": "none", "stdout": "objects" },
+  "template": "{binary} {flags}",
+  "params": [
+    { "id": "name", "label": "Name", "type": "string", "flag": "-Name", "encode": "strip-exe", "common": true, "conflicts": ["id"], "repeatable": true, "repeat": { "mode": "join", "sep": "," }, "ioc": ["process", "filename"],
+      "bulk": { "multi": {} }, "placeholder": "powershell", "explain": "named {value}" },
+    { "id": "id", "label": "PID", "type": "int", "flag": "-Id", "conflicts": ["name"], "repeatable": true, "repeat": { "mode": "join", "sep": "," }, "explain": "PID {value}" },
+    { "id": "includeUserName", "label": "Include user", "type": "bool", "flag": "-IncludeUserName", "common": true, "conflicts": ["module"], "explain": "with the owning user (needs elevation)" },
+    { "id": "module", "label": "Loaded modules", "type": "bool", "flag": "-Module", "conflicts": ["includeUserName"], "explain": "listing loaded DLLs" },
+    { "id": "errorAction", "label": "On error", "type": "enum", "flag": "-ErrorAction", "enum": ["SilentlyContinue", "Stop", "Continue"], "explain": "on error: {value}" }
+  ],
+  "presets": [
+    { "id": "with-user", "name": "All processes with user", "values": { "includeUserName": true }, "ttps": ["T1057"] }
+  ],
+  "properties": {
+    "Id": {}, "ProcessName": {}, "Path": {}, "StartTime": {}, "UserName": {}, "Company": {}, "Description": {}, "SessionId": {}, "Handles": {}, "CPU": {}, "WorkingSet": {},
+    "CommandLine": { "minVersion": "7", "alt": "Get-CimInstance Win32_Process (CommandLine)" },
+    "Parent": { "minVersion": "7", "alt": "Get-CimInstance Win32_Process (ParentProcessId)" }
+  },
+  "ttps": ["T1057"]
+}

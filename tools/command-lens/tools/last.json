@@ -1,0 +1,32 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "last",
+  "name": "last",
+  "aliases": ["lastb", "logins", "wtmp"],
+  "kind": "native",
+  "shells": [{ "id": "bash" }, { "id": "zsh" }],
+  "category": "users",
+  "summary": "Lists logins and reboots from wtmp (or failed logins from btmp).",
+  "action": "lists login sessions",
+  "description": "Reads /var/log/wtmp by default. Point -f at /var/log/btmp for failed logins (what lastb shows).",
+  "source": "https://man7.org/linux/man-pages/man1/last.1.html",
+  "requires": { "elevation": "none", "note": "reading /var/log/btmp needs root" },
+  "io": { "stdin": "none", "stdout": "text" },
+  "template": "{binary} {flags} {user}",
+  "params": [
+    { "id": "fullTimes", "label": "Full times", "type": "bool", "flag": "-F", "common": true, "explain": "full login and logout times" },
+    { "id": "ip", "label": "IP addresses", "type": "bool", "flag": "-i", "common": true, "explain": "remote hosts as IP addresses" },
+    { "id": "hostLast", "label": "Host in last column", "type": "bool", "flag": "-a", "common": true, "explain": "remote host in the last column (not truncated)" },
+    { "id": "system", "label": "Shutdowns / runlevels", "type": "bool", "flag": "-x", "explain": "with shutdown and run-level changes" },
+    { "id": "wide", "label": "Full names", "type": "bool", "flag": "-w", "explain": "full user and domain names" },
+    { "id": "since", "label": "Since", "type": "datetime", "flag": "-s", "encode": "systemd-time", "placeholder": "7d", "explain": "{value}" },
+    { "id": "count", "label": "Last N", "type": "int", "min": 1, "flag": "-n", "explain": "last {value} entries" },
+    { "id": "file", "label": "Log file", "type": "enum", "flag": "-f", "enum": [{ "value": "/var/log/wtmp", "label": "wtmp (logins)" }, { "value": "/var/log/btmp", "label": "btmp (failed logins)" }], "explain": "from {value}" },
+    { "id": "user", "label": "User", "type": "string", "slot": "user", "ioc": ["user"], "explain": "for user {value}" }
+  ],
+  "presets": [
+    { "id": "logins", "name": "Logins with source IPs", "values": { "fullTimes": true, "ip": true, "hostLast": true }, "ttps": ["T1078", "T1021.004"] },
+    { "id": "failed", "name": "Failed logins (btmp)", "values": { "fullTimes": true, "ip": true, "hostLast": true, "file": "/var/log/btmp" }, "ttps": ["T1110"] }
+  ],
+  "ttps": ["T1078", "T1033"]
+}

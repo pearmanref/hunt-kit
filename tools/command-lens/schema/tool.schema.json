@@ -1,0 +1,198 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pearmanref.github.io/command-lens/schema/tool.schema.json",
+  "title": "Command Lens tool definition",
+  "description": "One CLI tool. Everything the builder shows for it comes from this file. Keywords used here are limited to the subset scripts/validate.js implements: type, properties, required, additionalProperties, items, enum, pattern, minimum, anyOf, $ref.",
+  "type": "object",
+  "required": ["id", "name", "kind", "shells", "category", "summary", "action", "source", "template", "params"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$", "description": "Unique id; must equal the file name without .json." },
+    "name": { "type": "string", "description": "Display name, usually the command as typed." },
+    "aliases": { "type": "array", "items": { "type": "string" }, "description": "Other names the search should match (other shells' equivalents, plain-English words)." },
+    "kind": { "enum": ["native", "cmdlet", "builtin"] },
+    "binary": { "type": "string", "description": "Text emitted for {binary} when it differs from name." },
+    "execSafe": { "type": "boolean", "description": "Read-only and takes a trailing file path, so it may be used inside find -exec / xargs." },
+    "writes": { "type": "boolean", "description": "Can create, change or delete files. Kept out of -exec." },
+    "shells": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/shellRef" } },
+    "category": { "type": "string" },
+    "summary": { "type": "string", "description": "One sentence, own words. Shown on hover of the command token." },
+    "action": { "type": "string", "description": "Verb phrase used in the generated summary: '<name> <action> (…)'." },
+    "description": { "type": "string" },
+    "source": { "type": "string", "pattern": "^https://", "description": "Man page or official doc the descriptions were written from." },
+    "requires": { "$ref": "#/$defs/requires" },
+    "io": { "$ref": "#/$defs/io" },
+    "template": { "type": "string", "description": "Argument order: {binary}, {flags}, named slots like {path}, and literal words." },
+    "fixedExplain": { "type": "object", "additionalProperties": { "type": "string" } },
+    "endOfOptions": { "type": "string", "description": "Token that ends option parsing (usually --); inserted before a positional value that starts with -." },
+    "composites": { "type": "array", "items": { "$ref": "#/$defs/composite" } },
+    "params": { "type": "array", "items": { "$ref": "#/$defs/param" } },
+    "presets": { "type": "array", "items": { "$ref": "#/$defs/preset" } },
+    "properties": { "type": "object", "additionalProperties": { "$ref": "#/$defs/property" }, "description": "PowerShell output properties, for pipeline hints." },
+    "quirks": { "type": "array", "items": { "$ref": "#/$defs/quirk" } },
+    "ttps": { "type": "array", "items": { "$ref": "#/$defs/ttp" } },
+    "opsec": { "$ref": "#/$defs/opsec" }
+  },
+  "$defs": {
+    "ttp": { "type": "string", "pattern": "^T\\d{4}(\\.\\d{3})?$" },
+    "version": { "type": "string", "pattern": "^\\d+(\\.\\d+)*$" },
+    "shellRef": {
+      "type": "object", "required": ["id"], "additionalProperties": false,
+      "properties": { "id": { "type": "string" }, "minVersion": { "$ref": "#/$defs/version" }, "maxVersion": { "$ref": "#/$defs/version" }, "binary": { "type": "string" } }
+    },
+    "requires": {
+      "type": "object", "additionalProperties": false,
+      "properties": { "elevation": { "enum": ["none", "recommended", "admin", "root"] }, "module": { "type": "string" }, "os": { "type": "string" }, "note": { "type": "string" } }
+    },
+    "io": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "stdin": { "enum": ["none", "text", "objects"] },
+        "stdout": { "enum": ["none", "text", "objects", "format"] },
+        "emits": { "enum": ["files", "paths"], "description": "Kind of objects written (FileInfo objects, path strings)." },
+        "accepts": { "type": "array", "items": { "enum": ["files", "paths"] }, "description": "Object kinds bound by property to a path parameter, so they need no Out-String." }
+      }
+    },
+    "flag": {
+      "anyOf": [
+        { "type": "string" },
+        { "type": "object", "additionalProperties": false, "properties": { "short": { "type": "string" }, "long": { "type": "string" } } }
+      ]
+    },
+    "enumItem": {
+      "anyOf": [
+        { "type": "string" },
+        { "type": "object", "required": ["value"], "additionalProperties": false, "properties": { "value": { "type": "string" }, "label": { "type": "string" } } }
+      ]
+    },
+    "bulkCfg": {
+      "type": "object", "additionalProperties": false,
+      "properties": { "set": { "type": "object" }, "dialect": { "enum": ["ere", "bre", "dotnet", "findstr"] } }
+    },
+    "param": {
+      "type": "object", "required": ["id", "label", "type"], "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9]*$" },
+        "label": { "type": "string" },
+        "type": { "enum": ["bool", "string", "int", "enum", "path", "regex", "datetime", "command", "expression"] },
+        "flag": { "$ref": "#/$defs/flag" },
+        "flagStyle": { "enum": ["space", "equals", "attached", "colon"] },
+        "literalFlag": { "type": "string", "description": "PowerShell: flag used instead when a literal path contains [ ]." },
+        "slot": { "type": "string" },
+        "composite": { "type": "string" },
+        "fragment": { "type": "string", "description": "Composite text with {v} for the encoded value." },
+        "listJoin": { "type": "string" },
+        "repeatJoin": { "type": "string" },
+        "required": { "type": "boolean" },
+        "requiredUnless": { "type": "array", "items": { "type": "string" }, "description": "Not required when any of these params has a value (e.g. grep pattern vs -f file)." },
+        "common": { "type": "boolean" },
+        "default": {},
+        "repeatable": { "type": "boolean" },
+        "repeat": {
+          "type": "object", "additionalProperties": false,
+          "properties": { "mode": { "enum": ["flag", "join", "positional"] }, "flag": { "type": "string" }, "sep": { "type": "string" } }
+        },
+        "conflicts": { "type": "array", "items": { "type": "string" } },
+        "requires": { "type": "array", "items": { "type": "string" } },
+        "enum": { "type": "array", "items": { "$ref": "#/$defs/enumItem" } },
+        "asFlag": { "type": "boolean" },
+        "validate": { "type": "string" },
+        "validateMsg": { "type": "string" },
+        "min": { "type": "number" },
+        "encode": { "type": "string" },
+        "encodeIf": { "type": "object", "additionalProperties": { "type": "string" } },
+        "valuePrefix": { "type": "string" },
+        "valueTemplate": { "type": "string" },
+        "expand": { "type": "boolean", "description": "Path segments ~ * ? (and %VAR% / $env:VAR on Windows) are meant to expand." },
+        "pathKind": { "enum": ["file", "registry"] },
+        "os": { "enum": ["linux", "windows"] },
+        "regexDialect": { "enum": ["ere", "bre", "dotnet", "findstr"] },
+        "minVersion": { "$ref": "#/$defs/version" },
+        "maxVersion": { "$ref": "#/$defs/version" },
+        "shells": { "type": "array", "items": { "type": "string" } },
+        "modes": {
+          "type": "object", "additionalProperties": false,
+          "properties": {
+            "rel": { "type": "object", "additionalProperties": false, "properties": { "flag": { "type": "string" }, "encode": { "type": "string" } } },
+            "abs": { "type": "object", "additionalProperties": false, "properties": { "flag": { "type": "string" }, "encode": { "type": "string" } } }
+          }
+        },
+        "ioc": { "anyOf": [{ "type": "string", "enum": ["*"] }, { "type": "array", "items": { "type": "string" } }] },
+        "bulk": {
+          "type": "object", "additionalProperties": false,
+          "properties": { "multi": { "$ref": "#/$defs/bulkCfg" }, "alternation": { "$ref": "#/$defs/bulkCfg" }, "loop": { "$ref": "#/$defs/bulkCfg" }, "lines": { "$ref": "#/$defs/bulkCfg" } }
+        },
+        "suggest": { "type": "array", "items": { "type": "string" } },
+        "choices": { "type": "array", "description": "Common ready-made values shown as a dropdown; the field stays free-text.", "items": { "type": "object", "additionalProperties": false, "properties": { "label": { "type": "string" }, "value": { "type": "string" }, "explain": { "type": "string" } }, "required": ["label", "value"] } },
+        "placeholder": { "type": "string" },
+        "desc": { "type": "string" },
+        "explain": { "type": "string", "description": "Phrase for the summary; {value} is the displayed value." },
+        "allowPipe": { "type": "boolean" },
+        "rawCode": { "type": "boolean", "description": "The value is code in the shell's own language (a script block). Emitted as written after a balance check." },
+        "nest": {
+          "type": "object", "additionalProperties": false, "description": "For type 'command': how a nested command is wrapped.",
+          "properties": {
+            "kind": { "enum": ["exec", "prefix"] },
+            "placeholder": { "type": "string" },
+            "toolFilter": { "enum": ["exec-safe", "read-only", "any"] },
+            "terminators": { "type": "array", "items": { "type": "object", "additionalProperties": false, "properties": { "value": { "type": "string" }, "emit": { "type": "string" }, "label": { "type": "string" }, "explain": { "type": "string" } }, "required": ["value"] } }
+          }
+        },
+        "terms": { "type": "array", "description": "For type 'expression': the available tests, each a param-like definition.", "items": { "$ref": "#/$defs/param" } },
+        "syntax": {
+          "type": "object", "additionalProperties": false, "description": "For type 'expression': how tests are joined.",
+          "properties": { "and": { "type": ["string", "null"] }, "or": { "type": "string" }, "not": { "type": "string" }, "lparen": { "type": "string" }, "rparen": { "type": "string" } }
+        }
+      }
+    },
+    "composite": {
+      "type": "object", "required": ["id"], "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "flag": { "$ref": "#/$defs/flag" },
+        "slot": { "type": "string" },
+        "wrap": { "type": "array", "items": { "type": "string" } },
+        "join": { "type": "string" },
+        "quote": { "enum": ["none", "shell", "ps-dq"] },
+        "explain": { "type": "string" }
+      }
+    },
+    "preset": {
+      "type": "object", "required": ["id", "name", "values"], "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+        "name": { "type": "string" },
+        "values": { "type": "object" },
+        "ttps": { "type": "array", "items": { "$ref": "#/$defs/ttp" } },
+        "opsec": { "type": "string" }
+      }
+    },
+    "property": {
+      "type": "object", "additionalProperties": false,
+      "properties": { "minVersion": { "$ref": "#/$defs/version" }, "alt": { "type": "string" } }
+    },
+    "quirk": {
+      "type": "object", "required": ["id", "when", "reason"], "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "when": {
+          "type": "object", "additionalProperties": false,
+          "properties": {
+            "countGt": { "type": "object", "additionalProperties": { "type": "number" } },
+            "unset": { "type": "array", "items": { "type": "string" } },
+            "set": { "type": "array", "items": { "type": "string" } },
+            "equals": { "type": "object" }
+          }
+        },
+        "apply": { "type": "object" },
+        "level": { "enum": ["info", "warn", "error"] },
+        "reason": { "type": "string" }
+      }
+    },
+    "opsec": {
+      "type": "object", "additionalProperties": false,
+      "properties": { "writesDisk": { "type": "boolean" }, "generatesLogs": { "type": "array", "items": { "type": "string" } }, "network": { "type": "string" }, "slow": { "type": "string" }, "note": { "type": "string" } }
+    }
+  }
+}

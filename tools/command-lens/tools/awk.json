@@ -1,0 +1,122 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "awk",
+  "name": "awk",
+  "aliases": [
+    "gawk",
+    "columns",
+    "fields"
+  ],
+  "kind": "native",
+  "shells": [
+    {
+      "id": "bash"
+    },
+    {
+      "id": "zsh"
+    }
+  ],
+  "category": "text",
+  "summary": "Pattern-action language for splitting lines into fields.",
+  "action": "runs an awk program",
+  "description": "The program is always single-quoted so $1, $NF and friends reach awk instead of being expanded by the shell. Pass outside values with -v instead of splicing them into the program.",
+  "source": "https://www.gnu.org/software/gawk/manual/gawk.html",
+  "requires": {
+    "elevation": "none"
+  },
+  "io": {
+    "stdin": "text",
+    "stdout": "text"
+  },
+  "template": "{binary} {flags} {program} {path}",
+  "params": [
+    {
+      "id": "fs",
+      "label": "Field separator",
+      "type": "string",
+      "flag": "-F",
+      "common": true,
+      "placeholder": ":",
+      "explain": "splitting fields on {value}"
+    },
+    {
+      "id": "vars",
+      "label": "Variables",
+      "type": "string",
+      "flag": "-v",
+      "repeatable": true,
+      "repeat": {
+        "mode": "flag",
+        "flag": "-v"
+      },
+      "validate": "^[A-Za-z_][A-Za-z0-9_]*=",
+      "validateMsg": "name=value",
+      "placeholder": "ip=198.51.100.23",
+      "explain": "with variable {value}"
+    },
+    {
+      "id": "program",
+      "label": "Program",
+      "type": "string",
+      "slot": "program",
+      "required": true,
+      "common": true,
+      "placeholder": "{print $1}",
+      "explain": "program {value}"
+    },
+    {
+      "id": "path",
+      "label": "Files",
+      "type": "path",
+      "os": "linux",
+      "slot": "path",
+      "repeatable": true,
+      "repeat": {
+        "mode": "positional"
+      },
+      "expand": true,
+      "common": true,
+      "explain": "reading {value}"
+    }
+  ],
+  "presets": [
+    {
+      "id": "failed-ips",
+      "name": "Source IPs of failed SSH passwords",
+      "values": {
+        "program": "/Failed password/ {print $(NF-3)}",
+        "path": "/var/log/auth.log"
+      },
+      "ttps": [
+        "T1110.001"
+      ]
+    },
+    {
+      "id": "uid0",
+      "name": "Accounts with UID 0",
+      "values": {
+        "fs": ":",
+        "program": "$3 == 0 {print $1}",
+        "path": "/etc/passwd"
+      },
+      "ttps": [
+        "T1136.001",
+        "T1078.003"
+      ]
+    },
+    {
+      "id": "login-shells",
+      "name": "Accounts with a login shell",
+      "values": {
+        "fs": ":",
+        "program": "$7 !~ /(nologin|false)$/ {print $1, $6, $7}",
+        "path": "/etc/passwd"
+      },
+      "ttps": [
+        "T1087.001"
+      ]
+    }
+  ],
+  "ttps": [],
+  "execSafe": true
+}

@@ -1,0 +1,21 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "format-list",
+  "name": "Format-List",
+  "aliases": ["fl", "details"],
+  "kind": "cmdlet",
+  "shells": [{ "id": "powershell" }],
+  "category": "pipeline",
+  "summary": "Shows each object as a property list.",
+  "action": "prints each object as a list",
+  "description": "Display only: its output is formatting records, so nothing useful can be piped after it except Out-String or a file redirection.",
+  "source": "https://learn.microsoft.com/powershell/module/microsoft.powershell.utility/format-list",
+  "requires": { "elevation": "none" },
+  "io": { "stdin": "objects", "stdout": "format" },
+  "template": "{binary} {flags}",
+  "params": [
+    { "id": "property", "label": "Properties", "type": "string", "flag": "-Property", "common": true, "default": "*", "repeatable": true, "repeat": { "mode": "join", "sep": "," }, "validate": "^[A-Za-z_*][A-Za-z0-9_*]*$", "validateMsg": "property names or *", "explain": "properties {value}" }
+  ],
+  "presets": [],
+  "ttps": []
+}

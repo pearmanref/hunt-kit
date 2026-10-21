@@ -1,0 +1,24 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "crontab",
+  "name": "crontab",
+  "aliases": ["cron"],
+  "kind": "native",
+  "shells": [{ "id": "bash" }, { "id": "zsh" }],
+  "category": "persistence",
+  "summary": "Shows a user's crontab.",
+  "action": "prints a user crontab",
+  "description": "Only -l (list) is offered; this tool never edits. System cron lives in /etc/crontab and /etc/cron.* (use ls/grep for those).",
+  "source": "https://man7.org/linux/man-pages/man1/crontab.1.html",
+  "requires": { "elevation": "none", "note": "-u for another user needs root" },
+  "io": { "stdin": "none", "stdout": "text" },
+  "template": "{binary} {flags}",
+  "params": [
+    { "id": "user", "label": "User", "type": "string", "flag": "-u", "common": true, "ioc": ["user"], "explain": "for user {value}" },
+    { "id": "list", "label": "List", "type": "bool", "flag": "-l", "required": true, "common": true, "default": true, "explain": "listing entries" }
+  ],
+  "presets": [
+    { "id": "root", "name": "root's crontab", "values": { "user": "root", "list": true }, "ttps": ["T1053.003"] }
+  ],
+  "ttps": ["T1053.003"]
+}

@@ -1,0 +1,415 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "ls",
+  "name": "ls",
+  "aliases": [
+    "list",
+    "dir"
+  ],
+  "kind": "native",
+  "shells": [
+    {
+      "id": "bash"
+    },
+    {
+      "id": "zsh"
+    }
+  ],
+  "category": "file system",
+  "summary": "Lists directory contents.",
+  "action": "lists directory contents",
+  "description": "--full-time shows exact timestamps instead of the rounded default, which matters when building a timeline.",
+  "source": "https://www.gnu.org/software/coreutils/manual/html_node/ls-invocation.html",
+  "requires": {
+    "elevation": "none"
+  },
+  "io": {
+    "stdin": "none",
+    "stdout": "text"
+  },
+  "template": "{binary} {flags} {path}",
+  "params": [
+    {
+      "id": "long",
+      "label": "Long format",
+      "type": "bool",
+      "flag": "-l",
+      "common": true,
+      "explain": "long format"
+    },
+    {
+      "id": "all",
+      "label": "Include hidden",
+      "type": "bool",
+      "flag": "-a",
+      "common": true,
+      "explain": "including hidden entries"
+    },
+    {
+      "id": "almostAll",
+      "label": "Hidden but not . / ..",
+      "type": "bool",
+      "flag": "-A",
+      "explain": "including hidden entries except . and ..",
+      "conflicts": [
+        "all"
+      ]
+    },
+    {
+      "id": "fullTime",
+      "label": "Exact times",
+      "type": "bool",
+      "flag": "--full-time",
+      "common": true,
+      "explain": "exact timestamps"
+    },
+    {
+      "id": "humanSize",
+      "label": "Human sizes",
+      "type": "bool",
+      "flag": "-h",
+      "common": true,
+      "explain": "with human-readable sizes (K, M, G)",
+      "requires": [
+        "long"
+      ]
+    },
+    {
+      "id": "byTime",
+      "label": "Newest first",
+      "type": "bool",
+      "flag": "-t",
+      "common": true,
+      "explain": "newest first"
+    },
+    {
+      "id": "bySize",
+      "label": "Sort by size",
+      "type": "bool",
+      "flag": "-S",
+      "explain": "largest first",
+      "conflicts": [
+        "byTime",
+        "byExt"
+      ]
+    },
+    {
+      "id": "byExt",
+      "label": "Sort by extension",
+      "type": "bool",
+      "flag": "-X",
+      "explain": "grouped by extension",
+      "conflicts": [
+        "byTime",
+        "bySize"
+      ]
+    },
+    {
+      "id": "byNone",
+      "label": "No sort (directory order)",
+      "type": "bool",
+      "flag": "-f",
+      "explain": "in on-disk order (fast, implies -a)"
+    },
+    {
+      "id": "reverse",
+      "label": "Reverse",
+      "type": "bool",
+      "flag": "-r",
+      "explain": "in reverse order"
+    },
+    {
+      "id": "recursive",
+      "label": "Recursive",
+      "type": "bool",
+      "flag": "-R",
+      "explain": "recursively"
+    },
+    {
+      "id": "dirSelf",
+      "label": "Directory itself",
+      "type": "bool",
+      "flag": "-d",
+      "common": true,
+      "explain": "the directory entry itself, not its contents"
+    },
+    {
+      "id": "inode",
+      "label": "Inode numbers",
+      "type": "bool",
+      "flag": "-i",
+      "explain": "with inode numbers"
+    },
+    {
+      "id": "numericIds",
+      "label": "Numeric owner/group",
+      "type": "bool",
+      "flag": "-n",
+      "explain": "with numeric UID and GID instead of names",
+      "requires": [
+        "long"
+      ]
+    },
+    {
+      "id": "noOwner",
+      "label": "Hide owner",
+      "type": "bool",
+      "flag": "-g",
+      "explain": "long format without the owner column"
+    },
+    {
+      "id": "onePerLine",
+      "label": "One per line",
+      "type": "bool",
+      "flag": "-1",
+      "explain": "one entry per line"
+    },
+    {
+      "id": "classify",
+      "label": "Type indicator",
+      "type": "bool",
+      "flag": "-F",
+      "explain": "with a trailing */=>@| to show the type"
+    },
+    {
+      "id": "slashDirs",
+      "label": "Slash after dirs",
+      "type": "bool",
+      "flag": "-p",
+      "explain": "a trailing / after directory names"
+    },
+    {
+      "id": "quoteName",
+      "label": "Quote names",
+      "type": "bool",
+      "flag": "-Q",
+      "explain": "file names in double quotes"
+    },
+    {
+      "id": "escape",
+      "label": "Escape nongraphic",
+      "type": "bool",
+      "flag": "-b",
+      "explain": "showing non-printing characters as escapes (spot odd names)"
+    },
+    {
+      "id": "showControl",
+      "label": "Raw control chars",
+      "type": "bool",
+      "flag": "--show-control-chars",
+      "explain": "printing control characters as-is"
+    },
+    {
+      "id": "derefLinks",
+      "label": "Follow symlinks",
+      "type": "bool",
+      "flag": "-L",
+      "explain": "listing what each symlink points to"
+    },
+    {
+      "id": "context",
+      "label": "SELinux context",
+      "type": "bool",
+      "flag": "-Z",
+      "explain": "with the SELinux security context"
+    },
+    {
+      "id": "author",
+      "label": "Author",
+      "type": "bool",
+      "flag": "--author",
+      "explain": "with the author column",
+      "requires": [
+        "long"
+      ]
+    },
+    {
+      "id": "dirsFirst",
+      "label": "Folders first",
+      "type": "bool",
+      "flag": "--group-directories-first",
+      "explain": "listing directories before files"
+    },
+    {
+      "id": "timeStyle",
+      "label": "Time style",
+      "type": "string",
+      "flag": "--time-style",
+      "explain": "timestamps in {value} format",
+      "flagStyle": "equals",
+      "choices": [
+        {
+          "label": "full ISO",
+          "value": "full-iso"
+        },
+        {
+          "label": "ISO",
+          "value": "iso"
+        },
+        {
+          "label": "long ISO",
+          "value": "long-iso"
+        }
+      ]
+    },
+    {
+      "id": "timeField",
+      "label": "Which time",
+      "type": "enum",
+      "flag": "--time",
+      "flagStyle": "equals",
+      "enum": [
+        "atime",
+        "ctime",
+        "birth"
+      ],
+      "explain": "sorting/showing the {value} timestamp",
+      "requires": [
+        "long"
+      ]
+    },
+    {
+      "id": "blockSize",
+      "label": "Block size",
+      "type": "string",
+      "flag": "--block-size",
+      "flagStyle": "equals",
+      "placeholder": "K",
+      "explain": "sizes in units of {value}"
+    },
+    {
+      "id": "ignore",
+      "label": "Ignore pattern",
+      "type": "string",
+      "flag": "--ignore",
+      "explain": "skipping names matching {value}",
+      "flagStyle": "equals",
+      "repeatable": true,
+      "repeat": {
+        "mode": "flag",
+        "flag": "--ignore"
+      },
+      "placeholder": "*.bak"
+    },
+    {
+      "id": "hide",
+      "label": "Hide pattern",
+      "type": "string",
+      "flag": "--hide",
+      "explain": "hiding names matching {value} (unless -a/-A)",
+      "flagStyle": "equals",
+      "placeholder": "*~"
+    },
+    {
+      "id": "path",
+      "label": "Paths",
+      "type": "path",
+      "os": "linux",
+      "slot": "path",
+      "repeatable": true,
+      "repeat": {
+        "mode": "positional"
+      },
+      "expand": true,
+      "common": true,
+      "explain": "{value}"
+    }
+  ],
+  "presets": [
+    {
+      "id": "cron-dirs",
+      "name": "System cron directories",
+      "values": {
+        "long": true,
+        "all": true,
+        "fullTime": true,
+        "path": [
+          "/etc/crontab",
+          "/etc/cron.d",
+          "/etc/cron.hourly",
+          "/etc/cron.daily",
+          "/etc/cron.weekly",
+          "/etc/cron.monthly",
+          "/var/spool/cron"
+        ]
+      },
+      "ttps": [
+        "T1053.003"
+      ]
+    },
+    {
+      "id": "systemd-units",
+      "name": "Newest systemd unit files",
+      "values": {
+        "long": true,
+        "all": true,
+        "fullTime": true,
+        "byTime": true,
+        "path": [
+          "/etc/systemd/system",
+          "/usr/lib/systemd/system"
+        ]
+      },
+      "ttps": [
+        "T1543.002",
+        "T1053.006"
+      ]
+    },
+    {
+      "id": "profile-scripts",
+      "name": "Shell startup scripts",
+      "values": {
+        "long": true,
+        "all": true,
+        "fullTime": true,
+        "path": [
+          "/etc/profile.d",
+          "/etc/profile",
+          "/etc/bash.bashrc",
+          "/root/.bashrc",
+          "/home/*/.bashrc"
+        ]
+      },
+      "ttps": [
+        "T1546.004"
+      ]
+    },
+    {
+      "id": "init-scripts",
+      "name": "Init scripts and rc links",
+      "values": {
+        "long": true,
+        "all": true,
+        "fullTime": true,
+        "path": [
+          "/etc/init.d",
+          "/etc/rc.local",
+          "/etc/rc*.d"
+        ]
+      },
+      "ttps": [
+        "T1037.004"
+      ]
+    },
+    {
+      "id": "newest",
+      "name": "Newest files first with exact times",
+      "values": {
+        "long": true,
+        "all": true,
+        "fullTime": true,
+        "byTime": true,
+        "path": [
+          "."
+        ]
+      },
+      "ttps": [
+        "T1083"
+      ]
+    }
+  ],
+  "ttps": [
+    "T1083"
+  ],
+  "execSafe": true
+}

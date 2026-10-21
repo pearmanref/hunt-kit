@@ -1,0 +1,946 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "find",
+  "name": "find",
+  "aliases": [
+    "search files",
+    "locate files",
+    "walk tree"
+  ],
+  "kind": "native",
+  "shells": [
+    {
+      "id": "bash"
+    },
+    {
+      "id": "zsh"
+    }
+  ],
+  "category": "file system",
+  "summary": "Walks one or more directory trees and acts on the files that pass every test.",
+  "action": "lists files",
+  "description": "find has three parts in order: symlink handling and the start paths, then global options such as -maxdepth, then an expression of tests, operators ( -o ! ( ) ) and actions ( -ls, -print, -printf, -exec ). Tests are ANDed by default; -o is OR and binds looser, so group with parentheses when you mix them. Only read-only actions are offered here.",
+  "source": "https://www.gnu.org/software/findutils/manual/html_mono/find.html",
+  "requires": {
+    "elevation": "recommended",
+    "note": "without root, unreadable directories are skipped with errors"
+  },
+  "io": {
+    "stdin": "none",
+    "stdout": "text"
+  },
+  "template": "{binary} {sym} {path} {global} {expr}",
+  "params": [
+    {
+      "id": "sym",
+      "label": "Symlinks",
+      "type": "enum",
+      "slot": "sym",
+      "enum": [
+        {
+          "value": "-P",
+          "label": "never follow (-P, default)"
+        },
+        {
+          "value": "-L",
+          "label": "follow all (-L)"
+        },
+        {
+          "value": "-H",
+          "label": "follow only the start points (-H)"
+        }
+      ],
+      "desc": "Whether find follows symbolic links. -L follows them everywhere (watch for loops).",
+      "explain": "symlink handling {value}"
+    },
+    {
+      "id": "path",
+      "label": "Start at",
+      "type": "path",
+      "os": "linux",
+      "slot": "path",
+      "repeatable": true,
+      "repeat": {
+        "mode": "positional"
+      },
+      "expand": true,
+      "required": true,
+      "common": true,
+      "default": "/",
+      "placeholder": "/",
+      "desc": "One or more directories to search from.",
+      "explain": "under {value}"
+    },
+    {
+      "id": "maxdepth",
+      "label": "Max depth",
+      "type": "int",
+      "min": 0,
+      "flag": "-maxdepth",
+      "slot": "global",
+      "common": true,
+      "explain": "at most {value} levels deep"
+    },
+    {
+      "id": "mindepth",
+      "label": "Min depth",
+      "type": "int",
+      "min": 0,
+      "flag": "-mindepth",
+      "slot": "global",
+      "explain": "at least {value} levels deep"
+    },
+    {
+      "id": "depthFirst",
+      "label": "Depth-first",
+      "type": "bool",
+      "flag": "-depth",
+      "slot": "global",
+      "explain": "processing a directory's contents before the directory"
+    },
+    {
+      "id": "xdev",
+      "label": "Stay on one filesystem",
+      "type": "bool",
+      "flag": "-xdev",
+      "slot": "global",
+      "common": true,
+      "explain": "not crossing into other mounts (/proc, network shares, bind mounts)"
+    },
+    {
+      "id": "ignoreRace",
+      "label": "Ignore vanished files",
+      "type": "bool",
+      "flag": "-ignore_readdir_race",
+      "slot": "global",
+      "explain": "not erroring on files that disappear mid-scan"
+    },
+    {
+      "id": "noLeaf",
+      "label": "No leaf optimization",
+      "type": "bool",
+      "flag": "-noleaf",
+      "slot": "global",
+      "explain": "not assuming Unix directory link counts (for FAT/CD images)"
+    },
+    {
+      "id": "expr",
+      "label": "Tests and actions",
+      "type": "expression",
+      "slot": "expr",
+      "syntax": {
+        "and": null,
+        "or": "-o",
+        "not": "!",
+        "lparen": "\\(",
+        "rparen": "\\)"
+      },
+      "terms": [
+        {
+          "id": "name",
+          "label": "Name (glob)",
+          "type": "string",
+          "flag": "-name",
+          "ioc": [
+            "filename"
+          ],
+          "placeholder": "*.php",
+          "choices": [
+            {
+              "label": "*.php",
+              "value": "*.php"
+            },
+            {
+              "label": "*.sh",
+              "value": "*.sh"
+            },
+            {
+              "label": "*.exe / PE",
+              "value": "*.exe"
+            },
+            {
+              "label": "authorized_keys",
+              "value": "authorized_keys"
+            },
+            {
+              "label": "hidden (.*)",
+              "value": ".*"
+            },
+            {
+              "label": "core dumps",
+              "value": "core*"
+            }
+          ],
+          "desc": "Shell-style wildcard matched by find against the base name, not the shell.",
+          "explain": "named {value}"
+        },
+        {
+          "id": "iname",
+          "label": "Name, any case",
+          "type": "string",
+          "flag": "-iname",
+          "ioc": [
+            "filename"
+          ],
+          "placeholder": "*.PHP",
+          "explain": "named {value} (any case)"
+        },
+        {
+          "id": "pathGlob",
+          "label": "Full path (glob)",
+          "type": "string",
+          "flag": "-path",
+          "placeholder": "*/.ssh/*",
+          "explain": "whose path matches {value}"
+        },
+        {
+          "id": "ipathGlob",
+          "label": "Full path, any case",
+          "type": "string",
+          "flag": "-ipath",
+          "placeholder": "*/temp/*",
+          "explain": "whose path matches {value} (any case)"
+        },
+        {
+          "id": "regex",
+          "label": "Path regex",
+          "type": "regex",
+          "regexDialect": "ere",
+          "flag": "-regex",
+          "placeholder": ".*/\\.[^/]+\\.sh",
+          "desc": "Matches the whole path. Add the 'regex type' option for ERE if your find defaults to emacs regex.",
+          "explain": "whose path matches regex {value}"
+        },
+        {
+          "id": "lname",
+          "label": "Symlink target (glob)",
+          "type": "string",
+          "flag": "-lname",
+          "placeholder": "/etc/*",
+          "explain": "a symlink pointing at {value}"
+        },
+        {
+          "id": "type",
+          "label": "Type",
+          "type": "enum",
+          "flag": "-type",
+          "enum": [
+            {
+              "value": "f",
+              "label": "regular file"
+            },
+            {
+              "value": "d",
+              "label": "directory"
+            },
+            {
+              "value": "l",
+              "label": "symlink"
+            },
+            {
+              "value": "b",
+              "label": "block device"
+            },
+            {
+              "value": "c",
+              "label": "character device"
+            },
+            {
+              "value": "p",
+              "label": "named pipe (FIFO)"
+            },
+            {
+              "value": "s",
+              "label": "socket"
+            }
+          ],
+          "explain": "of type {value}"
+        },
+        {
+          "id": "xtype",
+          "label": "Type (follow link)",
+          "type": "enum",
+          "flag": "-xtype",
+          "enum": [
+            {
+              "value": "f",
+              "label": "regular file"
+            },
+            {
+              "value": "d",
+              "label": "directory"
+            },
+            {
+              "value": "l",
+              "label": "broken symlink"
+            }
+          ],
+          "explain": "whose link target is type {value}"
+        },
+        {
+          "id": "size",
+          "label": "Size",
+          "type": "string",
+          "flag": "-size",
+          "validate": "^[+-]?\\d+[cwbkMG]?$",
+          "validateMsg": "e.g. +10M, -1k, 100c",
+          "placeholder": "+10M",
+          "choices": [
+            {
+              "label": "empty (0 bytes)",
+              "value": "0c",
+              "explain": "exactly zero bytes"
+            },
+            {
+              "label": "larger than 10 MB",
+              "value": "+10M"
+            },
+            {
+              "label": "larger than 100 MB",
+              "value": "+100M"
+            },
+            {
+              "label": "smaller than 1 KB",
+              "value": "-1k"
+            }
+          ],
+          "desc": "Suffix: c bytes, k KiB, M MiB, G GiB; + larger, - smaller.",
+          "explain": "of size {value}"
+        },
+        {
+          "id": "empty",
+          "label": "Empty",
+          "type": "bool",
+          "flag": "-empty",
+          "explain": "that are empty"
+        },
+        {
+          "id": "perm",
+          "label": "Permissions",
+          "type": "string",
+          "flag": "-perm",
+          "validate": "^[-/]?([0-7]{3,4}|[ugoa]*[=+-][rwxstugo]+)$",
+          "validateMsg": "e.g. -4000, /o+w, -g+s",
+          "choices": [
+            {
+              "label": "SUID set (-4000)",
+              "value": "-4000",
+              "explain": "the setuid bit is set, so the file runs as its owner"
+            },
+            {
+              "label": "SGID set (-2000)",
+              "value": "-2000",
+              "explain": "the setgid bit is set"
+            },
+            {
+              "label": "world-writable (/o+w)",
+              "value": "/o+w",
+              "explain": "writable by anyone"
+            },
+            {
+              "label": "group-writable (/g+w)",
+              "value": "/g+w"
+            },
+            {
+              "label": "others-executable (/o+x)",
+              "value": "/o+x"
+            },
+            {
+              "label": "exactly 777",
+              "value": "777"
+            }
+          ],
+          "desc": "A leading - means 'at least these bits', / means 'any of these bits', none means exact.",
+          "explain": "with permissions {value}"
+        },
+        {
+          "id": "user",
+          "label": "Owner (name)",
+          "type": "string",
+          "flag": "-user",
+          "ioc": [
+            "user"
+          ],
+          "explain": "owned by {value}"
+        },
+        {
+          "id": "group",
+          "label": "Group (name)",
+          "type": "string",
+          "flag": "-group",
+          "explain": "in group {value}"
+        },
+        {
+          "id": "uid",
+          "label": "Owner UID",
+          "type": "int",
+          "flag": "-uid",
+          "explain": "owned by UID {value}"
+        },
+        {
+          "id": "gid",
+          "label": "Group GID",
+          "type": "int",
+          "flag": "-gid",
+          "explain": "in GID {value}"
+        },
+        {
+          "id": "nouser",
+          "label": "Orphaned owner",
+          "type": "bool",
+          "flag": "-nouser",
+          "explain": "owned by a UID with no account"
+        },
+        {
+          "id": "nogroup",
+          "label": "Orphaned group",
+          "type": "bool",
+          "flag": "-nogroup",
+          "explain": "in a GID with no group"
+        },
+        {
+          "id": "modified",
+          "label": "Modified",
+          "type": "datetime",
+          "modes": {
+            "rel": {
+              "flag": "-mmin",
+              "encode": "find-time"
+            },
+            "abs": {
+              "flag": "-newermt",
+              "encode": "find-time"
+            }
+          },
+          "placeholder": "24h or 2026-10-01 08:00",
+          "desc": "Content last changed. 24h / 7d / 30m for 'within', or a date for 'newer than'.",
+          "explain": "modified {value}"
+        },
+        {
+          "id": "changed",
+          "label": "Metadata changed",
+          "type": "datetime",
+          "modes": {
+            "rel": {
+              "flag": "-cmin",
+              "encode": "find-time"
+            },
+            "abs": {
+              "flag": "-newerct",
+              "encode": "find-time"
+            }
+          },
+          "placeholder": "24h",
+          "desc": "Inode change time (ctime): catches chmod/chown and timestomping that faked mtime.",
+          "explain": "with metadata changed {value}"
+        },
+        {
+          "id": "accessed",
+          "label": "Accessed",
+          "type": "datetime",
+          "modes": {
+            "rel": {
+              "flag": "-amin",
+              "encode": "find-time"
+            },
+            "abs": {
+              "flag": "-newerat",
+              "encode": "find-time"
+            }
+          },
+          "placeholder": "24h",
+          "explain": "accessed {value}"
+        },
+        {
+          "id": "newer",
+          "label": "Newer than file",
+          "type": "path",
+          "os": "linux",
+          "flag": "-newer",
+          "placeholder": "/etc/passwd",
+          "explain": "modified more recently than {value}"
+        },
+        {
+          "id": "inum",
+          "label": "Inode number",
+          "type": "int",
+          "flag": "-inum",
+          "explain": "with inode {value}"
+        },
+        {
+          "id": "samefile",
+          "label": "Same file as",
+          "type": "path",
+          "os": "linux",
+          "flag": "-samefile",
+          "placeholder": "/bin/bash",
+          "explain": "hard-linked to {value}"
+        },
+        {
+          "id": "links",
+          "label": "Hard-link count",
+          "type": "int",
+          "flag": "-links",
+          "explain": "with {value} hard links"
+        },
+        {
+          "id": "readable",
+          "label": "Readable by me",
+          "type": "bool",
+          "flag": "-readable",
+          "explain": "readable by the current user"
+        },
+        {
+          "id": "writable",
+          "label": "Writable by me",
+          "type": "bool",
+          "flag": "-writable",
+          "explain": "writable by the current user"
+        },
+        {
+          "id": "executable",
+          "label": "Executable by me",
+          "type": "bool",
+          "flag": "-executable",
+          "explain": "executable by the current user"
+        },
+        {
+          "id": "prune",
+          "label": "Prune (skip subtree)",
+          "type": "bool",
+          "flag": "-prune",
+          "explain": "not descending into matching directories"
+        },
+        {
+          "id": "ls",
+          "label": "Long listing (-ls)",
+          "type": "bool",
+          "flag": "-ls",
+          "explain": "printing ls -dils details for each file"
+        },
+        {
+          "id": "print",
+          "label": "Print path (-print)",
+          "type": "bool",
+          "flag": "-print",
+          "explain": "printing each path"
+        },
+        {
+          "id": "print0",
+          "label": "NUL-separated (-print0)",
+          "type": "bool",
+          "flag": "-print0",
+          "explain": "printing each path followed by NUL (pair with xargs -0)"
+        },
+        {
+          "id": "printf",
+          "label": "Custom format (-printf)",
+          "type": "string",
+          "flag": "-printf",
+          "choices": [
+            {
+              "label": "timeline: mtime, owner, perms, size, path",
+              "value": "%TY-%Tm-%Td %TH:%TM:%.2TS %u %g %m %s %p\\n",
+              "explain": "ISO modify time, owner, group, octal mode, size, path"
+            },
+            {
+              "label": "owner, perms, path",
+              "value": "%u %g %m %p\\n",
+              "explain": "owner, group, octal permissions, path"
+            },
+            {
+              "label": "inode, links, path",
+              "value": "%i %n %p\\n",
+              "explain": "inode number, hard-link count, path"
+            },
+            {
+              "label": "size (bytes), path",
+              "value": "%s %p\\n",
+              "explain": "size in bytes then path"
+            },
+            {
+              "label": "access / change / modify times",
+              "value": "A:%AY-%Am-%Ad C:%CY-%Cm-%Cd M:%TY-%Tm-%Td %p\\n",
+              "explain": "the three timestamps and the path"
+            },
+            {
+              "label": "depth, type, path",
+              "value": "%d %y %p\\n",
+              "explain": "tree depth, type letter, path"
+            }
+          ],
+          "desc": "A format string. %p path, %f name, %s size, %m octal mode, %u user, %g group, %TY/%Tm/%Td modify date, %AX access, %CX change, %i inode, %n links, %y type, %d depth, \\n newline, \\t tab.",
+          "explain": "printing the format {value}"
+        },
+        {
+          "id": "exec",
+          "label": "Run a command on each file (-exec)",
+          "type": "command",
+          "flag": "-exec",
+          "nest": {
+            "kind": "exec",
+            "placeholder": "{}",
+            "toolFilter": "exec-safe",
+            "terminators": [
+              {
+                "value": "+",
+                "emit": "+",
+                "label": "batch — many files per run (fast)",
+                "explain": "find passes as many files as fit to one run"
+              },
+              {
+                "value": ";",
+                "emit": "\\;",
+                "label": "one run per file",
+                "explain": "find runs the command once for each file"
+              }
+            ]
+          },
+          "desc": "Runs a read-only command on the matches. {} is each file; batch (+) is faster, one-per-file (\\;) is needed when {} is not the last argument.",
+          "explain": "running a command on each match"
+        },
+        {
+          "id": "execdir",
+          "label": "Run in the file's directory (-execdir)",
+          "type": "command",
+          "flag": "-execdir",
+          "nest": {
+            "kind": "exec",
+            "placeholder": "{}",
+            "toolFilter": "exec-safe",
+            "terminators": [
+              {
+                "value": "+",
+                "emit": "+",
+                "label": "batch per directory"
+              },
+              {
+                "value": ";",
+                "emit": "\\;",
+                "label": "one run per file"
+              }
+            ]
+          },
+          "desc": "Like -exec but runs from each file's own directory, which is safer against path tricks.",
+          "explain": "running a command from each file's directory"
+        },
+        {
+          "id": "quit",
+          "label": "Stop after first match (-quit)",
+          "type": "bool",
+          "flag": "-quit",
+          "explain": "stopping as soon as one match is found"
+        }
+      ],
+      "common": true
+    }
+  ],
+  "presets": [
+    {
+      "id": "suid",
+      "name": "SUID binaries",
+      "values": {
+        "path": "/",
+        "xdev": true,
+        "expr": [
+          {
+            "term": "type",
+            "value": "f"
+          },
+          {
+            "term": "perm",
+            "value": "-4000"
+          },
+          {
+            "term": "ls"
+          }
+        ]
+      },
+      "ttps": [
+        "T1548.001"
+      ],
+      "opsec": "Full filesystem walk; slow on large disks. Compare against a known-good baseline."
+    },
+    {
+      "id": "recent-etc",
+      "name": "Files changed in /etc in the last 24h",
+      "values": {
+        "path": "/etc",
+        "expr": [
+          {
+            "term": "type",
+            "value": "f"
+          },
+          {
+            "term": "modified",
+            "value": "24h"
+          },
+          {
+            "term": "ls"
+          }
+        ]
+      },
+      "ttps": [
+        "T1543.002",
+        "T1053.003",
+        "T1098.004"
+      ]
+    },
+    {
+      "id": "tmp-exec",
+      "name": "Executables in temp and shm",
+      "values": {
+        "path": [
+          "/tmp",
+          "/var/tmp",
+          "/dev/shm"
+        ],
+        "expr": [
+          {
+            "term": "type",
+            "value": "f"
+          },
+          {
+            "term": "executable"
+          },
+          {
+            "term": "ls"
+          }
+        ]
+      },
+      "ttps": [
+        "T1105",
+        "T1036.005"
+      ]
+    },
+    {
+      "id": "hidden-tmp",
+      "name": "Hidden files in temp",
+      "values": {
+        "path": [
+          "/tmp",
+          "/var/tmp",
+          "/dev/shm"
+        ],
+        "expr": [
+          {
+            "term": "name",
+            "value": ".*"
+          },
+          {
+            "term": "type",
+            "value": "f"
+          },
+          {
+            "term": "ls"
+          }
+        ]
+      },
+      "ttps": [
+        "T1564.001"
+      ]
+    },
+    {
+      "id": "authorized-keys",
+      "name": "Every authorized_keys file",
+      "values": {
+        "path": "/",
+        "xdev": true,
+        "expr": [
+          {
+            "term": "name",
+            "value": "authorized_keys"
+          },
+          {
+            "term": "ls"
+          }
+        ]
+      },
+      "ttps": [
+        "T1098.004"
+      ]
+    },
+    {
+      "id": "webshell",
+      "name": "Web scripts changed in the last 7 days",
+      "values": {
+        "path": "/var/www",
+        "expr": [
+          {
+            "term": "type",
+            "value": "f"
+          },
+          {
+            "term": "iname",
+            "value": "*.php"
+          },
+          {
+            "term": "modified",
+            "value": "7d"
+          },
+          {
+            "term": "ls"
+          }
+        ]
+      },
+      "ttps": [
+        "T1505.003"
+      ]
+    },
+    {
+      "id": "world-writable-dirs",
+      "name": "World-writable directories without the sticky bit",
+      "values": {
+        "path": "/",
+        "xdev": true,
+        "expr": [
+          {
+            "term": "type",
+            "value": "d"
+          },
+          {
+            "term": "perm",
+            "value": "-0002"
+          },
+          {
+            "term": "perm",
+            "value": "-1000",
+            "negate": true
+          },
+          {
+            "term": "ls"
+          }
+        ]
+      },
+      "ttps": [
+        "T1222.002"
+      ]
+    },
+    {
+      "id": "recent-bin",
+      "name": "Binaries changed recently (tampering)",
+      "values": {
+        "path": [
+          "/usr/bin",
+          "/usr/sbin",
+          "/bin",
+          "/sbin"
+        ],
+        "expr": [
+          {
+            "term": "type",
+            "value": "f"
+          },
+          {
+            "term": "changed",
+            "value": "7d"
+          },
+          {
+            "term": "printf",
+            "value": "%TY-%Tm-%Td %TH:%TM:%.2TS %u %g %m %s %p\\n"
+          }
+        ]
+      },
+      "ttps": [
+        "T1222.002",
+        "T1554"
+      ]
+    },
+    {
+      "id": "hash-temp",
+      "name": "MD5 every file in temp (pipe to grep with an IOC set)",
+      "values": {
+        "path": [
+          "/tmp",
+          "/var/tmp",
+          "/dev/shm"
+        ],
+        "expr": [
+          {
+            "term": "type",
+            "value": "f"
+          },
+          {
+            "term": "exec",
+            "value": {
+              "tool": "md5sum",
+              "values": {},
+              "term": "+"
+            }
+          }
+        ]
+      },
+      "ttps": [
+        "T1105"
+      ]
+    },
+    {
+      "id": "grep-webroot",
+      "name": "Search PHP files for a marker (-exec grep)",
+      "values": {
+        "path": "/var/www",
+        "expr": [
+          {
+            "term": "type",
+            "value": "f"
+          },
+          {
+            "term": "iname",
+            "value": "*.php"
+          },
+          {
+            "term": "exec",
+            "value": {
+              "tool": "grep",
+              "values": {
+                "pattern": "eval(",
+                "fixed": true,
+                "filesOnly": true
+              },
+              "term": "+"
+            }
+          }
+        ]
+      },
+      "ttps": [
+        "T1505.003"
+      ]
+    },
+    {
+      "id": "init-scripts-30d",
+      "name": "Init and rc scripts changed in the last 30 days",
+      "values": {
+        "path": [
+          "/etc/init.d",
+          "/etc/rc.d",
+          "/etc/rc.local",
+          "/etc/systemd/system"
+        ],
+        "xdev": true,
+        "expr": [
+          {
+            "term": "type",
+            "value": "f"
+          },
+          {
+            "term": "modified",
+            "value": "30d"
+          },
+          {
+            "term": "ls"
+          }
+        ]
+      },
+      "ttps": [
+        "T1037.004",
+        "T1543.002"
+      ]
+    }
+  ],
+  "ttps": [
+    "T1083"
+  ],
+  "opsec": {
+    "slow": "walks the whole tree; -xdev and -maxdepth keep it bounded"
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "get-scheduledtask",
+  "name": "Get-ScheduledTask",
+  "aliases": [
+    "scheduled tasks",
+    "schtasks"
+  ],
+  "kind": "cmdlet",
+  "shells": [
+    {
+      "id": "powershell"
+    }
+  ],
+  "category": "persistence",
+  "summary": "Lists scheduled tasks as objects.",
+  "action": "lists scheduled tasks",
+  "description": "ScheduledTasks module (Windows 8 / 2012+). The Actions property holds what the task runs; expand it with Select-Object -ExpandProperty Actions.",
+  "source": "https://learn.microsoft.com/powershell/module/scheduledtasks/get-scheduledtask",
+  "requires": {
+    "elevation": "recommended",
+    "module": "ScheduledTasks"
+  },
+  "io": {
+    "stdin": "none",
+    "stdout": "objects"
+  },
+  "template": "{binary} {flags}",
+  "params": [
+    {
+      "id": "taskName",
+      "label": "Task name",
+      "type": "string",
+      "flag": "-TaskName",
+      "common": true,
+      "repeatable": true,
+      "repeat": {
+        "mode": "join",
+        "sep": ","
+      },
+      "placeholder": "Updater*",
+      "explain": "named {value}"
+    },
+    {
+      "id": "taskPath",
+      "label": "Folder",
+      "type": "string",
+      "flag": "-TaskPath",
+      "common": true,
+      "placeholder": "\\",
+      "desc": "Task folder, e.g. \\ for the root (where most malicious tasks land).",
+      "explain": "in folder {value}"
+    },
+    {
+      "id": "errorAction",
+      "label": "On error",
+      "type": "enum",
+      "flag": "-ErrorAction",
+      "enum": [
+        "SilentlyContinue",
+        "Stop",
+        "Continue"
+      ],
+      "explain": "on error: {value}"
+    }
+  ],
+  "presets": [
+    {
+      "id": "root",
+      "name": "Tasks in the root folder",
+      "values": {
+        "taskPath": "\\"
+      },
+      "ttps": [
+        "T1053.005"
+      ]
+    },
+    {
+      "id": "all",
+      "name": "Every task (pipe into ForEach-Object task-actions)",
+      "values": {},
+      "ttps": [
+        "T1053.005"
+      ]
+    }
+  ],
+  "properties": {
+    "TaskName": {},
+    "TaskPath": {},
+    "State": {},
+    "Actions": {},
+    "Author": {},
+    "Date": {},
+    "Triggers": {},
+    "Principal": {}
+  },
+  "ttps": [
+    "T1053.005"
+  ]
+}

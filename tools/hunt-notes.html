@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hunt Notes</title>
+<style>
+:root{
+  --bg:#f6f7f9;--panel:#fff;--ink:#1b1f24;--mute:#5d6672;--line:#d9dde3;--accent:#1f6feb;--accent-ink:#fff;
+  --ok:#1a7f37;--warn:#9a6700;--bad:#cf222e;--chip:#eef1f5;--mono:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;
+  --c-clean:#d8f3dc;--c-lead:#fff1c2;--c-find:#ffd6d6;--c-block:#e3e3e3;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1216;--panel:#171b21;--ink:#e6e9ee;--mute:#98a2ae;--line:#2b323b;--accent:#4c8dff;--accent-ink:#06121f;
+  --ok:#3fb950;--warn:#d29922;--bad:#f85149;--chip:#222831;
+  --c-clean:#16351f;--c-lead:#3a3112;--c-find:#47191b;--c-block:#2a2e34;}}
+:root[data-theme="dark"]{
+  --bg:#0f1216;--panel:#171b21;--ink:#e6e9ee;--mute:#98a2ae;--line:#2b323b;--accent:#4c8dff;--accent-ink:#06121f;
+  --ok:#3fb950;--warn:#d29922;--bad:#f85149;--chip:#222831;
+  --c-clean:#16351f;--c-lead:#3a3112;--c-find:#47191b;--c-block:#2a2e34;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:5}
+header h1{font-size:16px;margin:0 12px 0 0}
+nav button{background:none;border:0;border-bottom:2px solid transparent;color:var(--mute);padding:6px 10px;font:inherit;cursor:pointer}
+nav button.on{color:var(--ink);border-color:var(--accent);font-weight:600}
+.sp{flex:1}
+main{padding:12px 16px;max-width:1500px;margin:0 auto}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:12px}
+label{display:block;font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.mono,input.mono{font-family:var(--mono);font-size:13px}
+.grid{display:grid;gap:8px}
+.g-time{grid-template-columns:minmax(300px,2.6fr) minmax(170px,1.2fr) auto minmax(220px,1.8fr)}
+.tpair{display:flex;gap:6px}.tpair #tIn{flex:1;min-width:0}.tpair #tPick{width:240px;flex:none;font-family:var(--mono);font-size:13px}
+@media (max-width:560px){.tpair{flex-direction:column}.tpair #tPick{width:100%}}
+.g-a{grid-template-columns:1fr 1fr 90px 120px}
+.g-b{grid-template-columns:2fr 1.4fr}
+.g-c{grid-template-columns:1.6fr 1fr auto}
+@media (max-width:900px){.g-time,.g-a,.g-b,.g-c{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.g-time,.g-a,.g-b,.g-c{grid-template-columns:1fr}}
+button.b{font:inherit;border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:6px;padding:6px 10px;cursor:pointer;white-space:nowrap}
+button.b:hover{border-color:var(--accent)}
+button.p{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.preview{font-family:var(--mono);font-size:13px;padding:7px 8px;border-radius:6px;background:var(--chip);min-height:34px;display:flex;align-items:center}
+.preview.ok{color:var(--ok)}.preview.bad{color:var(--bad)}
+.hint{color:var(--mute);font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11px;text-transform:uppercase;color:var(--mute);letter-spacing:.04em;position:sticky;top:0;background:var(--panel)}
+td.t{font-family:var(--mono);white-space:nowrap}
+tr.ed{outline:2px solid var(--accent)}
+.chip{display:inline-block;background:var(--chip);border:1px solid var(--line);border-radius:10px;padding:0 6px;font-size:11px;font-family:var(--mono);margin:1px 2px 1px 0}
+.cf-Confirmed{color:var(--bad);font-weight:600}.cf-Probable{color:var(--warn);font-weight:600}.cf-Possible{color:var(--mute)}
+.x{background:none;border:0;color:var(--mute);cursor:pointer;font-size:13px;padding:0 4px}
+.x:hover{color:var(--bad)}
+pre.out{font-family:var(--mono);font-size:12px;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px;overflow:auto;max-height:60vh;white-space:pre}
+.hidden{display:none}
+.hosts .chip{font-size:12px;padding:2px 8px}
+.cov td.c{text-align:center;cursor:pointer;user-select:none;font-size:12px;width:16%}
+.st-clean{background:var(--c-clean)}.st-lead{background:var(--c-lead)}.st-finding{background:var(--c-find)}.st-blocked{background:var(--c-block)}
+.verdict{font-weight:600;font-size:12px}
+.v-confirmed{color:var(--bad)}.v-lead{color:var(--warn)}.v-clean{color:var(--ok)}.v-open{color:var(--mute)}
+.scroll{overflow:auto;max-height:62vh}
+.wrap{word-break:break-word}
+/* reference rail */
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:12px;align-items:start}
+body.norail .layout{grid-template-columns:minmax(0,1fr)}
+body.norail #rail{display:none}
+#rail{position:sticky;top:64px;max-height:calc(100vh - 76px);overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:12.5px}
+#rail h2{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--mute);margin:10px 0 6px}
+#rail h2:first-child{margin-top:0}
+#rail .q{border-left:3px solid var(--accent);padding:2px 0 2px 8px;margin:0 0 8px}
+#rail .q b{display:block;font-size:13px}
+#rail .q span{color:var(--mute)}
+#rail ol,#rail ul{margin:0;padding-left:18px}#rail li{margin:2px 0}
+#rail code{font-family:var(--mono);font-size:11.5px}
+@media (max-width:1000px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  #rail{display:none;position:fixed;right:8px;top:60px;width:min(320px,calc(100vw - 16px));z-index:20;box-shadow:0 6px 24px rgba(0,0,0,.25)}
+  body.railopen #rail{display:block}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Hunt Notes</h1>
+  <nav id="tabs">
+    <button data-tab="log" class="on">Log</button>
+    <button data-tab="ioc">IOCs</button>
+    <button data-tab="cov">Coverage</button>
+    <button data-tab="out">Output</button>
+  </nav>
+  <span class="sp"></span>
+  <span class="hint" id="saved"></span>
+  <button class="b" id="exp">Export JSON</button>
+  <button class="b" id="imp">Import</button>
+  <input type="file" id="impf" accept=".json" class="hidden">
+  <button class="b" id="clrBtn" title="Erase Hunt Notes data stored in this browser">Clear data</button>
+  <button class="b" id="railBtn" title="Show/hide the questions pane">Questions</button>
+  <button class="b" id="theme" title="Toggle theme">◐</button>
+</header>
+
+<main class="layout">
+<div>
+<div class="panel hidden" id="clrPanel" role="alertdialog" aria-labelledby="clrH" style="border-color:var(--bad)">
+  <strong id="clrH">Clear browser data</strong>
+  <p style="margin:6px 0 10px">Erases everything Hunt Notes stored in this browser: <b><span id="clrN">0</span> entries</b>, hosts and time zones, coverage grid, and display settings (theme, Questions pane). Nothing outside this browser is touched. <b>This cannot be undone.</b> Export first if you need the notes.</p>
+  <div class="row"><button class="b" id="clrExp">Export JSON first</button><button class="b" id="clrGo" style="background:var(--bad);color:#fff;border-color:var(--bad)">Erase now</button><button class="b" id="clrNo">Cancel</button><span class="hint" id="clrMsg"></span></div>
+</div>
+<!-- ============ LOG ============ -->
+<section id="t-log">
+  <div class="panel">
+    <div class="row hosts" style="margin-bottom:10px">
+      <span class="hint">Hosts:</span><span id="hostChips"></span>
+      <input id="newHost" placeholder="add host (name)" style="width:160px">
+      <button class="b" id="addHost">+</button>
+      <span class="hint">Click a host chip to set its system time zone (recorded at orient).</span>
+    </div>
+
+    <div class="grid g-time">
+      <div><label for="tIn">Time as shown in the source</label>
+        <div class="tpair"><input id="tIn" class="mono" placeholder="2026-10-21 14:05:01 · 10/21/2026 2:05:01 PM · [21/Oct/2026:14:05:01 -1000] · epoch · FILETIME" autocomplete="off">
+        <input id="tPick" type="datetime-local" step="1" title="Pick date and time (as shown in the source); fills the field to the left"></div></div>
+      <div><label for="tz">Source time zone</label><select id="tz"></select></div>
+      <div><label>&nbsp;</label><button class="b" id="now" title="Current time">Now</button></div>
+      <div><label>UTC</label><div class="preview" id="pv">—</div></div>
+    </div>
+    <div class="grid" id="offRow" style="grid-template-columns:200px;margin-top:6px;display:none">
+      <div><label for="off">Offset (±HH:MM)</label><input id="off" class="mono" value="+00:00"></div>
+    </div>
+
+    <div class="grid g-a" style="margin-top:8px">
+      <div><label for="host">Host</label><select id="host"></select></div>
+      <div><label for="src">Source</label><input id="src" list="srcList" placeholder="live:ps · vol3:netscan · evtx 4624 · auth.log"></div>
+      <div><label for="q">Question</label><select id="q">
+        <option value="">—</option><option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option><option>Q5</option></select></div>
+      <div><label for="conf">Confidence</label><select id="conf">
+        <option>Possible</option><option>Probable</option><option>Confirmed</option></select></div>
+    </div>
+    <div class="grid g-b" style="margin-top:8px">
+      <div><label for="obs">Observation</label><input id="obs" placeholder="what you saw (Enter to add)"></div>
+      <div><label for="ev">Evidence / command</label><input id="ev" class="mono" placeholder="cmd, plugin, path, log line, hash"></div>
+    </div>
+    <div class="grid g-c" style="margin-top:8px">
+      <div><label for="ioc">IOCs (separate with ;)</label><input id="ioc" class="mono" placeholder="203.0.113.7; C:\Users\Public\x.exe; 9f86d08…"></div>
+      <div><label for="nx">Next</label><input id="nx" placeholder="pivot / follow-up"></div>
+      <div><label>&nbsp;</label><div class="row"><button class="b p" id="add">Add</button><button class="b hidden" id="cancel">Cancel</button></div></div>
+    </div>
+    <div class="hint" style="margin-top:6px">Enter in any field adds the entry. Host, source, time zone and question stay set between entries. Time-only input (14:05) uses the date of the last entry.</div>
+    <datalist id="srcList">
+      <option>live:ps</option><option>live:net</option><option>live:persist</option><option>live:accounts</option><option>live:files</option>
+      <option>evtx</option><option>auth.log</option><option>access.log</option><option>syslog</option>
+      <option>vol3:pstree</option><option>vol3:psscan</option><option>vol3:cmdline</option><option>vol3:netscan</option><option>vol3:malfind</option>
+      <option>FTK</option><option>FTK Imager</option><option>Autopsy</option><option>prefetch</option><option>amcache</option><option>$MFT</option>
+    </datalist>
+  </div>
+
+  <div class="panel">
+    <div class="row" style="margin-bottom:8px">
+      <strong>Timeline</strong><span class="hint" id="count"></span><span class="sp"></span>
+      <select id="fHost" style="width:140px"><option value="">all hosts</option></select>
+      <input id="fTxt" placeholder="filter…" style="width:200px">
+    </div>
+    <div class="scroll"><table id="tl"><thead><tr>
+      <th>UTC</th><th>Host</th><th>Source</th><th>Q</th><th>Conf</th><th>Observation</th><th>Evidence</th><th>IOC</th><th>Next</th><th></th>
+    </tr></thead><tbody></tbody></table></div>
+  </div>
+</section>
+
+<!-- ============ IOC ============ -->
+<section id="t-ioc" class="hidden">
+  <div class="panel">
+    <div class="row" style="margin-bottom:8px"><strong>IOC list</strong><span class="hint">Built from the timeline. IDs are cited on timeline lines.</span></div>
+    <div class="scroll"><table id="iocT"><thead><tr>
+      <th>ID</th><th>Type</th><th>Value</th><th>First seen (UTC)</th><th>Last seen (UTC)</th><th>Hosts</th><th>Refs</th>
+    </tr></thead><tbody></tbody></table></div>
+  </div>
+</section>
+
+<!-- ============ COVERAGE ============ -->
+<section id="t-cov" class="hidden">
+  <div class="panel">
+    <div class="row" style="margin-bottom:6px"><strong>What's been investigated</strong>
+      <span class="hint">Click a cell to cycle: — → clean → lead → finding → blocked. Two findings in different sources = confirmed.</span></div>
+    <div id="covWrap"></div>
+  </div>
+</section>
+
+<!-- ============ OUTPUT ============ -->
+<section id="t-out" class="hidden">
+  <div class="panel">
+    <div class="row" style="margin-bottom:8px">
+      <strong>Text timeline</strong><span class="sp"></span>
+      <label style="display:inline;text-transform:none;font-size:13px;color:var(--ink)"><input type="checkbox" id="oConf" style="width:auto"> Confirmed/Probable only</label>
+      <button class="b" data-copy="oTl">Copy</button>
+    </div>
+    <pre class="out" id="oTl"></pre>
+  </div>
+  <div class="panel">
+    <div class="row" style="margin-bottom:8px"><strong>IOC list</strong><span class="sp"></span><button class="b" data-copy="oIoc">Copy</button></div>
+    <pre class="out" id="oIoc"></pre>
+  </div>
+  <div class="panel">
+    <div class="row" style="margin-bottom:8px"><strong>Coverage</strong><span class="sp"></span><button class="b" data-copy="oCov">Copy</button></div>
+    <pre class="out" id="oCov"></pre>
+  </div>
+  <div class="panel row">
+    <button class="b" id="dlMd">Download Markdown</button>
+    <button class="b" id="dlCsv">Download CSV</button>
+    <span class="sp"></span>
+    <button class="b" id="wipe">Clear browser data…</button>
+  </div>
+</section>
+</div>
+<aside id="rail" aria-label="Reference">
+<!--RAIL-START-->
+  <h2>Five questions</h2>
+  <div class="q"><b>Q1 · What is running that should not be?</b><span>pslist vs psscan · pstree parentage · cmdline · malfind · unsigned or user-writable path</span></div>
+  <div class="q"><b>Q2 · What is talking that should not be?</b><span>netscan / sockstat · session vs the process's job · fixed-interval beacons · same IP on both hosts · DNS cache, hosts file</span></div>
+  <div class="q"><b>Q3 · How does it survive a reboot?</b><span>services, tasks, Run keys, WMI · cron, <i>enabled</i> systemd, rc, ld.so.preload, authorized_keys · target = the Q1 file</span></div>
+  <div class="q"><b>Q4 · Who did it, and how did they get in?</b><span>4624 type 3/10, 4648, 4672 · auth.log, last/lastb, UID 0 · a web request with no matching auth <i>is</i> the answer</span></div>
+  <div class="q"><b>Q5 · When did it start?</b><span>Prefetch, Amcache, UserAssist, BAM before file times · $SI vs $FN · fls + mactime vs access/auth logs</span></div>
+  <h2>Decision gates</h2>
+  <ol>
+    <li><b>G1</b> Unsigned / writable path / bad parent → acquire + hash the file</li>
+    <li><b>G2</b> External session, no business reason → bind to a process and a log</li>
+    <li><b>G3</b> Persistence targets that file → foothold confirmed</li>
+    <li><b>G4</b> Account + auth method found → extend scope to other hosts</li>
+    <li><b>G5</b> First-seen before the alert → intrusion start</li>
+  </ol>
+  <h2>Rules</h2>
+  <ul>
+    <li><b>Acquire before alter.</b> Memory first, hashed.</li>
+    <li><b>Two independent sources</b> or it is a lead, not a finding.</li>
+    <li><b>State the reasoning:</b> expected result before, what changed after.</li>
+    <li><b>Breadth first:</b> Q1–Q5 shallow on both hosts before depth.</li>
+  </ul>
+  <h2>Confidence</h2>
+  <ul>
+    <li><b>Possible</b>: one source, a lead</li>
+    <li><b>Probable</b>: consistent, partly corroborated</li>
+    <li><b>Confirmed</b>: two independent sources agree</li>
+  </ul>
+  <h2>Time</h2>
+  <ul><li>Record UTC. Volatility = UTC. PowerShell, Event Viewer, <code>ls</code>, syslog = host local. Apache carries its own offset.</li></ul>
+<!--RAIL-END-->
+</aside>
+</main>
+
+<script>
+"use strict";
+/* ---------- time ---------- */
+const MON={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
+const fmtCache={};
+function parseOff(s){const m=String(s).trim().match(/^([+-])(\d{1,2}):?(\d{2})$/);if(!m)return null;return (m[1]==='-'?-1:1)*((+m[2])*60+(+m[3]))*60000;}
+function tzOffsetMs(ts,tz){
+  if(tz==='UTC')return 0;
+  const f=fmtCache[tz]||(fmtCache[tz]=new Intl.DateTimeFormat('en-US',{timeZone:tz,hourCycle:'h23',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}));
+  const p={};f.formatToParts(new Date(ts)).forEach(x=>p[x.type]=x.value);
+  return Date.UTC(+p.year,+p.month-1,+p.day,(+p.hour)%24,+p.minute,+p.second)-Math.floor(ts/1000)*1000;
+}
+function wallToUtc(w,tz,off){
+  if(tz==='OFFSET')return w-(off||0);
+  let o=tzOffsetMs(w,tz),u=w-o;const o2=tzOffsetMs(u,tz);if(o2!==o)u=w-o2;return u;
+}
+/* returns {utc, how} or {err} ; ctx={tz,off,defDate:{y,m,d}} */
+function parseTime(raw,ctx){
+  const s=String(raw||'').trim();if(!s)return {err:''};
+  let m;
+  if(/^\d{17,18}$/.test(s)){const ms=Number(BigInt(s)/10000n-11644473600000n);return {utc:ms,how:'FILETIME'};}
+  if(/^\d{13}$/.test(s))return {utc:+s,how:'epoch ms'};
+  if(/^\d{9,10}(\.\d+)?$/.test(s))return {utc:Math.round(parseFloat(s)*1000),how:'epoch s'};
+  const fin=(y,mo,d,h,mi,se,offStr,tag)=>{
+    const w=Date.UTC(y,mo,d,h,mi,se||0);
+    if(isNaN(w))return {err:'bad date'};
+    if(offStr){const z=/^(z|utc|gmt)$/i.test(offStr)?0:parseOff(offStr);if(z===null)return {err:'bad offset'};return {utc:w-z,how:(tag||'')+'offset in string'};}
+    return {utc:wallToUtc(w,ctx.tz,ctx.off),how:(tag||'')+(ctx.tz==='OFFSET'?'offset '+ctx.offStr:ctx.tz)};
+  };
+  const h12=(h,ap)=>{h=+h;if(!ap)return h;ap=ap.toUpperCase();if(ap==='PM'&&h<12)h+=12;if(ap==='AM'&&h===12)h=0;return h;};
+  // ISO / YYYY-MM-DD HH:MM[:SS][.fff][Z|±hh:mm]
+  if((m=s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})[T ]+(\d{1,2}):(\d{2})(?::(\d{2}))?(?:[.,]\d+)?\s*(Z|UTC|GMT|[+-]\d{2}:?\d{2})?$/i)))
+    return fin(+m[1],+m[2]-1,+m[3],+m[4],+m[5],+m[6],m[7]);
+  // ISO + zone abbreviation (Autopsy: 2026-10-21 14:05:01 HST) — abbreviation ignored, zone from selector
+  if((m=s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})[T ]+(\d{1,2}):(\d{2})(?::(\d{2}))?(?:[.,]\d+)?\s+([A-Z]{2,5})$/))){
+    const r=fin(+m[1],+m[2]-1,+m[3],+m[4],+m[5],+m[6]);if(r.how)r.how+=' (abbr '+m[7]+' ignored; zone from selector)';return r;}
+  // Apache [21/Oct/2026:14:05:01 -1000]
+  if((m=s.match(/^\[?(\d{1,2})\/([A-Za-z]{3})\/(\d{4}):(\d{2}):(\d{2}):(\d{2})\s*([+-]\d{4})?\]?/))&&MON[m[2].toLowerCase()]!==undefined)
+    return fin(+m[3],MON[m[2].toLowerCase()],+m[1],+m[4],+m[5],+m[6],m[7]);
+  // US M/D/YYYY h:mm[:ss] [AM|PM]  (Windows Event Viewer / Get-WinEvent en-US)
+  if((m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})[ ,T]+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i)))
+    return fin(+m[3],+m[1]-1,+m[2],h12(m[4],m[7]),+m[5],+m[6]);
+  // date / ps lstart / last -F : [Tue] Oct 21 14:05:01 [HST] 2026
+  if((m=s.match(/^(?:[A-Za-z]{3},?\s+)?([A-Za-z]{3})\s+(\d{1,2})\s+(\d{1,2}):(\d{2}):(\d{2})\s+(?:([A-Z]{2,5})\s+)?(\d{4})$/))&&MON[m[1].toLowerCase()]!==undefined){
+    const r=fin(+m[7],MON[m[1].toLowerCase()],+m[2],+m[3],+m[4],+m[5],m[6]&&/^(UTC|GMT|Z)$/i.test(m[6])?m[6]:null);
+    if(m[6]&&!/^(UTC|GMT)$/i.test(m[6])&&r.how)r.how+=' (abbr '+m[6]+' ignored; zone from selector)';return r;}
+  // syslog: Oct 21 14:05:01  (no year, no zone)
+  if((m=s.match(/^([A-Za-z]{3})\s+(\d{1,2})\s+(\d{1,2}):(\d{2}):(\d{2})/))&&MON[m[1].toLowerCase()]!==undefined){
+    const r=fin(ctx.defDate.y,MON[m[1].toLowerCase()],+m[2],+m[3],+m[4],+m[5]);if(r.how)r.how+=' · year assumed '+ctx.defDate.y;return r;}
+  // time only HH:MM[:SS] [AM|PM]
+  if((m=s.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i))){
+    const d=ctx.defDate;const r=fin(d.y,d.m,d.d,h12(m[1],m[4]),+m[2],+m[3]);
+    if(r.how)r.how+=' · date '+d.y+'-'+String(d.m+1).padStart(2,'0')+'-'+String(d.d).padStart(2,'0');return r;}
+  return {err:'unrecognized format'};
+}
+function fmtUtc(ms){if(ms==null||isNaN(ms))return '';const d=new Date(ms);return d.toISOString().replace('T',' ').replace(/\.\d{3}Z$/,'Z');}
+
+/* ---------- IOC typing ---------- */
+function iocType(v){
+  if(/^(\d{1,3}\.){3}\d{1,3}(:\d+)?$/.test(v))return 'ip';
+  if(/^[a-f0-9]{64}$/i.test(v))return 'sha256';if(/^[a-f0-9]{40}$/i.test(v))return 'sha1';if(/^[a-f0-9]{32}$/i.test(v))return 'md5';
+  if(/^https?:\/\//i.test(v))return 'url';
+  if(/^(HK(LM|CU|U|CR|CC)|HKEY_)/i.test(v))return 'regkey';
+  if(/^[a-z]:\\|^\\\\|^\/|^%\w+%/i.test(v))return 'path';
+  if(/\.(exe|dll|ps1|bat|cmd|vbs|js|hta|php|sh|elf|py|so)$/i.test(v))return 'file';
+  if(/^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(v))return 'domain';
+  if(/^[\w.-]+\\[\w.$-]+$|^[\w.$-]+@[\w.-]+$/.test(v))return 'account';
+  return 'other';
+}
+
+/* ---------- state ---------- */
+const KEY='hunt-notes-v1';
+const blank=()=>({hosts:[{name:'WIN-01',tz:''},{name:'LNX-01',tz:''}],entries:[],cov:{},seq:1,ui:{tz:'UTC',off:'+00:00',host:'WIN-01',src:'',q:''}});
+let S=blank();
+try{const j=localStorage.getItem(KEY);if(j)S=Object.assign(blank(),JSON.parse(j));}catch(e){}
+let saveT=null;
+function save(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(KEY,JSON.stringify(S));$('saved').textContent='autosaved '+new Date().toLocaleTimeString();}catch(e){$('saved').textContent='autosave unavailable: export JSON';}},250);}
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- tz select ---------- */
+const BROWSER_TZ=(()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone}catch(e){return 'UTC'}})();
+const COMMON=['UTC','Pacific/Honolulu','America/Anchorage','America/Los_Angeles','America/Denver','America/Phoenix','America/Chicago','America/New_York','Europe/London','Europe/Berlin','Asia/Tokyo','Asia/Seoul','Australia/Sydney','Asia/Bahrain','Pacific/Guam'];
+function buildTz(){
+  const sel=$('tz');let h='<optgroup label="Common">'+COMMON.map(z=>`<option value="${z}">${z}</option>`).join('')+`<option value="${BROWSER_TZ}">${BROWSER_TZ} (this browser)</option><option value="OFFSET">Fixed offset…</option></optgroup>`;
+  try{const all=Intl.supportedValuesOf('timeZone');h+='<optgroup label="All zones">'+all.map(z=>`<option value="${z}">${z}</option>`).join('')+'</optgroup>';}catch(e){}
+  sel.innerHTML=h;
+}
+function tzLabel(z){return z==='OFFSET'?'offset '+$('off').value:z;}
+
+/* ---------- hosts ---------- */
+function renderHosts(){
+  $('hostChips').innerHTML=S.hosts.map((h,i)=>`<span class="chip" data-i="${i}" title="click: set system TZ">${esc(h.name)}${h.tz?' · '+esc(h.tz):''} <button class="x" data-del="${i}" title="remove host">×</button></span>`).join('');
+  const opts=S.hosts.map(h=>`<option>${esc(h.name)}</option>`).join('');
+  $('host').innerHTML=opts;$('fHost').innerHTML='<option value="">all hosts</option>'+opts;
+  if(S.hosts.some(h=>h.name===S.ui.host))$('host').value=S.ui.host;
+}
+$('hostChips').addEventListener('click',e=>{
+  const d=e.target.closest('[data-del]');if(d){const i=+d.dataset.del;if(S.hosts.length>1){S.hosts.splice(i,1);renderHosts();renderCov();save();}return;}
+  const c=e.target.closest('.chip');if(!c)return;const h=S.hosts[+c.dataset.i];
+  const v=prompt('System time zone for '+h.name+' (IANA name, e.g. America/New_York, or UTC). Leave blank to clear.',h.tz||'');
+  if(v===null)return;const z=v.trim();
+  if(z){try{new Intl.DateTimeFormat('en-US',{timeZone:z});}catch(err){alert('Unknown zone: '+z);return;}}
+  h.tz=z;renderHosts();if($('host').value===h.name&&z)setTz(z);save();
+});
+$('addHost').onclick=()=>{const n=$('newHost').value.trim();if(!n||S.hosts.some(h=>h.name===n))return;S.hosts.push({name:n,tz:''});$('newHost').value='';renderHosts();renderCov();save();};
+$('newHost').addEventListener('keydown',e=>{if(e.key==='Enter')$('addHost').click();});
+$('host').onchange=()=>{S.ui.host=$('host').value;const h=S.hosts.find(x=>x.name===S.ui.host);if(h&&h.tz)setTz(h.tz);save();};
+function setTz(z){$('tz').value=z;if($('tz').value!==z){$('tz').value='UTC';}S.ui.tz=$('tz').value;$('offRow').style.display=S.ui.tz==='OFFSET'?'grid':'none';preview();}
+
+/* ---------- entry form ---------- */
+let editId=null;
+function defDate(){
+  const last=S.entries.length?S.entries[S.entries.length-1].utc:Date.now();
+  // default date in the selected zone's wall clock
+  const tz=$('tz').value;const o=tz==='OFFSET'?(parseOff($('off').value)||0):tzOffsetMs(last,tz);
+  const d=new Date(last+o);return {y:d.getUTCFullYear(),m:d.getUTCMonth(),d:d.getUTCDate()};
+}
+function ctx(){return {tz:$('tz').value,off:parseOff($('off').value)||0,offStr:$('off').value,defDate:defDate()};}
+function preview(){
+  const r=parseTime($('tIn').value,ctx());const pv=$('pv');
+  if(r.err!==undefined){pv.className='preview'+(r.err?' bad':'');pv.textContent=r.err||'—';return null;}
+  pv.className='preview ok';pv.textContent=fmtUtc(r.utc)+'   ('+r.how+')';return r;
+}
+['tIn','off'].forEach(id=>$(id).addEventListener('input',preview));
+$('tz').onchange=()=>{S.ui.tz=$('tz').value;$('offRow').style.display=S.ui.tz==='OFFSET'?'grid':'none';preview();save();};
+$('off').addEventListener('change',()=>{S.ui.off=$('off').value;save();});
+$('now').onclick=()=>{$('tIn').value=fmtUtc(Date.now());$('tPick').value='';setTz('UTC');$('obs').focus();};
+// picker -> text field (wall-clock time as shown in the source; zone still comes from the selector)
+// picker -> text field (wall-clock time as shown in the source; zone still comes from the selector)
+$('tPick').addEventListener('input',()=>{const v=$('tPick').value;if(!v)return;
+  const s=v.replace('T',' ');$('tIn').value=s.length===16?s+':00':s;preview();});
+$('tIn').addEventListener('input',()=>{$('tPick').value='';});
+['src','q','conf'].forEach(id=>$(id).addEventListener('change',()=>{S.ui[id]=$(id).value;save();}));
+
+function readForm(){
+  const r=preview();
+  if(!r){$('tIn').focus();return null;}
+  const iocs=$('ioc').value.split(';').map(s=>s.trim()).filter(Boolean).map(v=>({t:iocType(v),v}));
+  return {utc:r.utc,raw:$('tIn').value.trim(),how:r.how,host:$('host').value,src:$('src').value.trim(),q:$('q').value,conf:$('conf').value,
+    obs:$('obs').value.trim(),ev:$('ev').value.trim(),iocs,next:$('nx').value.trim()};
+}
+function clearForm(){['tIn','tPick','obs','ev','ioc','nx'].forEach(id=>$(id).value='');$('conf').value='Possible';preview();}
+function addOrUpdate(){
+  const e=readForm();if(!e)return;
+  if(!e.obs&&!e.iocs.length){$('obs').focus();return;}
+  if(editId!=null){const i=S.entries.findIndex(x=>x.id===editId);if(i>=0)S.entries[i]=Object.assign({id:editId},e);endEdit();}
+  else S.entries.push(Object.assign({id:S.seq++},e));
+  clearForm();renderAll();save();$('tIn').focus();
+}
+$('add').onclick=addOrUpdate;
+['tIn','src','obs','ev','ioc','nx'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();addOrUpdate();}}));
+function startEdit(id){
+  const e=S.entries.find(x=>x.id===id);if(!e)return;editId=id;
+  $('tIn').value=fmtUtc(e.utc);$('tPick').value='';setTz('UTC');$('host').value=e.host;$('src').value=e.src;$('q').value=e.q;$('conf').value=e.conf;
+  $('obs').value=e.obs;$('ev').value=e.ev;$('ioc').value=e.iocs.map(i=>i.v).join('; ');$('nx').value=e.next;
+  $('add').textContent='Update';$('cancel').classList.remove('hidden');renderTl();window.scrollTo({top:0,behavior:'smooth'});$('obs').focus();
+}
+function endEdit(){editId=null;$('add').textContent='Add';$('cancel').classList.add('hidden');}
+$('cancel').onclick=()=>{endEdit();clearForm();renderTl();};
+
+/* ---------- derived ---------- */
+const sorted=()=>S.entries.slice().sort((a,b)=>a.utc-b.utc||a.id-b.id);
+function iocIndex(){
+  const map=new Map();
+  sorted().forEach(e=>e.iocs.forEach(i=>{
+    const k=i.t+'|'+i.v.toLowerCase();
+    if(!map.has(k))map.set(k,{t:i.t,v:i.v,first:e.utc,last:e.utc,hosts:new Set(),refs:[]});
+    const o=map.get(k);o.last=e.utc;o.hosts.add(e.host);o.refs.push(e.id);
+  }));
+  let n=1;const list=[...map.values()];list.forEach(o=>o.id='I-'+String(n++).padStart(2,'0'));
+  const byKey=new Map();list.forEach(o=>byKey.set(o.t+'|'+o.v.toLowerCase(),o.id));
+  return {list,idOf:i=>byKey.get(i.t+'|'+i.v.toLowerCase())};
+}
+function entryNo(){const m=new Map();sorted().forEach((e,i)=>m.set(e.id,'T-'+String(i+1).padStart(2,'0')));return m;}
+
+/* ---------- render: timeline ---------- */
+function renderTl(){
+  const {idOf}=iocIndex();const no=entryNo();
+  const fh=$('fHost').value,ft=$('fTxt').value.toLowerCase();
+  const rows=sorted().filter(e=>(!fh||e.host===fh)&&(!ft||JSON.stringify(e).toLowerCase().includes(ft)));
+  $('count').textContent=rows.length+' / '+S.entries.length+' entries';
+  $('tl').tBodies[0].innerHTML=rows.map(e=>`<tr class="${e.id===editId?'ed':''}" data-id="${e.id}">
+    <td class="t" title="${esc(no.get(e.id))} · raw: ${esc(e.raw)} · ${esc(e.how)}">${esc(fmtUtc(e.utc))}</td>
+    <td>${esc(e.host)}</td><td>${esc(e.src)}</td><td>${esc(e.q)}</td><td class="cf-${esc(e.conf)}">${esc(e.conf)}</td>
+    <td class="wrap">${esc(e.obs)}</td><td class="mono wrap">${esc(e.ev)}</td>
+    <td>${e.iocs.map(i=>`<span class="chip" title="${esc(i.t)}: ${esc(i.v)}">${esc(idOf(i))}</span>`).join('')}</td>
+    <td class="wrap">${esc(e.next)}</td>
+    <td style="white-space:nowrap"><button class="x" data-ed="${e.id}" title="edit">✎</button><button class="x" data-rm="${e.id}" title="delete">×</button></td></tr>`).join('')
+    ||'<tr><td colspan="10" class="hint">No entries yet. Paste a time, pick the source zone, describe what you saw, Enter.</td></tr>';
+}
+$('tl').addEventListener('click',e=>{
+  const ed=e.target.closest('[data-ed]');if(ed){startEdit(+ed.dataset.ed);return;}
+  const rm=e.target.closest('[data-rm]');if(rm){
+    if(rm.dataset.armed){S.entries=S.entries.filter(x=>x.id!==+rm.dataset.rm);if(editId===+rm.dataset.rm){endEdit();clearForm();}renderAll();save();}
+    else{rm.dataset.armed='1';rm.textContent='delete?';rm.style.color='var(--bad)';setTimeout(()=>{if(rm.isConnected){delete rm.dataset.armed;rm.textContent='×';rm.style.color='';}},2500);}
+  }
+});
+$('fHost').onchange=renderTl;$('fTxt').oninput=renderTl;
+
+/* ---------- render: IOC ---------- */
+function renderIoc(){
+  const {list}=iocIndex();const no=entryNo();
+  $('iocT').tBodies[0].innerHTML=list.map(o=>`<tr><td class="t">${o.id}</td><td>${esc(o.t)}</td><td class="mono wrap">${esc(o.v)}</td>
+    <td class="t">${fmtUtc(o.first)}</td><td class="t">${fmtUtc(o.last)}</td><td>${esc([...o.hosts].join(', '))}</td>
+    <td>${o.refs.map(r=>`<span class="chip">${no.get(r)}</span>`).join('')}</td></tr>`).join('')||'<tr><td colspan="7" class="hint">No IOCs yet. Add them in the IOC field on the Log tab.</td></tr>';
+}
+
+/* ---------- render: coverage ---------- */
+const QS=[['Q1','What is running that should not be?'],['Q2','What is talking that should not be?'],['Q3','How does it survive a reboot?'],['Q4','Who did it, and how did they get in?'],['Q5','When did it start?']];
+const COLS=[['L','Live'],['M','Memory'],['D','Disk']];
+const CYCLE=['','clean','lead','finding','blocked'];
+function cell(h,q,c){return ((S.cov[h]||{})[q]||{})[c]||'';}
+function verdict(h,q){
+  const v=COLS.map(([c])=>cell(h,q,c));const f=v.filter(x=>x==='finding').length;
+  if(f>=2)return ['confirmed','CONFIRMED'];if(f===1||v.includes('lead'))return ['lead','lead'];
+  if(v.length&&v.every(x=>x==='clean'||x==='blocked')&&v.includes('clean'))return ['clean','clean'];
+  return ['open','open'];
+}
+function renderCov(){
+  $('covWrap').innerHTML=S.hosts.map(h=>`<h3 style="margin:10px 0 6px;font-size:14px">${esc(h.name)}</h3>
+  <table class="cov"><thead><tr><th>Question</th>${COLS.map(c=>`<th style="text-align:center">${c[1]}</th>`).join('')}<th>Status</th></tr></thead><tbody>
+  ${QS.map(([q,t])=>{const [vc,vt]=verdict(h.name,q);return `<tr><td><strong>${q}</strong> ${esc(t)}</td>
+    ${COLS.map(([c])=>{const s=cell(h.name,q,c);return `<td class="c st-${s}" data-h="${esc(h.name)}" data-q="${q}" data-c="${c}">${s||'—'}</td>`;}).join('')}
+    <td class="verdict v-${vc}">${vt}</td></tr>`;}).join('')}
+  </tbody></table>`).join('');
+}
+$('covWrap').addEventListener('click',e=>{
+  const td=e.target.closest('td.c');if(!td)return;const {h,q,c}=td.dataset;
+  S.cov[h]=S.cov[h]||{};S.cov[h][q]=S.cov[h][q]||{};
+  const cur=S.cov[h][q][c]||'';S.cov[h][q][c]=CYCLE[(CYCLE.indexOf(cur)+1)%CYCLE.length];renderCov();renderOut();save();
+});
+
+/* ---------- render: output ---------- */
+const pad=(s,n)=>{s=String(s??'');return s.length>=n?s:s+' '.repeat(n-s.length);};
+function renderOut(){
+  const {list,idOf}=iocIndex();const no=entryNo();const only=$('oConf').checked;
+  const rows=sorted().filter(e=>!only||e.conf!=='Possible');
+  const hw=Math.max(4,...rows.map(e=>e.host.length)),sw=Math.max(6,...rows.map(e=>e.src.length));
+  let t=`${pad('#',5)}| ${pad('TIME (UTC)',21)}| ${pad('HOST',hw)} | ${pad('SOURCE',sw)} | Q  | ${pad('CONF',9)}| OBSERVATION | EVIDENCE | IOC | NEXT\n`;
+  t+='-'.repeat(5)+'+'+'-'.repeat(22)+'+'+'-'.repeat(hw+2)+'+'+'-'.repeat(sw+2)+'+----+'+'-'.repeat(10)+'+'+'-'.repeat(40)+'\n';
+  rows.forEach(e=>{t+=`${pad(no.get(e.id),5)}| ${pad(fmtUtc(e.utc),21)}| ${pad(e.host,hw)} | ${pad(e.src,sw)} | ${pad(e.q,2)} | ${pad(e.conf,9)}| ${e.obs} | ${e.ev} | ${e.iocs.map(idOf).join(',')} | ${e.next}\n`;});
+  $('oTl').textContent=rows.length?t:'(empty)';
+  const tw=Math.max(4,...list.map(o=>o.t.length));
+  let i=`${pad('ID',5)}| ${pad('TYPE',tw)} | ${pad('FIRST SEEN (UTC)',21)}| ${pad('LAST SEEN (UTC)',21)}| HOSTS | VALUE | REFS\n`;
+  list.forEach(o=>{i+=`${pad(o.id,5)}| ${pad(o.t,tw)} | ${pad(fmtUtc(o.first),21)}| ${pad(fmtUtc(o.last),21)}| ${[...o.hosts].join(',')} | ${o.v} | ${o.refs.map(r=>no.get(r)).join(',')}\n`;});
+  $('oIoc').textContent=list.length?i:'(empty)';
+  let c='';S.hosts.forEach(h=>{c+=`${h.name}${h.tz?' (system TZ '+h.tz+')':''}\n`;QS.forEach(([q,tx])=>{c+=`  ${q} ${pad(tx,40)} L:${pad(cell(h.name,q,'L')||'-',8)} M:${pad(cell(h.name,q,'M')||'-',8)} D:${pad(cell(h.name,q,'D')||'-',8)} => ${verdict(h.name,q)[1]}\n`;});});
+  $('oCov').textContent=c;
+}
+$('oConf').onchange=renderOut;
+document.querySelectorAll('[data-copy]').forEach(b=>b.onclick=async()=>{
+  const txt=$(b.dataset.copy).textContent;
+  try{await navigator.clipboard.writeText(txt);}catch(e){const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();}
+  const o=b.textContent;b.textContent='Copied';setTimeout(()=>b.textContent=o,1200);
+});
+
+/* ---------- export / import ---------- */
+function download(name,text,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);}
+const stamp=()=>new Date().toISOString().slice(0,16).replace(/[:T]/g,'');
+$('exp').onclick=()=>download('hunt-notes-'+stamp()+'Z.json',JSON.stringify(S,null,1),'application/json');
+$('imp').onclick=()=>$('impf').click();
+$('impf').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const j=JSON.parse(await f.text());if(!Array.isArray(j.entries))throw 0;S=Object.assign(blank(),j);boot();save();}catch(err){alert('Not a Hunt Notes JSON export.');}e.target.value='';};
+const mdc=s=>String(s??'').replace(/\|/g,'\\|');
+$('dlMd').onclick=()=>{
+  const {list,idOf}=iocIndex();const no=entryNo();
+  let m=`# Hunt Notes\n\n_Exported ${fmtUtc(Date.now())}. All times UTC._\n\n## Timeline\n\n| # | UTC | Host | Source | Q | Conf | Observation | Evidence | IOC | Next |\n|---|---|---|---|---|---|---|---|---|---|\n`;
+  sorted().forEach(e=>m+=`| ${no.get(e.id)} | ${fmtUtc(e.utc)} | ${mdc(e.host)} | ${mdc(e.src)} | ${e.q} | ${e.conf} | ${mdc(e.obs)} | \`${mdc(e.ev)}\` | ${e.iocs.map(idOf).join(', ')} | ${mdc(e.next)} |\n`);
+  m+=`\n## IOCs\n\n| ID | Type | Value | First seen | Last seen | Hosts | Refs |\n|---|---|---|---|---|---|---|\n`;
+  list.forEach(o=>m+=`| ${o.id} | ${o.t} | \`${mdc(o.v)}\` | ${fmtUtc(o.first)} | ${fmtUtc(o.last)} | ${[...o.hosts].join(', ')} | ${o.refs.map(r=>no.get(r)).join(', ')} |\n`);
+  m+=`\n## Coverage\n\n\`\`\`\n${$('oCov').textContent}\`\`\`\n`;
+  download('hunt-notes-'+stamp()+'Z.md',m,'text/markdown');
+};
+$('dlCsv').onclick=()=>{
+  const {idOf}=iocIndex();const no=entryNo();const q=s=>'"'+String(s??'').replace(/"/g,'""')+'"';
+  let c='id,utc,host,source,question,confidence,observation,evidence,iocs,next,raw_time,conversion\n';
+  sorted().forEach(e=>c+=[no.get(e.id),fmtUtc(e.utc),e.host,e.src,e.q,e.conf,e.obs,e.ev,e.iocs.map(i=>idOf(i)+'='+i.v).join('; '),e.next,e.raw,e.how].map(q).join(',')+'\n');
+  download('hunt-notes-'+stamp()+'Z.csv',c,'text/csv');
+};
+function openClr(){$('clrN').textContent=S.entries.length;$('clrMsg').textContent='';$('clrPanel').classList.remove('hidden');window.scrollTo({top:0,behavior:'smooth'});$('clrNo').focus();}
+$('clrBtn').onclick=openClr;$('wipe').onclick=openClr;
+$('clrNo').onclick=()=>$('clrPanel').classList.add('hidden');
+$('clrExp').onclick=()=>{$('exp').click();$('clrMsg').textContent='Exported. Check your downloads, then Erase now.';};
+$('clrGo').onclick=()=>{
+  clearTimeout(saveT);                       // stop a pending autosave from re-writing data
+  let n=0;
+  try{for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&k.startsWith(KEY)){localStorage.removeItem(k);n++;}}}catch(e){}
+  try{sessionStorage.clear();}catch(e){}
+  document.documentElement.removeAttribute('data-theme');document.body.classList.remove('norail','railopen');
+  S=blank();boot();                          // fresh in-memory state; nothing is saved until you add an entry
+  $('clrPanel').classList.add('hidden');
+  let left=0;try{for(let i=0;i<localStorage.length;i++){if((localStorage.key(i)||'').startsWith(KEY))left++;}}catch(e){}
+  $('saved').textContent=left?'clear failed: '+left+' keys remain':'browser data cleared ('+n+' keys)';
+};
+
+/* ---------- tabs / theme ---------- */
+$('tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  ['log','ioc','cov','out'].forEach(t=>$('t-'+t).classList.toggle('hidden',t!==b.dataset.tab));
+  if(b.dataset.tab==='ioc')renderIoc();if(b.dataset.tab==='out')renderOut();if(b.dataset.tab==='cov')renderCov();});
+$('theme').onclick=()=>{const r=document.documentElement;const dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;r.dataset.theme=dark?'light':'dark';try{localStorage.setItem(KEY+'-theme',r.dataset.theme);}catch(e){}};
+try{const t=localStorage.getItem(KEY+'-theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}
+$('railBtn').onclick=()=>{
+  if(matchMedia('(max-width:1000px)').matches){document.body.classList.toggle('railopen');return;}
+  document.body.classList.toggle('norail');try{localStorage.setItem(KEY+'-rail',document.body.classList.contains('norail')?'0':'1');}catch(e){}
+};
+try{if(localStorage.getItem(KEY+'-rail')==='0')document.body.classList.add('norail');}catch(e){}
+
+function renderAll(){renderTl();renderIoc();renderCov();renderOut();}
+function boot(){
+  buildTz();renderHosts();
+  $('off').value=S.ui.off||'+00:00';setTz(S.ui.tz||'UTC');
+  $('src').value=S.ui.src||'';$('q').value=S.ui.q||'';$('conf').value='Possible';
+  endEdit();renderAll();
+}
+boot();
+</script>
+</body>
+</html>

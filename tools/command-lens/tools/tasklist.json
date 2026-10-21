@@ -1,0 +1,31 @@
+{
+  "$schema": "../schema/tool.schema.json",
+  "id": "tasklist",
+  "name": "tasklist",
+  "aliases": ["processes", "ps"],
+  "kind": "native",
+  "shells": [{ "id": "cmd" }],
+  "category": "process",
+  "summary": "Lists running processes.",
+  "action": "lists processes",
+  "description": "Each /fi filter is ANDed with the others, so several image names cannot be ORed in one call: use loop or one-line-per-IOC mode for a set of names, or pipe to findstr.",
+  "source": "https://learn.microsoft.com/windows-server/administration/windows-commands/tasklist",
+  "requires": { "elevation": "recommended", "note": "/v shows other users' details only when elevated" },
+  "io": { "stdin": "none", "stdout": "text" },
+  "template": "{binary} {flags}",
+  "params": [
+    { "id": "verbose", "label": "Verbose", "type": "bool", "flag": "/v", "common": true, "conflicts": ["services", "modules"], "explain": "with user, status and window title" },
+    { "id": "services", "label": "Services", "type": "bool", "flag": "/svc", "common": true, "conflicts": ["verbose", "modules"], "explain": "with the services hosted in each process" },
+    { "id": "modules", "label": "Loading DLL", "type": "string", "flag": "/m", "conflicts": ["verbose", "services"], "ioc": ["filename"], "placeholder": "wininet.dll", "explain": "processes that loaded {value}" },
+    { "id": "image", "label": "Image name", "type": "string", "flag": "/fi", "valueTemplate": "IMAGENAME eq {v}", "common": true, "ioc": ["process", "filename"], "bulk": {}, "placeholder": "powershell.exe", "explain": "named {value}" },
+    { "id": "pidEq", "label": "PID", "type": "int", "flag": "/fi", "valueTemplate": "PID eq {v}", "explain": "PID {value}" },
+    { "id": "user", "label": "User", "type": "string", "flag": "/fi", "valueTemplate": "USERNAME eq {v}", "ioc": ["user"], "explain": "run by {value}" },
+    { "id": "format", "label": "Format", "type": "enum", "flag": "/fo", "common": true, "enum": ["TABLE", "LIST", "CSV"], "explain": "as {value}" },
+    { "id": "noHeader", "label": "No header", "type": "bool", "flag": "/nh", "explain": "without the header row" }
+  ],
+  "presets": [
+    { "id": "verbose-csv", "name": "All processes, verbose CSV", "values": { "verbose": true, "format": "CSV" }, "ttps": ["T1057"] },
+    { "id": "svc", "name": "Services per process", "values": { "services": true }, "ttps": ["T1057", "T1007"] }
+  ],
+  "ttps": ["T1057"]
+}

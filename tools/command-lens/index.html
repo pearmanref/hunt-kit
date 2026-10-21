@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- No network access of any kind: everything is local, and the page enforces it. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>Command Lens</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231c1e20'/%3E%3Cpath d='M8 11l6 5-6 5' stroke='%23ffb000' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M16 22h8' stroke='%23ffb000' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="mark" aria-hidden="true">&gt;_</span> Command Lens <span class="ver" id="ver"></span></div>
+    <div class="shellbar" role="radiogroup" aria-label="Shell" id="shellbar"></div>
+    <div class="psver" id="psver" role="radiogroup" aria-label="PowerShell version"></div>
+    <label class="iocpick" title="IOC set used by IOC fields and recipes">
+      <span>IOC set</span>
+      <select id="activeSet" aria-label="Active IOC set"></select>
+    </label>
+    <button class="palette-btn" id="openPalette" title="Search tools, presets, ATT&amp;CK IDs, recipes (Ctrl+K)">Find a tool or technique <kbd>Ctrl K</kbd></button>
+    <div class="spacer"></div>
+    <span class="pill" id="storagePill" hidden></span>
+    <button class="btn ghost" id="themeBtn" title="Switch dark / light">Theme</button>
+    <button class="btn ghost" id="helpBtn" title="Keyboard shortcuts (?)">Keys</button>
+  </header>
+
+  <main class="workbench">
+    <section class="builder" aria-label="Builder">
+      <div class="readout" id="readout">
+        <div class="readout-head">
+          <span class="prompt" id="prompt">$</span>
+          <div class="line" id="line" tabindex="0" aria-label="Composed command line"></div>
+        </div>
+        <div class="readout-foot">
+          <div class="diagsum" id="diagsum"></div>
+          <div class="copybar">
+            <button class="btn primary" id="copyBtn" title="Copy the line (Ctrl+Enter)">Copy</button>
+            <select id="copyFormat" aria-label="Copy format"></select>
+            <button class="btn" id="saveBtn" title="Save to history with tags (Ctrl+S)">Save…</button>
+            <button class="btn ghost" id="clearBtn" title="Start a new line">New</button>
+          </div>
+        </div>
+        <ul class="diags" id="diags"></ul>
+      </div>
+
+      <div class="layers" id="layers"></div>
+      <div class="add-row" id="addRow" aria-label="Add a command"></div>
+    </section>
+
+    <aside class="inspector" aria-label="Explanation">
+      <h2>What this line does</h2>
+      <p class="summary" id="summary"></p>
+      <div class="meta" id="meta"></div>
+      <h3 id="outlineHdr" hidden>Structure</h3>
+      <ul class="outline" id="outline"></ul>
+      <h3>Token by token</h3>
+      <ol class="tokmap" id="tokmap"></ol>
+    </aside>
+  </main>
+
+  <section class="drawer" id="drawer" aria-label="History, recipes, IOC sets, paths and data">
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="history" aria-selected="true">History</button>
+      <button role="tab" data-tab="recipes">Recipes</button>
+      <button role="tab" data-tab="iocs">IOC sets</button>
+      <button role="tab" data-tab="paths">Paths</button>
+      <button role="tab" data-tab="data">Data</button>
+      <input class="drawer-search" id="drawerSearch" type="search" placeholder="Filter: text, tool:grep, tag:case1, ioc:198.51, T1053" aria-label="Filter">
+    </nav>
+    <div class="tabpanel" id="tab-history"></div>
+    <div class="tabpanel" id="tab-recipes" hidden></div>
+    <div class="tabpanel" id="tab-iocs" hidden></div>
+    <div class="tabpanel" id="tab-paths" hidden></div>
+    <div class="tabpanel" id="tab-data" hidden></div>
+  </section>
+
+  <div class="palette" id="palette" hidden>
+    <div class="palette-box" role="dialog" aria-label="Command palette">
+      <div class="palette-ctx" id="paletteCtx" hidden></div>
+      <input id="paletteInput" type="text" autocomplete="off" spellcheck="false" placeholder="grep, Get-WinEvent, scheduled task, T1053.005, a recipe name…">
+      <ul id="paletteList" role="listbox"></ul>
+      <div class="palette-foot muted small"><kbd>↑↓</kbd> move <kbd>Enter</kbd> add as new command <kbd>Shift Enter</kbd> replace current <kbd>Esc</kbd> close</div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal" hidden><div class="modal-box" role="dialog" aria-modal="true"><div id="modalBody"></div></div></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <textarea id="clipFallback" class="offscreen" aria-hidden="true" tabindex="-1"></textarea>
+
+  <script src="js/util.js"></script>
+  <script src="js/quote-posix.js"></script>
+  <script src="js/quote-pwsh.js"></script>
+  <script src="js/quote-cmd.js"></script>
+  <script src="js/encode.js"></script>
+  <script src="js/catalog.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/ioc-extract.js"></script>
+  <script src="js/validate-core.js"></script>
+  <script src="js/assemble.js"></script>
+  <script src="js/explain.js"></script>
+  <script src="js/regex-explain.js"></script>
+  <script src="js/hints.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/data.bundle.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/ui-dom.js"></script>
+  <script src="js/ui-regex.js"></script>
+  <script src="js/ui-form.js"></script>
+  <script src="js/ui-builder.js"></script>
+  <script src="js/ui-palette.js"></script>
+  <script src="js/ui-drawer.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
